@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sugebil Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* Leaflet 1.9.4 */
+ .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0; top: 0; } .leaflet-container { overflow: hidden; } .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow { -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-user-drag: none; } .leaflet-tile::selection { background: transparent; } .leaflet-safari .leaflet-tile { image-rendering: -webkit-optimize-contrast; } .leaflet-safari .leaflet-tile-container { width: 1600px; height: 1600px; -webkit-transform-origin: 0 0; } .leaflet-marker-icon, .leaflet-marker-shadow { display: block; } .leaflet-container .leaflet-overlay-pane svg { max-width: none !important; max-height: none !important; } .leaflet-container .leaflet-marker-pane img, .leaflet-container .leaflet-shadow-pane img, .leaflet-container .leaflet-tile-pane img, .leaflet-container img.leaflet-image-layer, .leaflet-container .leaflet-tile { max-width: none !important; max-height: none !important; width: auto; padding: 0; } .leaflet-container img.leaflet-tile { mix-blend-mode: plus-lighter; } .leaflet-container.leaflet-touch-zoom { -ms-touch-action: pan-x pan-y; touch-action: pan-x pan-y; } .leaflet-container.leaflet-touch-drag { -ms-touch-action: pinch-zoom; touch-action: none; touch-action: pinch-zoom; } .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom { -ms-touch-action: none; touch-action: none; } .leaflet-container { -webkit-tap-highlight-color: transparent; } .leaflet-container a { -webkit-tap-highlight-color: rgba(51, 181, 229, 0.4); } .leaflet-tile { filter: inherit; visibility: hidden; } .leaflet-tile-loaded { visibility: inherit; } .leaflet-zoom-box { width: 0; height: 0; -moz-box-sizing: border-box; box-sizing: border-box; z-index: 800; } .leaflet-overlay-pane svg { -moz-user-select: none; } .leaflet-pane         { z-index: 400; } .leaflet-tile-pane    { z-index: 200; } .leaflet-overlay-pane { z-index: 400; } .leaflet-shadow-pane  { z-index: 500; } .leaflet-marker-pane  { z-index: 600; } .leaflet-tooltip-pane   { z-index: 650; } .leaflet-popup-pane   { z-index: 700; } .leaflet-map-pane canvas { z-index: 100; } .leaflet-map-pane svg    { z-index: 200; } .leaflet-vml-shape { width: 1px; height: 1px; } .lvml { behavior: url(#default#VML); display: inline-block; position: absolute; } .leaflet-control { position: relative; z-index: 800; pointer-events: visiblePainted; pointer-events: auto; } .leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; } .leaflet-top { top: 0; } .leaflet-right { right: 0; } .leaflet-bottom { bottom: 0; } .leaflet-left { left: 0; } .leaflet-control { float: left; clear: both; } .leaflet-right .leaflet-control { float: right; } .leaflet-top .leaflet-control { margin-top: 10px; } .leaflet-bottom .leaflet-control { margin-bottom: 10px; } .leaflet-left .leaflet-control { margin-left: 10px; } .leaflet-right .leaflet-control { margin-right: 10px; } .leaflet-fade-anim .leaflet-popup { opacity: 0; -webkit-transition: opacity 0.2s linear; -moz-transition: opacity 0.2s linear; transition: opacity 0.2s linear; } .leaflet-fade-anim .leaflet-map-pane .leaflet-popup { opacity: 1; } .leaflet-zoom-animated { -webkit-transform-origin: 0 0; -ms-transform-origin: 0 0; transform-origin: 0 0; } svg.leaflet-zoom-animated { will-change: transform; } .leaflet-zoom-anim .leaflet-zoom-animated { -webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1); -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1); transition:         transform 0.25s cubic-bezier(0,0,0.25,1); } .leaflet-zoom-anim .leaflet-tile, .leaflet-pan-anim .leaflet-tile { -webkit-transition: none; -moz-transition: none; transition: none; } .leaflet-zoom-anim .leaflet-zoom-hide { visibility: hidden; } .leaflet-interactive { cursor: pointer; } .leaflet-grab { cursor: -webkit-grab; cursor:    -moz-grab; cursor:         grab; } .leaflet-crosshair, .leaflet-crosshair .leaflet-interactive { cursor: crosshair; } .leaflet-popup-pane, .leaflet-control { cursor: auto; } .leaflet-dragging .leaflet-grab, .leaflet-dragging .leaflet-grab .leaflet-interactive, .leaflet-dragging .leaflet-marker-draggable { cursor: move; cursor: -webkit-grabbing; cursor:    -moz-grabbing; cursor:         grabbing; } .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-image-layer, .leaflet-pane > svg path, .leaflet-tile-container { pointer-events: none; } .leaflet-marker-icon.leaflet-interactive, .leaflet-image-layer.leaflet-interactive, .leaflet-pane > svg path.leaflet-interactive, svg.leaflet-image-layer.leaflet-interactive path { pointer-events: visiblePainted; pointer-events: auto; } .leaflet-container { background: #ddd; outline-offset: 1px; } .leaflet-container a { color: #0078A8; } .leaflet-zoom-box { border: 2px dotted #38f; background: rgba(255,255,255,0.5); } .leaflet-container { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; font-size: 12px; font-size: 0.75rem; line-height: 1.5; } .leaflet-bar { box-shadow: 0 1px 5px rgba(0,0,0,0.65); border-radius: 4px; } .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; width: 26px; height: 26px; line-height: 26px; display: block; text-align: center; text-decoration: none; color: black; } .leaflet-bar a, .leaflet-control-layers-toggle { background-position: 50% 50%; background-repeat: no-repeat; display: block; } .leaflet-bar a:hover, .leaflet-bar a:focus { background-color: #f4f4f4; } .leaflet-bar a:first-child { border-top-left-radius: 4px; border-top-right-radius: 4px; } .leaflet-bar a:last-child { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; border-bottom: none; } .leaflet-bar a.leaflet-disabled { cursor: default; background-color: #f4f4f4; color: #bbb; } .leaflet-touch .leaflet-bar a { width: 30px; height: 30px; line-height: 30px; } .leaflet-touch .leaflet-bar a:first-child { border-top-left-radius: 2px; border-top-right-radius: 2px; } .leaflet-touch .leaflet-bar a:last-child { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; } .leaflet-control-zoom-in, .leaflet-control-zoom-out { font: bold 18px 'Lucida Console', Monaco, monospace; text-indent: 1px; } .leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  { font-size: 22px; } .leaflet-control-layers { box-shadow: 0 1px 5px rgba(0,0,0,0.4); background: #fff; border-radius: 5px; } .leaflet-control-layers-toggle { width: 36px; height: 36px; } .leaflet-retina .leaflet-control-layers-toggle { background-size: 26px 26px; } .leaflet-touch .leaflet-control-layers-toggle { width: 44px; height: 44px; } .leaflet-control-layers .leaflet-control-layers-list, .leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: none; } .leaflet-control-layers-expanded .leaflet-control-layers-list { display: block; position: relative; } .leaflet-control-layers-expanded { padding: 6px 10px 6px 6px; color: #333; background: #fff; } .leaflet-control-layers-scrollbar { overflow-y: scroll; overflow-x: hidden; padding-right: 5px; } .leaflet-control-layers-selector { margin-top: 2px; position: relative; top: 1px; } .leaflet-control-layers label { display: block; font-size: 13px; font-size: 1.08333em; } .leaflet-control-layers-separator { height: 0; border-top: 1px solid #ddd; margin: 5px -10px 5px -6px; } .leaflet-default-icon-path { } .leaflet-container .leaflet-control-attribution { background: #fff; background: rgba(255, 255, 255, 0.8); margin: 0; } .leaflet-control-attribution, .leaflet-control-scale-line { padding: 0 5px; color: #333; line-height: 1.4; } .leaflet-control-attribution a { text-decoration: none; } .leaflet-control-attribution a:hover, .leaflet-control-attribution a:focus { text-decoration: underline; } .leaflet-attribution-flag { display: inline !important; vertical-align: baseline !important; width: 1em; height: 0.6669em; } .leaflet-left .leaflet-control-scale { margin-left: 5px; } .leaflet-bottom .leaflet-control-scale { margin-bottom: 5px; } .leaflet-control-scale-line { border: 2px solid #777; border-top: none; line-height: 1.1; padding: 2px 5px 1px; white-space: nowrap; -moz-box-sizing: border-box; box-sizing: border-box; background: rgba(255, 255, 255, 0.8); text-shadow: 1px 1px #fff; } .leaflet-control-scale-line:not(:first-child) { border-top: 2px solid #777; border-bottom: none; margin-top: -2px; } .leaflet-control-scale-line:not(:first-child):not(:last-child) { border-bottom: 2px solid #777; } .leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { box-shadow: none; } .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { border: 2px solid rgba(0,0,0,0.2); background-clip: padding-box; } .leaflet-popup { position: absolute; text-align: center; margin-bottom: 20px; } .leaflet-popup-content-wrapper { padding: 1px; text-align: left; border-radius: 12px; } .leaflet-popup-content { margin: 13px 24px 13px 20px; line-height: 1.3; font-size: 13px; font-size: 1.08333em; min-height: 1px; } .leaflet-popup-content p { margin: 17px 0; margin: 1.3em 0; } .leaflet-popup-tip-container { width: 40px; height: 20px; position: absolute; left: 50%; margin-top: -1px; margin-left: -20px; overflow: hidden; pointer-events: none; } .leaflet-popup-tip { width: 17px; height: 17px; padding: 1px; margin: -10px auto 0; pointer-events: auto; -webkit-transform: rotate(45deg); -moz-transform: rotate(45deg); -ms-transform: rotate(45deg); transform: rotate(45deg); } .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: white; color: #333; box-shadow: 0 3px 14px rgba(0,0,0,0.4); } .leaflet-container a.leaflet-popup-close-button { position: absolute; top: 0; right: 0; border: none; text-align: center; width: 24px; height: 24px; font: 16px/24px Tahoma, Verdana, sans-serif; color: #757575; text-decoration: none; background: transparent; } .leaflet-container a.leaflet-popup-close-button:hover, .leaflet-container a.leaflet-popup-close-button:focus { color: #585858; } .leaflet-popup-scrolled { overflow: auto; } .leaflet-oldie .leaflet-popup-content-wrapper { -ms-zoom: 1; } .leaflet-oldie .leaflet-popup-tip { width: 24px; margin: 0 auto; -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)"; filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678); } .leaflet-oldie .leaflet-control-zoom, .leaflet-oldie .leaflet-control-layers, .leaflet-oldie .leaflet-popup-content-wrapper, .leaflet-oldie .leaflet-popup-tip { border: 1px solid #999; } .leaflet-div-icon { background: #fff; border: 1px solid #666; } .leaflet-tooltip { position: absolute; padding: 6px; background-color: #fff; border: 1px solid #fff; border-radius: 3px; color: #222; white-space: nowrap; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.4); } .leaflet-tooltip.leaflet-interactive { cursor: pointer; pointer-events: auto; } .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { position: absolute; pointer-events: none; border: 6px solid transparent; background: transparent; content: ""; } .leaflet-tooltip-bottom { margin-top: 6px; } .leaflet-tooltip-top { margin-top: -6px; } .leaflet-tooltip-bottom:before, .leaflet-tooltip-top:before { left: 50%; margin-left: -6px; } .leaflet-tooltip-top:before { bottom: 0; margin-bottom: -12px; border-top-color: #fff; } .leaflet-tooltip-bottom:before { top: 0; margin-top: -12px; margin-left: -6px; border-bottom-color: #fff; } .leaflet-tooltip-left { margin-left: -6px; } .leaflet-tooltip-right { margin-left: 6px; } .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { top: 50%; margin-top: -6px; } .leaflet-tooltip-left:before { right: 0; margin-right: -12px; border-left-color: #fff; } .leaflet-tooltip-right:before { left: 0; margin-left: -12px; border-right-color: #fff; } @media print { .leaflet-control { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } 
+</style>
+<style>
+/* Arbeidsverktøy: mørk topplinje som et skilt, lyse flater, status vises med både farge og form. */
+:root{
+  color-scheme:light;
+  --ink:#1c2a30; --muted:#5d6d72; --paper:#e9eeeb; --panel:#ffffff; --line:#d0d8d4; --accent:#0d5f6b;
+  --kommende:#2a62b8; --aktiv:#c95f06; --ferdig:#2b8048; --warn:#b93426;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif; --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:400 15px/1.4 var(--body);display:flex;flex-direction:column}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+h2{font-size:22px}h3{font-size:18px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #f0a92c;outline-offset:1px}
+header{background:var(--ink);color:#fff;display:flex;align-items:center;gap:20px;padding:0 16px;flex-wrap:wrap}
+header h1{font-size:24px;letter-spacing:.02em;padding:10px 0}
+nav{display:flex;gap:2px}
+nav button{background:none;border:0;color:#c5d2d5;padding:15px 14px 11px;border-bottom:4px solid transparent;cursor:pointer;font:600 18px var(--display)}
+nav button[aria-current=page]{color:#fff;border-bottom-color:#f0a92c}
+.demo{margin-left:auto;font-size:13px;color:#c5d2d5}
+main{flex:1;overflow:auto;min-height:0}
+.btn{background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:4px;padding:9px 14px;font-weight:600;cursor:pointer;display:inline-block;text-decoration:none;text-align:center}
+.btn.alt{background:#fff;color:var(--accent)}
+.btn.big{font:600 20px var(--display);padding:13px 16px;width:100%}
+.btn:disabled{background:#c6cfcc;border-color:#c6cfcc;color:#fff;cursor:not-allowed}
+.kontor{display:grid;grid-template-columns:350px minmax(0,1fr) 350px;height:100%}
+.col{overflow:auto;min-height:0;background:var(--panel)}
+.col.list{border-right:1px solid var(--line)}
+.col.det{border-left:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px}
+.mapwrap{position:relative;min-height:360px;background:#dfe7e0;display:flex}
+.mapwrap svg{width:100%;height:100%;display:block}
+.tools{padding:12px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:2}
+.filters{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.filter{background:#fff;border:1px solid var(--line);border-radius:4px;padding:6px 8px;cursor:pointer;text-align:left}
+.filter[aria-pressed=true]{background:#eef3f1;border-color:var(--ink)}
+.filter[aria-pressed=false]{opacity:.55}
+.filter b{font:700 24px/1 var(--display);display:block;font-variant-numeric:tabular-nums}
+.filter span{font-size:12.5px;display:flex;gap:5px;align-items:center}
+.mark{width:10px;height:10px;display:inline-block;flex:none}
+.mark.kommende{background:var(--kommende);border-radius:50%}
+.mark.aktiv{background:var(--aktiv);transform:rotate(45deg)}
+.mark.ferdig{background:var(--ferdig)}
+.row{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);border-left:5px solid transparent;padding:10px 12px;cursor:pointer}
+.row:hover{background:#f4f7f5}.row.sel{background:#e8f0f0;border-left-color:var(--accent)}
+.row .top{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.row small{color:var(--muted);display:block;font-size:13px}
+.pill{font-size:12px;font-weight:600;padding:1px 7px;border-radius:3px;white-space:nowrap;color:#fff;display:inline-block}
+.pill.kommende{background:var(--kommende)}.pill.aktiv{background:var(--aktiv)}.pill.ferdig{background:var(--ferdig)}
+.pill.warn{background:#fff;color:var(--warn);border:1px solid var(--warn)}
+.pill.ok{background:#fff;color:var(--ferdig);border:1px solid var(--ferdig)}
+.kv{display:grid;grid-template-columns:105px 1fr;gap:3px 10px;margin:0}
+.kv dt{color:var(--muted)}.kv dd{margin:0;overflow-wrap:anywhere}
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.check li{display:flex;gap:7px;align-items:baseline}
+.check li::before{content:"✓";color:var(--ferdig);font-weight:700;width:12px}
+.check li.no{color:var(--warn);font-weight:500}.check li.no::before{content:"!";color:var(--warn)}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumb{position:relative;width:84px;height:84px}
+.thumb img{width:100%;height:100%;object-fit:cover;border-radius:4px;border:1px solid var(--line);display:block}
+.thumb button{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--warn);color:#fff;cursor:pointer;line-height:1}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label,.lab{font-weight:600;font-size:14px}
+.field input,.field select,.field textarea,.sel-in{border:1px solid #aebab5;border-radius:4px;padding:10px;background:#fff;width:100%;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.driver{max-width:520px;margin:0 auto;background:var(--panel);min-height:100%;display:flex;flex-direction:column}
+.driver .pad{padding:14px;display:flex;flex-direction:column;gap:14px}
+.driver .dmap{height:280px;display:flex;background:#dfe7e0}
+.driver .dmap svg{width:100%;height:100%}
+.jobcard{border:1px solid var(--line);border-left:6px solid var(--line);border-radius:4px;padding:12px;background:#fff;text-align:left;cursor:pointer;width:100%}
+.jobcard.aktiv{border-left-color:var(--aktiv)}.jobcard.kommende{border-left-color:var(--kommende)}
+.jobcard b{font:600 19px var(--display)}
+.jobcard small{display:block;color:var(--muted)}
+.back{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:0;align-self:flex-start}
+.upl{border:2px dashed #aebab5;border-radius:4px;padding:13px;text-align:center;font-weight:600;color:var(--accent);cursor:pointer;display:block;background:#f6f8f7}
+.upl input{position:absolute;opacity:0;width:1px;height:1px}
+.upl:focus-within{outline:3px solid #f0a92c}
+.bar{height:9px;background:#e1e7e4;border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ferdig)}
+.arkiv{padding:16px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;max-width:1500px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px}
+.afil{display:flex;gap:10px;padding:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);align-items:end}
+.afil .field{flex:1 1 160px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th{font:600 15px var(--display);text-align:left;color:var(--muted);padding:8px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.on td{background:#eef4f3}
+.fak{padding:14px;display:flex;flex-direction:column;gap:12px;position:sticky;top:16px}
+.sum{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin:0;font-variant-numeric:tabular-nums}
+.sum dd{margin:0;font-weight:600;text-align:right}
+.note{font-size:13.5px;color:var(--muted);margin:0}
+.alert{font-size:14px;color:var(--warn);margin:0;font-weight:500}
+.empty{padding:24px;color:var(--muted);text-align:center;margin:0}
+.ov{position:fixed;inset:0;background:rgba(20,30,35,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;z-index:20}
+.dlg{background:#fff;border-radius:6px;padding:18px;width:100%;max-width:560px;display:flex;flex-direction:column;gap:12px}
+.dlgfoot{display:flex;gap:8px;justify-content:flex-end}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:4px;z-index:30;max-width:calc(100vw - 32px)}
+#toast:empty{display:none}
+.pin{cursor:pointer}
+.mapwrap,.dmap{isolation:isolate;position:relative}
+#lmap{flex:1;min-width:0;height:100%;background:#dfe7e0;font:inherit}
+.lpin{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font:700 13px/1 var(--body);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)}
+.lpin.kommende{background:var(--kommende);border-radius:50%}
+.lpin.ferdig{background:var(--ferdig);border-radius:3px}
+.lpin.aktiv{background:var(--aktiv);transform:rotate(45deg);border-radius:2px}
+.lpin.aktiv span{transform:rotate(-45deg)}
+.lpin.sel{border:3px solid var(--ink)}
+.leaflet-tooltip.ltip{background:var(--ink);color:#fff;border:0;border-radius:3px;font:600 14px var(--body);padding:4px 9px;box-shadow:none}
+.leaflet-tooltip.ltip::before{display:none}
+.lbar{position:absolute;top:10px;right:10px;z-index:1000;display:flex;gap:6px}
+.lbar button{background:#fff;border:1px solid #9aa7a3;border-radius:4px;padding:6px 10px;font-weight:600;font-size:13.5px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.lbar button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.mapnote{position:absolute;left:10px;top:10px;right:10px;max-width:430px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:13.5px;z-index:5}
+@media (max-width:1180px){
+  .kontor{grid-template-columns:320px minmax(0,1fr);height:auto;min-height:100%}
+  .col.det{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}
+  .mapwrap{height:560px}
+  .arkiv{grid-template-columns:1fr}.fak{position:static}
+}
+@media (max-width:760px){
+  .kontor{grid-template-columns:minmax(0,1fr)}
+  .mapwrap{height:380px;order:-1}
+  .col.list{border-right:0;max-height:none}
+  .demo{display:none}
+  .two.keep{grid-template-columns:1fr 1fr}
+  nav button{padding:12px 9px 8px;font-size:17px}
+  header{gap:4px 14px}header h1{padding:8px 0 0;width:100%}
+}
+@media (prefers-reduced-motion:no-preference){.pulse{animation:p 1.8s infinite}@keyframes p{0%{opacity:.55;r:13}100%{opacity:0;r:30}}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sugebil Tracker</h1>
+  <nav id="nav" aria-label="Hovedmeny">
+    <button data-act="go" data-v="kontor">Kontor</button>
+    <button data-act="go" data-v="sjafor">Sjåfør</button>
+    <button data-act="go" data-v="arkiv">Arkiv og faktura</button>
+  </nav>
+  <span class="demo">Demo med oppdiktede eksempeldata. Nullstilles når siden lastes på nytt.</span>
+</header>
+<main id="main"></main>
+<div id="modal"></div>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ---------- oppslag ---------- */
+const CARS=[
+ {id:"b1",name:"Bil 1",type:"Supersuger",driver:"Ola"},
+ {id:"b2",name:"Bil 2",type:"Slamsuger",driver:"Kari"},
+ {id:"b3",name:"Bil 3",type:"Spylebil",driver:"Per"},
+ {id:"b4",name:"Bil 4",type:"Slamsuger",driver:"Ingrid"}];
+const PLACES={Lillehammer:[61.115,10.466],Tretten:[61.31,10.30],"Fåvang":[61.458,10.19],Ringebu:[61.529,10.14],Vinstra:[61.597,9.75],Kvam:[61.666,9.70],Sjoa:[61.68,9.55],Otta:[61.772,9.54],Dovre:[61.985,9.25],"Dombås":[62.075,9.125],"Vågå":[61.875,9.097],Lom:[61.838,8.568],Bismo:[61.89,8.27],Lesja:[62.12,8.86]};
+const SERVICES=["Tømming septik","Tømming oljeutskiller","Tømming fettutskiller","Tømming sandfang","Høytrykkspyling","Tining av frosne rør","Tankrengjøring","Farlig avfall","Spillolje","Vakuumgraving","Blåsing av pukk","Utgraving av kjeller"];
+const MASS={"Septikslam":0,"Innhold sandfang":0,"Innhold fettutskiller":0,"Oljeholdig slam (oljeutskiller)":1,"Spillolje":1,"Annet farlig avfall":1,"Gravemasser":0,"Pukk":0,"Spylevann":0,"Ingen masse (kun spyling/inspeksjon)":0};
+const NOMASS="Ingen masse (kun spyling/inspeksjon)";
+const DEPOTS=["Renseanlegg Sør (eksempel)","Renseanlegg Nord (eksempel)","Massemottak Otta (eksempel)","Mottak farlig avfall (eksempel)","Levert tilbake på tomt"];
+const STAT={kommende:"Kommende",aktiv:"Aktiv",ferdig:"Ferdig"};
+
+/* ---------- hjelpere ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const day=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const nice=s=>{if(!s)return"";const[y,m,d]=s.split("-");return `${d}.${m}.${y}`};
+const num=n=>(Math.round(n*10)/10).toLocaleString("nb-NO");
+const car=id=>CARS.find(c=>c.id===id);
+const carName=id=>car(id)?car(id).name:"Ikke tildelt";
+function hours(j){if(!j.start||!j.end)return 0;const[a,b]=j.start.split(":").map(Number),[c,d]=j.end.split(":").map(Number);let m=c*60+d-a*60-b;if(m<0)m+=1440;return m/60}
+const isHaz=j=>MASS[j.massType]===1;
+const noMass=j=>j.massType===NOMASS;
+function requirements(j){
+  const r=[["Bilde av kjøreseddel",j.ticketPhotos.length>0],["Kjøreseddelnummer",!!j.ticketNo],["Bilde av jobben",j.jobPhotos.length>0],["Type masse",!!j.massType]];
+  if(!noMass(j)){r.push(["Mengde",+j.amount>0]);r.push(["Deponi eller mottak",!!j.disposal])}
+  if(isHaz(j))r.push(["Deklarasjonsnummer farlig avfall",!!j.decl]);
+  r.push(["Start- og sluttid",!!(j.start&&j.end)]);
+  return r;
+}
+const missing=j=>requirements(j).filter(r=>!r[1]).map(r=>r[0]);
+
+/* ---------- eksempelbilder ---------- */
+function canvas(w,h){const c=document.createElement("canvas");c.width=w;c.height=h;return[c,c.getContext("2d")]}
+function ticketImg(j){
+  const[c,x]=canvas(800,1040);
+  x.fillStyle="#f7f5ec";x.fillRect(0,0,800,1040);x.fillStyle="#222";
+  x.font="bold 46px Arial";x.fillText("KJØRESEDDEL",50,90);x.font="30px Arial";x.fillText("Nr. "+j.ticketNo,560,90);
+  x.fillRect(50,115,700,4);
+  [["Dato",nice(j.date)],["Kunde",j.customer],["Adresse",j.address],["Bil",carName(j.car)],["Masse",j.massType],["Mengde",j.amount?j.amount+" "+j.unit:""],["Levert",j.disposal],["Tid",j.start+" - "+j.end]].forEach((f,i)=>{
+    const y=185+i*88;x.font="22px Arial";x.fillStyle="#666";x.fillText(f[0],50,y);x.font="italic 31px Georgia";x.fillStyle="#17408b";x.fillText(String(f[1]).slice(0,38),210,y);x.fillStyle="#999";x.fillRect(205,y+12,545,1);
+  });
+  x.save();x.translate(400,620);x.rotate(-.42);x.font="bold 82px Arial";x.fillStyle="rgba(200,40,30,.2)";x.textAlign="center";x.fillText("EKSEMPEL",0,0);x.restore();
+  return c.toDataURL("image/jpeg",.78);
+}
+function jobImg(seed){
+  const[c,x]=canvas(960,720);
+  const g=x.createLinearGradient(0,0,0,720);g.addColorStop(0,"#b9cedc");g.addColorStop(.45,"#dfe6e4");g.addColorStop(.46,"#77756b");g.addColorStop(1,"#55544d");x.fillStyle=g;x.fillRect(0,0,960,720);
+  x.fillStyle="#6b8167";x.beginPath();x.moveTo(0,330);x.lineTo(200,160+seed*9);x.lineTo(430,300);x.lineTo(650,130+seed*7);x.lineTo(960,320);x.lineTo(960,335);x.lineTo(0,335);x.fill();
+  x.fillStyle="#d8681a";x.fillRect(130,290,500,150);x.fillStyle="#29373c";x.fillRect(630,330,170,110);x.fillStyle="#a9c8d6";x.fillRect(680,345,95,45);
+  x.fillStyle="#222";[230,540,720].forEach(p=>{x.beginPath();x.arc(p,450,44,0,7);x.fill()});
+  x.strokeStyle="#333";x.lineWidth=20;x.beginPath();x.moveTo(140,420);x.bezierCurveTo(60,520,110,600,270,610);x.stroke();
+  x.fillStyle="#33342f";x.beginPath();x.ellipse(350,620,105,36,0,0,7);x.fill();
+  x.font="bold 44px Arial";x.fillStyle="rgba(255,255,255,.85)";x.textAlign="center";x.fillText("EKSEMPELBILDE",480,80);
+  return c.toDataURL("image/jpeg",.72);
+}
+
+/* ---------- eksempeldata ---------- */
+let nextNo=2051;
+function blank(o){return Object.assign({id:"J-"+(nextNo++),status:"kommende",customer:"",contact:"",phone:"",address:"",place:"Vinstra",service:SERVICES[0],ref:"",date:day(0),car:"",note:"",massType:"",amount:"",unit:"m³",disposal:"",start:"",end:"",ticketNo:"",ticketPhotos:[],jobPhotos:[],decl:"",comment:"",invoiced:false,closedAt:"",lat:0,lon:0},o)}
+function pos(j,i){const p=PLACES[j.place];j.lat=p[0]+((i*37)%11-5)*.0075;j.lon=p[1]+((i*53)%13-6)*.018}
+const JOBS=[
+ ["kommende",{customer:"Fjellro Hytteeierlag",contact:"Anne Dal",phone:"900 00 011",address:"Fjellrovegen 14",place:"Sjoa",service:"Tømming septik",date:day(1),car:"b2",ref:"HYT-118",note:"Bom ved innkjøring. Kode hos kontoret."}],
+ ["kommende",{customer:"Dalen Verksted AS",contact:"Jon Lie",phone:"900 00 012",address:"Industrivegen 3",place:"Vinstra",service:"Tømming oljeutskiller",date:day(1),car:"b1",ref:"PO-7741"}],
+ ["kommende",{customer:"Eksempel kommune VA",contact:"Vakt VA",phone:"900 00 013",address:"Pumpestasjon Nord",place:"Dombås",service:"Tømming sandfang",date:day(2),car:"b4",ref:"K-2026-331"}],
+ ["kommende",{customer:"Gardsbruket Nordi",contact:"Liv Nordi",phone:"900 00 014",address:"Nordigardsvegen 40",place:"Lom",service:"Tining av frosne rør",date:day(2),car:"",note:"Kunden ønsker oppmøte før kl. 10."}],
+ ["kommende",{customer:"Nordbygg Anlegg AS",contact:"Geir Moen",phone:"900 00 015",address:"Byggefelt Solsida",place:"Ringebu",service:"Vakuumgraving",date:day(3),car:"b1",ref:"P-5502"}],
+ ["aktiv",{customer:"Nordbygg Anlegg AS",contact:"Geir Moen",phone:"900 00 015",address:"Tomt B7, Stasjonsvegen",place:"Otta",service:"Utgraving av kjeller",date:day(0),car:"b1",ref:"P-5498",massType:"Gravemasser",amount:"12",unit:"m³",start:"07:30",jobPhotos:["P1"]}],
+ ["aktiv",{customer:"Vegkroa Drift AS",contact:"Siri Holm",phone:"900 00 016",address:"E6-vegen 201",place:"Kvam",service:"Tømming fettutskiller",date:day(0),car:"b2",ref:"VK-90",start:"08:15"}],
+ ["aktiv",{customer:"Eksempel kommune VA",contact:"Vakt VA",phone:"900 00 013",address:"Kum 44, Elvegata",place:"Lillehammer",service:"Høytrykkspyling",date:day(0),car:"b3",ref:"K-2026-327",massType:NOMASS,start:"09:00",jobPhotos:["P2"]}],
+ ["ferdig",{customer:"Nordbygg Anlegg AS",contact:"Geir Moen",phone:"900 00 015",address:"Tomt B7, Stasjonsvegen",place:"Otta",service:"Utgraving av kjeller",date:day(-1),car:"b1",ref:"P-5498",massType:"Gravemasser",amount:"18",disposal:DEPOTS[2],start:"07:00",end:"14:30",ticketNo:"48213",jobPhotos:["P3","P4"],ticketPhotos:["T"],comment:"Trang adkomst, brukte 30 m slange."}],
+ ["ferdig",{customer:"Nordbygg Anlegg AS",contact:"Geir Moen",phone:"900 00 015",address:"Byggefelt Solsida",place:"Ringebu",service:"Blåsing av pukk",date:day(-3),car:"b1",ref:"P-5502",massType:"Pukk",amount:"9",disposal:"Levert tilbake på tomt",start:"10:00",end:"13:15",ticketNo:"48207",jobPhotos:["P5"],ticketPhotos:["T"]}],
+ ["ferdig",{customer:"Nordbygg Anlegg AS",contact:"Geir Moen",phone:"900 00 015",address:"Riggplass Sør",place:"Tretten",service:"Tømming oljeutskiller",date:day(-4),car:"b4",ref:"P-5470",massType:"Oljeholdig slam (oljeutskiller)",amount:"3.5",disposal:DEPOTS[3],decl:"3127740",start:"08:00",end:"10:45",ticketNo:"48199",jobPhotos:["P6"],ticketPhotos:["T"]}],
+ ["ferdig",{customer:"Fjellro Hytteeierlag",contact:"Anne Dal",phone:"900 00 011",address:"Fjellrovegen 8",place:"Sjoa",service:"Tømming septik",date:day(-2),car:"b2",ref:"HYT-117",massType:"Septikslam",amount:"6",disposal:DEPOTS[1],start:"11:00",end:"12:10",ticketNo:"48210",jobPhotos:["P7"],ticketPhotos:["T"]}],
+ ["ferdig",{customer:"Vegkroa Drift AS",contact:"Siri Holm",phone:"900 00 016",address:"Rasteplassen",place:"Vågå",service:"Tømming fettutskiller",date:day(-9),car:"b2",ref:"VK-88",massType:"Innhold fettutskiller",amount:"4",disposal:DEPOTS[0],start:"13:00",end:"14:20",ticketNo:"48176",jobPhotos:["P8"],ticketPhotos:["T"],invoiced:true}],
+].map(([status,o],i)=>{
+  const j=blank(Object.assign({status},o));pos(j,i);
+  if(status==="ferdig")j.closedAt=j.date;
+  j.ticketPhotos=j.ticketPhotos.map(()=>ticketImg(j));
+  j.jobPhotos=j.jobPhotos.map(p=>jobImg(+p.slice(1)));
+  return j;
+});
+
+/* ---------- tilstand ---------- */
+const S={view:["kontor","sjafor","arkiv"].includes(location.hash.slice(1))?location.hash.slice(1):"kontor",
+  show:{kommende:true,aktiv:true,ferdig:true},sel:JOBS.find(j=>j.status==="aktiv").id,
+  driverCar:"b1",driverJob:null,
+  q:"",cust:"",inv:"open",picked:new Set(JOBS.filter(j=>j.status==="ferdig"&&!j.invoiced&&j.customer==="Nordbygg Anlegg AS").map(j=>j.id))};
+const job=id=>JOBS.find(j=>j.id===id);
+
+/* ---------- kart ---------- */
+const P=(lat,lon)=>[(lon-8.05)*.476*830+6,(62.24-lat)*830+6];
+const E6=["Lillehammer","Tretten","Fåvang","Ringebu","Vinstra","Kvam","Sjoa","Otta","Dovre","Dombås"];
+const RV15=["Otta","Vågå","Lom","Bismo"], E136=["Dombås","Lesja"];
+const LABEL={Otta:[10,20,"start"],Tretten:[-10,4,"end"],Lillehammer:[-24,4,"end"]};
+const line=a=>a.map(n=>P(...PLACES[n]).map(v=>v.toFixed(1)).join(",")).join(" ");
+function mapSVG(list,sel,fit){
+  let vb="0 0 1000 1000";
+  if(fit&&list.length){
+    const pts=list.map(j=>P(j.lat,j.lon)),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
+    const w=Math.max(Math.max(...xs)-Math.min(...xs)+200,(Math.max(...ys)-Math.min(...ys)+200)*2.1,420),h=w/2.1;
+    vb=`${(cx-w/2).toFixed(0)} ${(cy-h/2).toFixed(0)} ${w.toFixed(0)} ${h.toFixed(0)}`;
+  }
+  const u=+vb.split(" ")[2]/1000,k=fit?Math.max(u,.42):1;
+  const towns=Object.keys(PLACES).map(n=>{const[x,y]=P(...PLACES[n]);const o=LABEL[n]||[8,-7,"start"];return `<circle cx="${x}" cy="${y}" r="${3*k}" fill="#47595c"/><text x="${x+o[0]*k}" y="${y+o[1]*k}" text-anchor="${o[2]}" font-size="${16*k}" fill="#47595c" font-family="Barlow,Arial" font-weight="500">${n}</text>`}).join("");
+  const pins=list.map(j=>{
+    const[x,y]=P(j.lat,j.lon),s=j.id===sel,r=(s?15:12)*k;
+    const col={kommende:"#2a62b8",aktiv:"#c95f06",ferdig:"#2b8048"}[j.status];
+    const shape=j.status==="kommende"?`<circle cx="${x}" cy="${y}" r="${r}"`:j.status==="aktiv"?`<rect x="${x-r*.95}" y="${y-r*.95}" width="${r*1.9}" height="${r*1.9}" transform="rotate(45 ${x} ${y})"`:`<rect x="${x-r*.9}" y="${y-r*.9}" width="${r*1.8}" height="${r*1.8}" rx="${2*k}"`;
+    const tag=car(j.car)?j.car.slice(1):"?";
+    return `<g class="pin" data-act="pin" data-id="${j.id}" role="button" tabindex="0" aria-label="${esc(j.id+" "+j.customer+", "+STAT[j.status])}">
+      ${j.status==="aktiv"?`<circle class="pulse" cx="${x}" cy="${y}" r="${13*k}" fill="${col}" opacity="0"/>`:""}
+      ${shape} fill="${col}" stroke="${s?"#1c2a30":"#fff"}" stroke-width="${(s?3:2)*k}"/>
+      <text x="${x}" y="${y+5*k}" text-anchor="middle" font-size="${14*k}" font-weight="700" fill="#fff" font-family="Barlow,Arial" pointer-events="none">${tag}</text></g>`}).join("");
+  const s=list.find(j=>j.id===sel);let label="";
+  if(s){const[x,y]=P(s.lat,s.lon),t=esc(s.customer),w=(t.length*8.2+18)*k;const left=x+w+26*k>+vb.split(" ")[0]+ +vb.split(" ")[2];const bx=left?x-w-20*k:x+20*k;label=`<rect x="${bx}" y="${y-14*k}" width="${w}" height="${28*k}" rx="${3*k}" fill="#1c2a30"/><text x="${bx+9*k}" y="${y+5*k}" font-size="${15*k}" fill="#fff" font-family="Barlow,Arial" font-weight="600">${t}</text>`}
+  const bar=fit?"":`<g transform="translate(40 950)"><rect width="${20/111*830}" height="5" fill="#47595c"/><text y="-7" font-size="15" fill="#47595c" font-family="Barlow,Arial">20 km</text><text x="190" y="4" font-size="14" fill="#6b7b7d" font-family="Barlow,Arial">Skjematisk kart med E6, Rv15 og E136</text></g>`;
+  return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid ${fit?"slice":"meet"}" role="img" aria-label="Kart over jobber i Gudbrandsdalen">
+    <rect x="-1500" y="-1500" width="4000" height="4000" fill="#dfe7e0"/>
+    <polyline points="${line(E6)}" fill="none" stroke="#c9dbc4" stroke-width="${46*k}" stroke-linejoin="round" stroke-linecap="round"/>
+    <polyline points="${line(RV15)}" fill="none" stroke="#c9dbc4" stroke-width="${34*k}" stroke-linejoin="round" stroke-linecap="round"/>
+    <polyline points="${line(E136)}" fill="none" stroke="#c9dbc4" stroke-width="${30*k}" stroke-linecap="round"/>
+    <polyline points="${line(E6)}" fill="none" stroke="#fff" stroke-width="${5*k}" stroke-linejoin="round"/>
+    <polyline points="${line(RV15)}" fill="none" stroke="#fff" stroke-width="${4*k}" stroke-linejoin="round"/>
+    <polyline points="${line(E136)}" fill="none" stroke="#fff" stroke-width="${4*k}"/>
+    ${towns}${pins}${label}${bar}</svg>`;
+}
+
+/* ---------- ekte bakgrunnskart (Kartverket via Leaflet), skjematisk kart som reserve ---------- */
+let lm=null,lEl=null,lLayer=null,lPins=null,mapKey="",mapStyle="topo",mapData=null;
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const realMap=()=>!S.noTiles&&!!window.L;
+function mapHost(list,sel,fit,key){
+  mapData={list,sel,key};
+  if(!realMap())return (window.L?'<div class="mapnote">Bakgrunnskartet kan ikke lastes i denne visningen. Åpne HTML-filen i en vanlig nettleser for å se det.</div>':"")+mapSVG(list,sel,fit);
+  return `<div class="lbar"><button data-act="mapstyle" data-s="topo" aria-pressed="${mapStyle==="topo"}">Farger</button><button data-act="mapstyle" data-s="topograatone" aria-pressed="${mapStyle==="topograatone"}">Gråtone</button><button data-act="mapfit">Vis alle</button></div>`;
+}
+function setMapStyle(n){
+  mapStyle=n;if(lLayer)lm.removeLayer(lLayer);
+  let ok=false,errs=0;
+  lLayer=L.tileLayer(`https://cache.kartverket.no/v1/wmts/1.0.0/${n}/default/webmercator/{z}/{y}/{x}.png`,{maxZoom:18,attribution:'© <a href="https://www.kartverket.no/" target="_blank" rel="noopener">Kartverket</a>'})
+   .on("tileload",()=>{ok=true}).on("tileerror",()=>{if(!ok&&++errs>=3&&!S.noTiles){S.noTiles=true;render()}}).addTo(lm);
+}
+function fitMap(){
+  const l=mapData.list;if(!l.length)return lm.setView([61.6,9.5],8);
+  lm.fitBounds(L.latLngBounds(l.map(j=>[j.lat,j.lon])),{padding:[46,46],maxZoom:11,animate:false});
+}
+function syncMap(){
+  const h=document.querySelector("[data-map]");
+  if(!h||!realMap())return;
+  if(!lEl){lEl=document.createElement("div");lEl.id="lmap"}
+  h.prepend(lEl);
+  if(!lm){lm=L.map(lEl).setView([61.6,9.5],8);lm.attributionControl.setPrefix(false);L.control.scale({imperial:false,position:"bottomleft"}).addTo(lm);lPins=L.layerGroup().addTo(lm);setMapStyle(mapStyle)}
+  lm.invalidateSize({animate:false});
+  lPins.clearLayers();
+  mapData.list.forEach(j=>{
+    const s=j.id===mapData.sel,z=s?34:28,tag=car(j.car)?j.car.slice(1):"?";
+    const m=L.marker([j.lat,j.lon],{title:j.id+" "+j.customer+", "+STAT[j.status],alt:j.id+" "+j.customer,zIndexOffset:s?1000:j.status==="aktiv"?500:0,
+      icon:L.divIcon({className:"",iconSize:[z,z],iconAnchor:[z/2,z/2],html:`<div class="lpin ${j.status} ${s?"sel":""}"><span>${tag}</span></div>`})});
+    m.on("click",()=>{if(S.view==="sjafor"){S.driverJob=j.id;$("#main").scrollTop=0}else S.sel=j.id;render()});
+    if(s)m.bindTooltip(esc(j.customer),{permanent:true,direction:"right",offset:[19,0],className:"ltip"});
+    lPins.addLayer(m);
+  });
+  if(mapData.key!==mapKey){mapKey=mapData.key;fitMap()}
+  if(S.fly){S.fly=false;const j=job(mapData.sel);if(j&&mapData.list.includes(j))lm.setView([j.lat,j.lon],Math.max(lm.getZoom(),11),{animate:!reduce})}
+}
+
+/* ---------- kontor ---------- */
+function vKontor(){
+  const sorted=[...JOBS].sort((a,b)=>({aktiv:0,kommende:1,ferdig:2}[a.status]-{aktiv:0,kommende:1,ferdig:2}[b.status])||(a.status==="ferdig"?b.date.localeCompare(a.date):a.date.localeCompare(b.date)));
+  const list=sorted.filter(j=>S.show[j.status]);
+  const cnt=s=>JOBS.filter(j=>j.status===s).length;
+  const rows=list.map(j=>{
+    const m=j.status==="aktiv"?missing(j).length:0;
+    return `<button class="row ${j.id===S.sel?"sel":""}" data-act="sel" data-id="${j.id}">
+      <span class="top"><span>${esc(j.customer)}</span><span class="pill ${j.status}">${STAT[j.status]}</span></span>
+      <small>${esc(j.service)} · ${esc(j.place)} · ${nice(j.date)}</small>
+      <small>${car(j.car)?esc(carName(j.car)+" ("+car(j.car).driver+")"):'<span class="pill warn">Ikke tildelt</span>'}${m?` <span class="pill warn">Mangler ${m}</span>`:""}</small></button>`}).join("")||'<p class="empty">Ingen jobber med valgte statuser.</p>';
+  const s=job(S.sel);
+  return `<div class="kontor">
+    <section class="col list" aria-label="Jobbliste">
+      <div class="tools">
+        <button class="btn" data-act="new">Legg inn ny jobb</button>
+        <div class="filters">${Object.keys(STAT).map(k=>`<button class="filter" aria-pressed="${S.show[k]}" data-act="toggle" data-k="${k}"><b>${cnt(k)}</b><span><i class="mark ${k}"></i>${STAT[k]}</span></button>`).join("")}</div>
+      </div>${rows}
+    </section>
+    <section class="mapwrap" aria-label="Kart" data-map="1">${mapHost(list,S.sel,false,"kontor")}</section>
+    <aside class="col det" aria-label="Jobbdetaljer">${s?detail(s):'<p class="empty">Velg en jobb i listen eller kartet.</p>'}</aside>
+  </div>`;
+}
+function detail(j){
+  const req=requirements(j);
+  return `<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div><h2>${esc(j.customer)}</h2><small>${j.id} · ${esc(j.service)}</small></div><span class="pill ${j.status}">${STAT[j.status]}</span></div>
+  <div class="field"><label for="d-car">Tildelt bil</label><select id="d-car" data-assign="${j.id}" ${j.status==="ferdig"?"disabled":""}><option value="">Ikke tildelt</option>${CARS.map(c=>`<option value="${c.id}" ${c.id===j.car?"selected":""}>${esc(c.name+" – "+c.type+" ("+c.driver+")")}</option>`).join("")}</select></div>
+  <dl class="kv"><dt>Adresse</dt><dd>${esc(j.address)}, ${esc(j.place)}</dd><dt>Dato</dt><dd>${nice(j.date)}</dd><dt>Kontakt</dt><dd>${esc(j.contact)} ${esc(j.phone)}</dd><dt>Kundens ref.</dt><dd>${esc(j.ref)||"–"}</dd>${j.note?`<dt>Beskjed</dt><dd>${esc(j.note)}</dd>`:""}</dl>
+  <div><div class="lab" style="margin-bottom:4px">Dokumentasjon fra sjåfør</div>${j.status==="kommende"?'<p class="note">Fylles ut når sjåføren starter jobben.</p>':`<ul class="check">${req.map(r=>`<li class="${r[1]?"":"no"}">${esc(r[0])}</li>`).join("")}</ul>`}</div>
+  ${j.ticketPhotos.length+j.jobPhotos.length?`<div class="thumbs">${[...j.ticketPhotos,...j.jobPhotos].map(p=>`<div class="thumb"><img src="${p}" alt="Bilde fra jobben"></div>`).join("")}</div>`:""}
+  ${j.status!=="ferdig"?`<div class="two"><button class="btn alt" data-act="edit" data-id="${j.id}">Rediger</button><button class="btn alt" data-act="asDriver" data-id="${j.id}" ${j.car?"":"disabled"}>Åpne som sjåfør</button></div>`:`<button class="btn alt" data-act="goarch">Åpne i arkivet</button>`}`;
+}
+
+/* ---------- jobbskjema ---------- */
+function openForm(j){
+  const v=j||{customer:"",contact:"",phone:"",address:"",place:"Vinstra",service:SERVICES[0],ref:"",date:day(1),car:"",note:""};
+  const custs=[...new Set(JOBS.map(x=>x.customer))];
+  $("#modal").innerHTML=`<div class="ov" data-act="ovclose"><form class="dlg" id="jobform" role="dialog" aria-modal="true" aria-labelledby="fh" data-id="${j?j.id:""}">
+    <h2 id="fh">${j?"Rediger "+j.id:"Ny jobb"}</h2>
+    <div class="field"><label for="f-customer">Kunde</label><input id="f-customer" name="customer" list="custs" required value="${esc(v.customer)}"><datalist id="custs">${custs.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></div>
+    <div class="two"><div class="field"><label for="f-contact">Kontaktperson</label><input id="f-contact" name="contact" value="${esc(v.contact)}"></div><div class="field"><label for="f-phone">Telefon</label><input id="f-phone" name="phone" inputmode="tel" value="${esc(v.phone)}"></div></div>
+    <div class="two"><div class="field"><label for="f-address">Adresse</label><input id="f-address" name="address" required value="${esc(v.address)}"></div><div class="field"><label for="f-place">Sted</label><select id="f-place" name="place">${Object.keys(PLACES).map(p=>`<option ${p===v.place?"selected":""}>${p}</option>`).join("")}</select></div></div>
+    <div class="two"><div class="field"><label for="f-service">Oppdragstype</label><select id="f-service" name="service">${SERVICES.map(p=>`<option ${p===v.service?"selected":""}>${p}</option>`).join("")}</select></div><div class="field"><label for="f-date">Dato</label><input id="f-date" name="date" type="date" required value="${v.date}"></div></div>
+    <div class="two"><div class="field"><label for="f-car">Bil</label><select id="f-car" name="car"><option value="">Ikke tildelt</option>${CARS.map(c=>`<option value="${c.id}" ${c.id===v.car?"selected":""}>${esc(c.name+" ("+c.driver+")")}</option>`).join("")}</select></div><div class="field"><label for="f-ref">Kundens referanse</label><input id="f-ref" name="ref" value="${esc(v.ref)}"></div></div>
+    <div class="field"><label for="f-note">Beskjed til sjåfør</label><textarea id="f-note" name="note" rows="2">${esc(v.note)}</textarea></div>
+    <div class="dlgfoot"><button type="button" class="btn alt" data-act="close">Avbryt</button><button class="btn" type="submit">${j?"Lagre":"Opprett jobb"}</button></div>
+  </form></div>`;
+  $("#f-customer").focus();
+}
+function saveForm(f){
+  const d=Object.fromEntries(new FormData(f));let j=job(f.dataset.id);
+  if(j){const moved=j.place!==d.place;Object.assign(j,d);if(moved)pos(j,JOBS.indexOf(j))}
+  else{j=blank(d);JOBS.push(j);pos(j,JOBS.length)}
+  S.sel=j.id;S.show[j.status]=true;closeM();toast(`${j.id} er lagret${j.car?" og tildelt "+carName(j.car):""}.`);render();
+}
+const closeM=()=>$("#modal").innerHTML="";
+
+/* ---------- sjåfør ---------- */
+function vSjafor(){
+  const j=S.driverJob&&job(S.driverJob);
+  return `<div class="driver">${j&&j.status!=="ferdig"?driverJob(j):driverList()}</div>`;
+}
+function driverList(){
+  const c=car(S.driverCar);
+  const mine=JOBS.filter(j=>j.car===S.driverCar&&j.status!=="ferdig").sort((a,b)=>(a.status==="aktiv"?-1:1)-(b.status==="aktiv"?-1:1)||a.date.localeCompare(b.date));
+  return `<div class="pad" style="padding-bottom:0"><div class="field"><label for="d-sel">Jeg kjører</label><select id="d-sel" data-drivercar="1">${CARS.map(x=>`<option value="${x.id}" ${x.id===S.driverCar?"selected":""}>${esc(x.name+" – "+x.driver)}</option>`).join("")}</select></div></div>
+  <div class="dmap" style="margin-top:14px" data-map="1">${mapHost(mine,null,true,"d"+S.driverCar)}</div>
+  <div class="pad"><h2>Mine jobber (${mine.length})</h2>${mine.map(j=>{const m=missing(j).length;return `<button class="jobcard ${j.status}" data-act="dj" data-id="${j.id}"><span style="display:flex;justify-content:space-between;gap:8px"><b>${esc(j.customer)}</b><span class="pill ${j.status}">${STAT[j.status]}</span></span><small>${esc(j.service)} · ${nice(j.date)}</small><small>${esc(j.address)}, ${esc(j.place)}</small>${j.status==="aktiv"?`<small style="color:var(--warn);font-weight:500">${m?m+" punkter mangler":""}</small>`:""}</button>`}).join("")||`<p class="empty">Ingen jobber på ${esc(c.name)} nå.</p>`}</div>`;
+}
+function photoField(j,key,label){
+  return `<div><div class="lab" style="margin-bottom:6px">${label}</div>
+   ${j[key].length?`<div class="thumbs" style="margin-bottom:8px">${j[key].map((p,i)=>`<div class="thumb"><img src="${p}" alt="${label} ${i+1}"><button type="button" aria-label="Fjern bilde ${i+1}" data-act="rmph" data-k="${key}" data-i="${i}">×</button></div>`).join("")}</div>`:""}
+   <label class="upl">Ta eller velg bilde<input type="file" accept="image/*" capture="environment" multiple data-photo="${key}"></label></div>`;
+}
+function checklist(j){
+  const r=requirements(j),ok=r.filter(x=>x[1]).length,no=r.filter(x=>!x[1]);
+  return `<div><div style="display:flex;justify-content:space-between" class="lab"><span>Klar til lukking</span><span>${ok} av ${r.length}</span></div><div class="bar" style="margin:5px 0 8px"><i style="width:${ok/r.length*100}%"></i></div>
+  ${no.length?`<ul class="check">${no.map(x=>`<li class="no">${esc(x[0])}</li>`).join("")}</ul>`:'<p class="note">Alt er fylt ut. Jobben kan lukkes.</p>'}</div>
+  <button class="btn big" data-act="closejob" ${no.length?"disabled":""}>Lukk jobb</button>`;
+}
+function driverJob(j){
+  const p=PLACES[j.place];
+  const nav=`https://www.google.com/maps/dir/?api=1&destination=${j.lat},${j.lon}`;
+  const head=`<button class="back" data-act="dback">‹ Mine jobber</button>
+   <div><div style="display:flex;justify-content:space-between;gap:8px"><h2>${esc(j.customer)}</h2><span class="pill ${j.status}">${STAT[j.status]}</span></div><small>${j.id} · ${esc(j.service)} · ${nice(j.date)}</small></div>
+   <dl class="kv"><dt>Adresse</dt><dd>${esc(j.address)}, ${esc(j.place)}</dd><dt>Kontakt</dt><dd>${esc(j.contact)} ${esc(j.phone)}</dd>${j.note?`<dt>Beskjed</dt><dd><b>${esc(j.note)}</b></dd>`:""}</dl>
+   <a class="btn alt" href="${nav}" target="_blank" rel="noopener">Naviger hit</a>`;
+  if(j.status==="kommende")return `<div class="pad">${head}<button class="btn big" data-act="startjob">Start jobb</button></div>`;
+  const mass=noMass(j)?"":`<div class="two keep"><div class="field"><label for="j-amount">Mengde</label><input id="j-amount" data-f="amount" type="number" min="0" step="0.5" inputmode="decimal" value="${esc(j.amount)}"></div><div class="field"><label for="j-unit">Enhet</label><select id="j-unit" data-f="unit">${["m³","tonn","liter"].map(u=>`<option ${u===j.unit?"selected":""}>${u}</option>`).join("")}</select></div></div>
+   <div class="field"><label for="j-disposal">Deponi eller mottak</label><select id="j-disposal" data-f="disposal"><option value="">Velg</option>${DEPOTS.map(d=>`<option ${d===j.disposal?"selected":""}>${esc(d)}</option>`).join("")}</select></div>`;
+  return `<div class="pad">${head}
+   ${photoField(j,"ticketPhotos","Bilde av kjøreseddel")}
+   <div class="field"><label for="j-ticket">Kjøreseddelnummer</label><input id="j-ticket" data-f="ticketNo" inputmode="numeric" value="${esc(j.ticketNo)}"></div>
+   ${photoField(j,"jobPhotos","Bilder av jobben")}
+   <div class="field"><label for="j-mass">Type masse</label><select id="j-mass" data-f="massType" data-re="1"><option value="">Velg</option>${Object.keys(MASS).map(m=>`<option ${m===j.massType?"selected":""}>${esc(m)}</option>`).join("")}</select></div>
+   ${mass}
+   ${isHaz(j)?`<div class="field"><label for="j-decl">Deklarasjonsnummer (Avfallsdeklarering.no)</label><input id="j-decl" data-f="decl" inputmode="numeric" value="${esc(j.decl)}"></div>`:""}
+   <div class="two keep"><div class="field"><label for="j-start">Start</label><input id="j-start" data-f="start" type="time" value="${j.start}"></div><div class="field"><label for="j-end">Slutt</label><input id="j-end" data-f="end" type="time" value="${j.end}"></div></div>
+   <div class="field"><label for="j-comment">Kommentar til faktura</label><textarea id="j-comment" data-f="comment" rows="2" placeholder="For eksempel ekstra slange, ventetid eller hindringer">${esc(j.comment)}</textarea></div>
+   <div id="chk" style="display:flex;flex-direction:column;gap:12px">${checklist(j)}</div></div>`;
+}
+
+/* ---------- arkiv ---------- */
+function archList(){
+  const q=S.q.toLowerCase();
+  return JOBS.filter(j=>j.status==="ferdig"&&(!S.cust||j.customer===S.cust)&&(S.inv==="all"||(S.inv==="open"?!j.invoiced:j.invoiced))&&(!q||[j.id,j.customer,j.ref,j.ticketNo,j.address,j.place,j.massType].join(" ").toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date));
+}
+const fmtAmount=j=>noMass(j)||!j.amount?"–":num(+j.amount)+" "+j.unit;
+function vArkiv(){
+  const list=archList();const custs=[...new Set(JOBS.filter(j=>j.status==="ferdig").map(j=>j.customer))].sort();
+  const allOn=list.length&&list.every(j=>S.picked.has(j.id));
+  return `<div class="arkiv"><section class="card">
+   <div class="afil"><div class="field"><label for="a-q">Søk</label><input id="a-q" data-a="q" value="${esc(S.q)}" placeholder="Kunde, kjøreseddel, referanse"></div>
+   <div class="field"><label for="a-c">Kunde</label><select id="a-c" data-a="cust"><option value="">Alle kunder</option>${custs.map(c=>`<option ${c===S.cust?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+   <div class="field"><label for="a-i">Fakturastatus</label><select id="a-i" data-a="inv"><option value="open" ${S.inv==="open"?"selected":""}>Ikke fakturert</option><option value="done" ${S.inv==="done"?"selected":""}>Fakturert</option><option value="all" ${S.inv==="all"?"selected":""}>Alle</option></select></div></div>
+   <div class="tw">${list.length?`<table><thead><tr><th><input type="checkbox" id="a-all" aria-label="Velg alle" data-all="1" ${allOn?"checked":""}></th><th>Jobb</th><th>Dato</th><th>Kunde</th><th>Ref.</th><th>Oppdrag</th><th>Masse</th><th class="n">Mengde</th><th>Deponi</th><th class="n">Timer</th><th class="n">Bilder</th><th>Status</th><th></th></tr></thead><tbody>
+   ${list.map(j=>`<tr class="${S.picked.has(j.id)?"on":""}"><td><input type="checkbox" id="pk-${j.id}" aria-label="Velg ${j.id}" data-pick="${j.id}" ${S.picked.has(j.id)?"checked":""}></td><td>${j.id}</td><td>${nice(j.date)}</td><td>${esc(j.customer)}</td><td>${esc(j.ref)}</td><td>${esc(j.service)}</td><td>${esc(j.massType)}</td><td class="n">${fmtAmount(j)}</td><td>${esc(j.disposal)||"–"}</td><td class="n">${num(hours(j))}</td><td class="n">${j.ticketPhotos.length+j.jobPhotos.length}</td><td><span class="pill ${j.invoiced?"ok":"warn"}">${j.invoiced?"Fakturert":"Ikke fakturert"}</span></td><td><button class="back" data-act="reopen" data-id="${j.id}">Gjenåpne</button></td></tr>`).join("")}</tbody></table>`:'<p class="empty">Ingen ferdige jobber passer med filteret.</p>'}</div></section>
+   <aside class="card fak" aria-label="Fakturagrunnlag">${fakPanel()}</aside></div>`;
+}
+function picked(){return [...S.picked].map(job).filter(j=>j&&j.status==="ferdig").sort((a,b)=>a.date.localeCompare(b.date))}
+function amounts(l){const m={};l.forEach(j=>{if(noMass(j)||!j.amount)return;const k=j.massType+" ("+j.unit+")";m[k]=(m[k]||0)+ +j.amount});return m}
+function fakPanel(){
+  const l=picked();if(!l.length)return '<h2>Fakturagrunnlag</h2><p class="note">Huk av ferdige jobber for å lage vedlegg til fakturaen.</p>';
+  const cs=[...new Set(l.map(j=>j.customer))],m=amounts(l),h=l.reduce((a,j)=>a+hours(j),0),ph=l.reduce((a,j)=>a+j.ticketPhotos.length+j.jobPhotos.length,0);
+  const many=cs.length>1;
+  return `<h2>Fakturagrunnlag</h2><div><b>${many?cs.length+" kunder valgt":esc(cs[0])}</b><br><small>${nice(l[0].date)} til ${nice(l[l.length-1].date)}</small></div>
+  <dl class="sum"><dt>Jobber</dt><dd>${l.length}</dd><dt>Timer</dt><dd>${num(h)}</dd>${Object.keys(m).map(k=>`<dt>${esc(k)}</dt><dd>${num(m[k])}</dd>`).join("")}<dt>Bilder og kjøresedler</dt><dd>${ph}</dd></dl>
+  ${many?'<p class="alert">Velg jobber for én kunde om gangen for å lage vedlegg.</p>':""}
+  <button class="btn" data-act="pdf" ${many?"disabled":""}>Last ned PDF-vedlegg</button>
+  <button class="btn alt" data-act="invoiced" ${many?"disabled":""}>Merk som fakturert</button>
+  <p class="note">PDF-en har en samleside og én side per jobb med kjøreseddel og bilder.</p>`;
+}
+
+/* ---------- PDF ---------- */
+function buildPdf(l){
+  const d=new window.jspdf.jsPDF({unit:"mm",format:"a4"}),L=14,W=182,cust=l[0].customer;
+  const hdr=t=>{d.setFont("helvetica","bold");d.setFontSize(18);d.setTextColor(28,42,48);d.text(t,L,20);d.setDrawColor(13,95,107);d.setLineWidth(.7);d.line(L,23,L+W,23);d.setFont("helvetica","normal");d.setFontSize(9.5)};
+  hdr("Fakturagrunnlag");
+  d.setFontSize(11);d.text(`Kunde: ${cust}`,L,31);d.setFontSize(9.5);d.setTextColor(90);
+  d.text(`Periode: ${nice(l[0].date)} - ${nice(l[l.length-1].date)}    Utskrevet: ${nice(day(0))}    Antall jobber: ${l.length}`,L,37);d.setTextColor(28,42,48);
+  const cols=[["Jobb",15],["Dato",20],["Ref.",18],["Sted",25],["Oppdrag",33],["Masse",33],["Mengde",15],["Kj.sed.",13],["Timer",10]];
+  let y=46;const head=()=>{d.setFont("helvetica","bold");let x=L;cols.forEach(c=>{d.text(c[0],x,y);x+=c[1]});d.setDrawColor(150);d.setLineWidth(.3);d.line(L,y+1.5,L+W,y+1.5);d.setFont("helvetica","normal");y+=6};head();
+  l.forEach(j=>{
+    const vals=[j.id,nice(j.date),j.ref,j.place,j.service,j.massType.replace(" (kun spyling/inspeksjon)",""),fmtAmount(j).replace("–","-"),j.ticketNo,num(hours(j))];
+    const wr=vals.map((v,i)=>d.splitTextToSize(String(v||""),cols[i][1]-1.5));const n=Math.max(...wr.map(a=>a.length));
+    if(y+n*4.2>275){d.addPage();y=20;head()}
+    let x=L;wr.forEach((a,i)=>{d.text(a,x,y);x+=cols[i][1]});y+=n*4.2+1.8;d.setDrawColor(220);d.line(L,y-3.6,L+W,y-3.6);
+  });
+  y+=5;d.setFont("helvetica","bold");d.setFontSize(11);d.text("Sum",L,y);y+=6;d.setFont("helvetica","normal");d.setFontSize(10);
+  const line2=(a,b)=>{if(y>280){d.addPage();y=20}d.text(a,L,y);d.text(b,L+110,y,{align:"right"});y+=5.5};
+  line2("Timer",num(l.reduce((a,j)=>a+hours(j),0)));const m=amounts(l);Object.keys(m).forEach(k=>line2(k,num(m[k])));
+  l.forEach(j=>{
+    d.addPage();hdr(`${j.id} - ${j.service}`);d.setFontSize(10);
+    const f=[["Kunde",j.customer],["Kundens ref.",j.ref],["Adresse",j.address+", "+j.place],["Dato",nice(j.date)],["Bil",carName(j.car)],["Tid",`${j.start} - ${j.end} (${num(hours(j))} t)`],["Kjøreseddel",j.ticketNo],["Masse",j.massType],["Mengde",fmtAmount(j).replace("–","-")],["Deponi/mottak",j.disposal||"-"]];
+    if(j.decl)f.push(["Deklarasjonsnr.",j.decl]);if(j.comment)f.push(["Kommentar",j.comment]);
+    let yy=31;f.forEach(r=>{d.setTextColor(90);d.text(r[0],L,yy);d.setTextColor(28,42,48);const t=d.splitTextToSize(String(r[1]||"-"),W-34);d.text(t,L+34,yy);yy+=5.2*t.length});
+    yy+=4;
+    const pics=[...j.ticketPhotos,...j.jobPhotos];const bw=(W-6)/2,bh=86;let i=0;
+    pics.forEach(p=>{
+      if(i%2===0&&i>0)yy+=bh+5;
+      if(yy+bh>285){d.addPage();yy=18;i=i%2}
+      const pr=d.getImageProperties(p),r=Math.min(bw/pr.width,bh/pr.height),iw=pr.width*r,ih=pr.height*r;
+      d.addImage(p,"JPEG",L+(i%2)*(bw+6),yy,iw,ih);i++;
+    });
+  });
+  return d;
+}
+async function savePdf(){
+  const l=picked();if(!l.length)return;
+  if(!window.jspdf){toast("PDF-biblioteket lastet ikke. Last siden på nytt og prøv igjen.");return}
+  const doc=buildPdf(l);
+  const name=`Fakturagrunnlag_${l[0].customer.replace(/[^\wæøåÆØÅ]+/g,"_")}_${day(0)}.pdf`;
+  try{
+    const dl=window.claude?await window.claude.use("downloads"):null;
+    if(dl){await dl.save({filename:name,data:doc.output("blob")});toast("PDF-vedlegget er lastet ned.")}
+    else if(window.claude){toast("Nedlasting er ikke tilgjengelig i denne visningen. Åpne siden på claude.ai.")}
+    else{doc.save(name);toast("PDF-vedlegget er lastet ned.")}
+  }catch(e){if(e&&e.code!=="declined")toast("PDF-en ble ikke lagret. Prøv igjen.")}
+}
+
+/* ---------- foto ---------- */
+function shrink(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();i.onload=()=>{const r=Math.min(1,1400/Math.max(i.width,i.height)),[c,x]=canvas(Math.round(i.width*r),Math.round(i.height*r));x.drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",.8))};i.onerror=rej;i.src=u})}
+
+/* ---------- render og hendelser ---------- */
+function toast(t){const e=$("#toast");e.textContent=t;clearTimeout(toast.t);toast.t=setTimeout(()=>e.textContent="",3600)}
+function render(){
+  const m=$("#main"),top=m.scrollTop;
+  if(lEl)lEl.remove();
+  m.innerHTML=S.view==="kontor"?vKontor():S.view==="sjafor"?vSjafor():vArkiv();
+  m.scrollTop=top;
+  syncMap();
+  document.querySelectorAll("#nav button").forEach(b=>{if(b.dataset.v===S.view)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+}
+function go(v){S.view=v;try{location.hash=v}catch(e){}$("#main").scrollTop=0;render()}
+function refreshFak(){const a=$(".fak");if(a)a.innerHTML=fakPanel()}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-act]");if(!t)return;
+  const a=t.dataset.act,id=t.dataset.id,dj=S.driverJob&&job(S.driverJob);
+  if(a==="ovclose"){if(e.target===t)closeM();return}
+  if(a==="go")go(t.dataset.v);
+  else if(a==="mapstyle"){setMapStyle(t.dataset.s);render()}
+  else if(a==="mapfit")fitMap();
+  else if(a==="sel"||a==="pin"){S.fly=a==="sel";if(S.view==="sjafor"){S.driverJob=id;$("#main").scrollTop=0}else S.sel=id;render()}
+  else if(a==="toggle"){S.show[t.dataset.k]=!S.show[t.dataset.k];render()}
+  else if(a==="new")openForm();
+  else if(a==="edit")openForm(job(id));
+  else if(a==="close")closeM();
+  else if(a==="asDriver"){S.driverCar=job(id).car;S.driverJob=id;go("sjafor")}
+  else if(a==="goarch"){const j=job(S.sel);S.inv=j.invoiced?"done":"open";S.cust=j.customer;go("arkiv")}
+  else if(a==="dj"){S.driverJob=id;$("#main").scrollTop=0;render()}
+  else if(a==="dback"){S.driverJob=null;$("#main").scrollTop=0;render()}
+  else if(a==="startjob"){dj.status="aktiv";const n=new Date();if(!dj.start)dj.start=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");render();toast("Jobben er startet. Starttid er fylt inn.")}
+  else if(a==="rmph"){dj[t.dataset.k].splice(+t.dataset.i,1);render()}
+  else if(a==="closejob"){if(missing(dj).length)return;dj.status="ferdig";dj.closedAt=day(0);S.sel=dj.id;S.driverJob=null;$("#main").scrollTop=0;render();toast(`${dj.id} er lukket og ligger i arkivet.`)}
+  else if(a==="reopen"){const j=job(id);j.status="aktiv";j.invoiced=false;S.picked.delete(id);render();toast(`${id} er gjenåpnet for retting.`)}
+  else if(a==="pdf")savePdf();
+  else if(a==="invoiced"){const l=picked();l.forEach(j=>{j.invoiced=true;S.picked.delete(j.id)});render();toast(`${l.length} jobber er merket som fakturert.`)}
+});
+document.addEventListener("keydown",e=>{
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("g.pin")){e.preventDefault();e.target.dispatchEvent(new MouseEvent("click",{bubbles:true}))}
+  if(e.key==="Escape"&&$("#modal").innerHTML)closeM();
+});
+document.addEventListener("submit",e=>{e.preventDefault();if(e.target.id==="jobform")saveForm(e.target)});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.f&&!t.dataset.re){const j=job(S.driverJob);j[t.dataset.f]=t.value;const c=$("#chk");if(c)c.innerHTML=checklist(j)}
+  else if(t.dataset.a==="q"){S.q=t.value;const p=t.selectionStart;render();const n=$("#a-q");n.focus();n.setSelectionRange(p,p)}
+});
+document.addEventListener("change",async e=>{
+  const t=e.target,d=t.dataset;
+  if(d.assign){job(d.assign).car=t.value;render();toast(t.value?`Tildelt ${carName(t.value)}.`:"Tildeling er fjernet.")}
+  else if(d.drivercar){S.driverCar=t.value;render()}
+  else if(d.re){job(S.driverJob)[d.f]=t.value;render()}
+  else if(d.a&&d.a!=="q"){S[d.a]=t.value;render()}
+  else if(d.pick){t.checked?S.picked.add(d.pick):S.picked.delete(d.pick);t.closest("tr").classList.toggle("on",t.checked);refreshFak()}
+  else if(d.all){archList().forEach(j=>t.checked?S.picked.add(j.id):S.picked.delete(j.id));render()}
+  else if(d.photo){const j=job(S.driverJob);try{for(const f of t.files)j[d.photo].push(await shrink(f));render()}catch(err){toast("Bildet kunne ikke leses. Velg et JPG- eller PNG-bilde.")}}
+});
+window.addEventListener("hashchange",()=>{const v=location.hash.slice(1);if(["kontor","sjafor","arkiv"].includes(v)&&v!==S.view){S.view=v;render()}});
+render();
+</script>
+</body>
+</html>
