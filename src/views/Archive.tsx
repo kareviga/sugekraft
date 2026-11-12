@@ -7,6 +7,7 @@ import { cx, dayOffset, fmtAmount, hours, jobDriverName, nice, num, totals, vehi
 import { totalHours } from '../lib/steps';
 import { StepTimeline } from '../components/Steps';
 import type { Job } from '../types';
+import { tr, trd } from '../i18n';
 
 export interface ArchivePreset {
   customer: string;
@@ -84,10 +85,10 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
       const { buildInvoicePdf } = await import('../lib/pdf');
       const { doc, filename } = await buildInvoicePdf(sel);
       doc.save(filename);
-      toast('PDF-en er lastet ned.');
+      toast(tr('PDF-en er lastet ned.'));
     } catch (e) {
       console.error(e);
-      toast('PDF-en kunne ikke lages. Prøv igjen.');
+      toast(tr('PDF-en kunne ikke lages. Prøv igjen.'));
     } finally {
       setBusy(false);
     }
@@ -105,50 +106,54 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
       <section className="card">
         <div className="afil">
           <div className="field grow">
-            <label htmlFor="a-q">Søk</label>
-            <input id="a-q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Jobbnr, kunde, kjøreseddel, referanse …" />
+            <label htmlFor="a-q">{tr('Søk')}</label>
+            <input id="a-q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Jobbnr, kunde, kjøreseddel, referanse …')} />
           </div>
           <div className="field">
-            <label htmlFor="a-c">Kunde</label>
+            <label htmlFor="a-c">{tr('Kunde')}</label>
             <select id="a-c" value={cust} onChange={e => setCust(e.target.value)}>
-              <option value="">Alle kunder</option>
+              <option value="">{tr('Alle kunder')}</option>
               {customers.map(c => (
-                <option key={c}>{c}</option>
+                <option key={c} value={c}>
+                  {trd(c)}
+                </option>
               ))}
             </select>
           </div>
           <div className="field">
-            <label htmlFor="a-s">Oppdragstype</label>
+            <label htmlFor="a-s">{tr('Oppdragstype')}</label>
             <select id="a-s" value={service} onChange={e => setService(e.target.value)}>
-              <option value="">Alle typer</option>
+              <option value="">{tr('Alle typer')}</option>
               {config.services.map(c => (
-                <option key={c}>{c}</option>
+                <option key={c} value={c}>
+                  {trd(c)}
+                </option>
               ))}
             </select>
           </div>
           <div className="field">
-            <label htmlFor="a-i">Fakturastatus</label>
+            <label htmlFor="a-i">{tr('Fakturastatus')}</label>
             <select id="a-i" value={inv} onChange={e => setInv(e.target.value as Inv)}>
-              <option value="open">Ikke fakturert</option>
-              <option value="done">Fakturert</option>
-              <option value="all">Alle</option>
+              <option value="open">{tr('Ikke fakturert')}</option>
+              <option value="done">{tr('Fakturert')}</option>
+              <option value="all">{tr('Alle')}</option>
             </select>
           </div>
           <div className="field">
-            <label htmlFor="a-from">Fra dato</label>
+            <label htmlFor="a-from">{tr('Fra dato')}</label>
             <input id="a-from" type="date" value={from} onChange={e => setFrom(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="a-to">Til dato</label>
+            <label htmlFor="a-to">{tr('Til dato')}</label>
             <input id="a-to" type="date" value={to} onChange={e => setTo(e.target.value)} />
           </div>
         </div>
         <div className="abar">
           <span>
-            <b>{list.length}</b> av {done.length} ferdige jobber
+            <b>{list.length}</b> {tr('av')} {done.length} {tr('ferdige jobber')}
           </span>
           <button className="link" onClick={clearFilters}>
-            Nullstill filter
+            {tr('Nullstill filter')}
           </button>
         </div>
         <div className="tw">
@@ -159,7 +164,7 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                   <th>
                     <input
                       type="checkbox"
-                      aria-label="Velg alle i listen"
+                      aria-label={tr('Velg alle i listen')}
                       checked={allOn}
                       onChange={e =>
                         setPicked(p => {
@@ -170,24 +175,24 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                       }
                     />
                   </th>
-                  <th>Jobb</th>
-                  <th>Dato</th>
-                  <th>Kunde</th>
-                  <th>Ref.</th>
-                  <th>Oppdrag</th>
-                  <th>Masse</th>
-                  <th className="n">Mengde</th>
-                  <th>Deponi</th>
-                  <th className="n">Timer</th>
-                  <th className="n">Bilder</th>
-                  <th>Status</th>
+                  <th>{tr('Jobb')}</th>
+                  <th>{tr('Dato')}</th>
+                  <th>{tr('Kunde')}</th>
+                  <th>{tr('Ref.')}</th>
+                  <th>{tr('Oppdrag')}</th>
+                  <th>{tr('Masse')}</th>
+                  <th className="n">{tr('Mengde')}</th>
+                  <th>{tr('Deponi')}</th>
+                  <th className="n">{tr('Timer')}</th>
+                  <th className="n">{tr('Bilder')}</th>
+                  <th>{tr('Status')}</th>
                 </tr>
               </thead>
               <tbody>
                 {list.map(j => (
                   <tr key={j.id} className={cx(picked.has(j.id) && 'on')} onClick={e => (e.target as HTMLElement).closest('input') || setView(j.id)}>
                     <td>
-                      <input type="checkbox" aria-label={`Velg ${j.id}`} checked={picked.has(j.id)} onChange={e => toggle(j.id, e.target.checked)} />
+                      <input type="checkbox" aria-label={tr('Velg {id}', { id: j.id })} checked={picked.has(j.id)} onChange={e => toggle(j.id, e.target.checked)} />
                     </td>
                     <td className="nw">
                       <button className="link" onClick={() => setView(j.id)}>
@@ -197,34 +202,34 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                     <td className="nw">{nice(j.date)}</td>
                     <td>{j.customer}</td>
                     <td className="nw">{j.ref || '–'}</td>
-                    <td>{j.service}</td>
-                    <td>{j.massType}</td>
+                    <td>{trd(j.service)}</td>
+                    <td>{trd(j.massType)}</td>
                     <td className="n">{fmtAmount(j)}</td>
-                    <td>{j.disposal || '–'}</td>
+                    <td>{trd(j.disposal) || '–'}</td>
                     <td className="n">{num(hours(j))}</td>
                     <td className="n">{j.ticketPhotos.length + j.jobPhotos.length}</td>
                     <td>
-                      <span className={`pill ${j.invoiced ? 'ok' : 'warn'}`}>{j.invoiced ? 'Fakturert' : 'Ikke fakturert'}</span>
+                      <span className={`pill ${j.invoiced ? 'ok' : 'warn'}`}>{j.invoiced ? tr('Fakturert') : tr('Ikke fakturert')}</span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <p className="empty">Ingen ferdige jobber passer med filteret.</p>
+            <p className="empty">{tr('Ingen ferdige jobber passer med filteret.')}</p>
           )}
         </div>
       </section>
 
-      <aside className="card fak" aria-label="Fakturagrunnlag">
-        <h2>Fakturagrunnlag</h2>
+      <aside className="card fak" aria-label={tr('Fakturagrunnlag')}>
+        <h2>{tr('Fakturagrunnlag')}</h2>
         {!sel.length ? (
           <>
-            <p className="note">Huk av ferdige jobber for én kunde for å lage PDF-vedlegg til fakturaen.</p>
+            <p className="note">{tr('Huk av ferdige jobber for én kunde for å lage PDF-vedlegg til fakturaen.')}</p>
             {openByCustomer.length > 0 && (
               <div>
                 <div className="lab" style={{ marginBottom: 6 }}>
-                  Klar for fakturering
+                  {tr('Klar for fakturering')}
                 </div>
                 <ul className="quick">
                   {openByCustomer.map(([c, n]) => (
@@ -239,7 +244,7 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                       >
                         {c}
                       </button>
-                      <span>{n} jobber</span>
+                      <span>{tr('{n} jobber', { n })}</span>
                     </li>
                   ))}
                 </ul>
@@ -266,18 +271,18 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
             updateJob(openJob.id, { status: 'aktiv', invoiced: false, invoicedAt: '', closedAt: '' }, true);
             toggle(openJob.id, false);
             setView(null);
-            toast(`${openJob.id} er gjenåpnet og ligger hos sjåføren igjen.`);
+            toast(tr('{id} er gjenåpnet og ligger hos sjåføren igjen.', { id: openJob.id }));
           }}
           onToggleInvoiced={() => {
             updateJob(openJob.id, { invoiced: !openJob.invoiced, invoicedAt: openJob.invoiced ? '' : dayOffset(0) }, true);
-            toast(openJob.invoiced ? `${openJob.id} er satt til ikke fakturert.` : `${openJob.id} er merket som fakturert.`);
+            toast(openJob.invoiced ? tr('{id} er satt til ikke fakturert.', { id: openJob.id }) : tr('{id} er merket som fakturert.', { id: openJob.id }));
           }}
         />
       )}
       {confirmInv && (
         <Confirm
-          title="Merk som fakturert?"
-          text={`${sel.length} jobber for ${selCustomers[0]} merkes som fakturert og flyttes ut av listen «Ikke fakturert».`}
+          title={tr('Merk som fakturert?')}
+          text={tr('{n} jobber for {c} merkes som fakturert og flyttes ut av listen «Ikke fakturert».', { n: sel.length, c: selCustomers[0] })}
           ok="Merk som fakturert"
           onClose={() => setConfirmInv(false)}
           onOk={() => {
@@ -286,7 +291,7 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
               { invoiced: true, invoicedAt: dayOffset(0) },
             );
             setPicked(new Set());
-            toast(`${sel.length} jobber er merket som fakturert.`);
+            toast(tr('{n} jobber er merket som fakturert.', { n: sel.length }));
           }}
         />
       )}
@@ -314,15 +319,15 @@ function SelPanel({
   return (
     <>
       <div>
-        <b className="fakcust">{many ? `${customers.length} kunder valgt` : customers[0]}</b>
+        <b className="fakcust">{many ? tr('{n} kunder valgt', { n: customers.length }) : customers[0]}</b>
         <small className="muted">
           {nice(sel[0].date)} – {nice(sel[sel.length - 1].date)}
         </small>
       </div>
       <dl className="sum">
-        <dt>Jobber</dt>
+        <dt>{tr('Jobber')}</dt>
         <dd>{sel.length}</dd>
-        <dt>Timer</dt>
+        <dt>{tr('Timer')}</dt>
         <dd>{num(s.hours)}</dd>
         {Object.entries(s.amounts).map(([k, v]) => (
           <div className="sumrow" key={k}>
@@ -330,21 +335,21 @@ function SelPanel({
             <dd>{num(v)}</dd>
           </div>
         ))}
-        <dt>Bilder og kjøresedler</dt>
+        <dt>{tr('Bilder og kjøresedler')}</dt>
         <dd>{s.photos}</dd>
       </dl>
-      {many && <p className="alert">Velg jobber for én kunde om gangen for å lage vedlegg.</p>}
-      {sel.some(j => j.invoiced) && !many && <p className="note">Noen av de valgte jobbene er allerede fakturert.</p>}
+      {many && <p className="alert">{tr('Velg jobber for én kunde om gangen for å lage vedlegg.')}</p>}
+      {sel.some(j => j.invoiced) && !many && <p className="note">{tr('Noen av de valgte jobbene er allerede fakturert.')}</p>}
       <button className="btn" onClick={onPdf} disabled={many || busy}>
         {busy ? 'Lager PDF …' : 'Last ned PDF-vedlegg'}
       </button>
       <button className="btn alt" onClick={onInvoiced} disabled={many}>
-        Merk som fakturert
+        {tr('Merk som fakturert')}
       </button>
       <button className="link" onClick={onClear}>
-        Fjern valg
+        {tr('Fjern valg')}
       </button>
-      <p className="note">PDF-en har en samleside og én side per jobb med kjøreseddel og bilder.</p>
+      <p className="note">{tr('PDF-en har en samleside og én side per jobb med kjøreseddel og bilder.')}</p>
     </>
   );
 }
@@ -353,37 +358,37 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
   const [zoom, setZoom] = useState<string | null>(null);
   const v = vehicle(j.car);
   const rows: [string, string][] = [
-    ['Kunde', j.customer],
-    ['Kontakt', [j.contact, j.phone].filter(Boolean).join(', ')],
-    ['Kundens ref.', j.ref || '–'],
-    ['Adresse', `${j.address}, ${j.place}`],
-    ['Dato', nice(j.date)],
-    ['Arbeidstid', j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
-    ['Total tid', totalHours(j) ? `${j.steps.kjoring?.time} – ${j.steps.ferdig?.time ?? '…'} (${num(totalHours(j))} t, inkl. kjøring)` : '–'],
-    ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '–'} / ${jobDriverName(j) || '–'}`],
-    ['Kjøreseddel', j.ticketNo || '–'],
-    ['Masse', j.massType || '–'],
-    ['Mengde', fmtAmount(j)],
-    ['Deponi / mottak', j.disposal || '–'],
+    [tr('Kunde'), j.customer],
+    [tr('Kontakt'), [j.contact, j.phone].filter(Boolean).join(', ')],
+    [tr('Kundens ref.'), j.ref || '–'],
+    [tr('Adresse'), `${j.address}, ${j.place}`],
+    [tr('Dato'), nice(j.date)],
+    [tr('Arbeidstid'), j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
+    [tr('Total tid'), totalHours(j) ? `${j.steps.kjoring?.time} – ${j.steps.ferdig?.time ?? '…'} (${num(totalHours(j))} ${tr('t, inkl. kjøring')})` : '–'],
+    [tr('Bil / sjåfør'), `${v ? `${v.name} (${v.regNr})` : '–'} / ${jobDriverName(j) || '–'}`],
+    [tr('Kjøreseddel'), j.ticketNo || '–'],
+    [tr('Masse'), trd(j.massType) || '–'],
+    [tr('Mengde'), fmtAmount(j)],
+    [tr('Deponi / mottak'), trd(j.disposal) || '–'],
   ];
-  if (j.decl) rows.push(['Deklarasjonsnr.', j.decl]);
-  if (j.comment) rows.push(['Kommentar', j.comment]);
-  if (j.invoiced) rows.push(['Fakturert', nice(j.invoicedAt)]);
+  if (j.decl) rows.push([tr('Deklarasjonsnr.'), j.decl]);
+  if (j.comment) rows.push([tr('Kommentar'), j.comment]);
+  if (j.invoiced) rows.push([tr('Fakturert'), nice(j.invoicedAt)]);
   return (
     <Modal
       wide
-      title={`${j.id} · ${j.service}`}
+      title={`${j.id} · ${trd(j.service)}`}
       onClose={onClose}
       footer={
         <>
           <button className="btn alt" onClick={onReopen}>
-            Gjenåpne for retting
+            {tr('Gjenåpne for retting')}
           </button>
           <button className="btn alt" onClick={onToggleInvoiced}>
-            {j.invoiced ? 'Sett til ikke fakturert' : 'Merk som fakturert'}
+            {j.invoiced ? tr('Sett til ikke fakturert') : tr('Merk som fakturert')}
           </button>
           <button className="btn" onClick={onClose}>
-            Lukk
+            {tr('Lukk')}
           </button>
         </>
       }
@@ -396,9 +401,9 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
           </div>
         ))}
       </dl>
-      <div className="lab">Statuspunkter</div>
+      <div className="lab">{tr('Statuspunkter')}</div>
       <StepTimeline j={j} />
-      <div className="lab">Kjøreseddel og bilder</div>
+      <div className="lab">{tr('Kjøreseddel og bilder')}</div>
       <Thumbs job={j} refs={[...j.ticketPhotos, ...j.jobPhotos]} onOpen={setZoom} />
       {zoom && <Lightbox src={zoom} onClose={() => setZoom(null)} />}
     </Modal>

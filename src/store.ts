@@ -5,6 +5,7 @@ import { toast } from './lib/toast';
 import { dayOffset, daysBetween, shiftDate } from './lib/utils';
 import type { Client, Job, JobOrder } from './types';
 import { nowHHMM } from './lib/utils';
+import { tr } from './i18n';
 
 /*
  * Enkel lagring i localStorage. Ingen backend.
@@ -85,7 +86,7 @@ function persistNow() {
   try {
     localStorage.setItem(config.storageKey, JSON.stringify(db));
   } catch {
-    toast('Lagringsplassen i nettleseren er full. Fjern noen bilder eller nullstill demoen.');
+    toast(tr('Lagringsplassen i nettleseren er full. Fjern noen bilder eller nullstill demoen.'));
   }
 }
 function commit(next: DB, immediate = false) {

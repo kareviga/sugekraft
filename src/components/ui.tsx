@@ -5,9 +5,10 @@ import { onToast, type ToastAction } from '../lib/toast';
 import { photoSrc } from '../lib/photos';
 import { requirements } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
+import { tr } from '../i18n';
 
 export function Pill({ status }: { status: Status }) {
-  return <span className={`pill ${status}`}>{STATUS_LABEL[status]}</span>;
+  return <span className={`pill ${status}`}>{tr(STATUS_LABEL[status])}</span>;
 }
 
 export function Mark({ status }: { status: Status }) {
@@ -40,7 +41,7 @@ export function Modal({
       <div className={`dlg${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" ref={ref}>
         <div className="dlghead">
           <h2>{title}</h2>
-          <button className="x" type="button" aria-label="Lukk" onClick={onClose}>
+          <button className="x" type="button" aria-label={tr('Lukk')} onClick={onClose}>
             ×
           </button>
         </div>
@@ -74,7 +75,7 @@ export function Confirm({
       footer={
         <>
           <button className="btn alt" onClick={onClose}>
-            Avbryt
+            {tr('Avbryt')}
           </button>
           <button
             className={`btn${danger ? ' danger' : ''}`}
@@ -133,9 +134,9 @@ export function Thumbs({ job, refs, onRemove, onOpen }: { job: Job; refs: string
     <div className="thumbs">
       {refs.map((r, i) => (
         <div className="thumb" key={i + r.slice(-24)}>
-          <img src={photoSrc(r, job)} alt={`Bilde ${i + 1}`} onClick={() => onOpen?.(photoSrc(r, job))} style={onOpen ? { cursor: 'zoom-in' } : undefined} />
+          <img src={photoSrc(r, job)} alt={tr('Bilde {n}', { n: i + 1 })} onClick={() => onOpen?.(photoSrc(r, job))} style={onOpen ? { cursor: 'zoom-in' } : undefined} />
           {onRemove && (
-            <button type="button" aria-label={`Fjern bilde ${i + 1}`} onClick={() => onRemove(i)}>
+            <button type="button" aria-label={tr('Fjern bilde {n}', { n: i + 1 })} onClick={() => onRemove(i)}>
               ×
             </button>
           )}
@@ -156,8 +157,8 @@ export function Lightbox({ src, onClose }: { src: string; onClose: () => void })
     return () => document.removeEventListener('keydown', k, true);
   }, [onClose]);
   return createPortal(
-    <div className="ov lightbox" onClick={onClose} role="dialog" aria-label="Bilde">
-      <img src={src} alt="Forstørret bilde" />
+    <div className="ov lightbox" onClick={onClose} role="dialog" aria-label={tr('Bilde')}>
+      <img src={src} alt={tr('Forstørret bilde')} />
     </div>,
     document.body,
   );
@@ -169,9 +170,9 @@ export function Checklist({ job }: { job: Job }) {
   return (
     <div className="checkwrap">
       <div className="lab spread">
-        <span>Dokumentasjon</span>
+        <span>{tr('Dokumentasjon')}</span>
         <span>
-          {ok} av {r.length}
+          {tr('{a} av {b}', { a: ok, b: r.length })}
         </span>
       </div>
       <div className="bar">

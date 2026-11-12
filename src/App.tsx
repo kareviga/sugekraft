@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { config, type Role } from './config';
 import { Login } from './components/Login';
+import { LangSwitch } from './components/LangSwitch';
 import { Confirm, Logo, Toasts } from './components/ui';
 import { resetDemo, useJobs } from './store';
 import { logout, ROLE_LABEL, useSession } from './lib/auth';
@@ -12,6 +13,7 @@ import { Driver } from './views/Driver';
 import { Fleet } from './views/Fleet';
 import { Office } from './views/Office';
 import type { View } from './types';
+import { tr, useLang } from './i18n';
 
 /** Fanene hver rolle har tilgang til */
 const VIEWS: Record<Role, [View, string][]> = {
@@ -32,9 +34,10 @@ const fromHash = (role: Role): View => {
 
 export function App() {
   const user = useSession();
+  const lang = useLang();
   return (
     <>
-      {user ? <Shell key={user.username} /> : <Login />}
+      {user ? <Shell key={`${user.username}-${lang}`} /> : <Login key={lang} />}
       <Toasts />
     </>
   );
@@ -80,32 +83,33 @@ function Shell() {
           <div>
             <h1>{config.company.name}</h1>
             <span className="product">
-              {user.role === 'client' ? 'Kundeportal' : 'Drevet av'} <b>{config.appName}</b>
+              {user.role === 'client' ? tr('Kundeportal') : tr('Drevet av')} <b>{config.appName}</b>
             </span>
           </div>
         </div>
         {isAdmin && (
-          <nav aria-label="Hovedmeny">
+          <nav aria-label={tr('Hovedmeny')}>
             {VIEWS.admin.map(([k, l]) => (
               <button key={k} aria-current={view === k ? 'page' : undefined} onClick={() => go(k)}>
-                {l}
+                {tr(l)}
                 {k === 'kontor' && requests.length > 0 && <span className="navbadge">{requests.length}</span>}
               </button>
             ))}
           </nav>
         )}
         <div className="demo">
+          <LangSwitch />
           <span className="who">
             <b>{user.name}</b>
-            <small>{ROLE_LABEL[user.role]}</small>
+            <small>{tr(ROLE_LABEL[user.role])}</small>
           </span>
           {isAdmin && (
-            <button className="resetbtn" onClick={() => setConfirmReset(true)} title="Nullstill demoen">
-              Nullstill demo
+            <button className="resetbtn" onClick={() => setConfirmReset(true)} title={tr('Nullstill demoen')}>
+              {tr('Nullstill demo')}
             </button>
           )}
           <button className="resetbtn" onClick={logout}>
-            Logg ut
+            {tr('Logg ut')}
           </button>
         </div>
       </header>
@@ -167,7 +171,7 @@ function Shell() {
 
       {confirmReset && (
         <Confirm
-          title="Nullstille demoen?"
+          title={tr('Nullstille demoen?')}
           text="Alle endringer, nye jobber, kunder og bilder slettes, og eksempeldataene lastes inn på nytt."
           ok="Nullstill"
           danger
@@ -178,7 +182,7 @@ function Shell() {
             setDriverJob(null);
             setPreset(null);
             setResetKey(k => k + 1);
-            toast('Demoen er nullstilt.');
+            toast(tr('Demoen er nullstilt.'));
           }}
         />
       )}

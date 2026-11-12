@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { config } from '../config';
 import { vehicle } from '../lib/utils';
 import { STATUS_LABEL, type Job } from '../types';
+import { tr } from '../i18n';
 
 /*
  * Leaflet-kart med Kartverkets topografiske kart (cache.kartverket.no, webmercator).
@@ -89,7 +90,7 @@ export function JobMap({
       const z = tags ? (sel ? 32 : 28) : sel ? 28 : 22;
       const tag = tags ? vehicle(j.car)?.tag ?? '' : '';
       const m = L.marker([j.lat, j.lon], {
-        title: `${j.id} ${j.customer} – ${STATUS_LABEL[j.status]}`,
+        title: `${j.id} ${j.customer} – ${tr(STATUS_LABEL[j.status])}`,
         alt: `${j.id} ${j.customer}`,
         keyboard: true,
         zIndexOffset: sel ? 1000 : j.status === 'aktiv' ? 500 : 0,
@@ -131,19 +132,19 @@ export function JobMap({
 
   return (
     <div className="mapbox">
-      <div ref={el} className="lmap" role="region" aria-label="Kart over jobber" />
+      <div ref={el} className="lmap" role="region" aria-label={tr('Kart over jobber')} />
       {!compact && (
       <div className="lbar">
         <button aria-pressed={style === 'topo'} onClick={() => setStyle('topo')}>
-          Farger
+          {tr('Farger')}
         </button>
         <button aria-pressed={style === 'topograatone'} onClick={() => setStyle('topograatone')}>
-          Gråtone
+          {tr('Gråtone')}
         </button>
-        <button onClick={fit}>Vis alle</button>
+        <button onClick={fit}>{tr('Vis alle')}</button>
       </div>
       )}
-      {offline && <div className="mapnote">Bakgrunnskartet fra Kartverket kunne ikke lastes. Sjekk nettforbindelsen.</div>}
+      {offline && <div className="mapnote">{tr('Bakgrunnskartet fra Kartverket kunne ikke lastes. Sjekk nettforbindelsen.')}</div>}
     </div>
   );
 }

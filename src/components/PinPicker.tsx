@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import { useEffect, useRef, useState } from 'react';
 import { config } from '../config';
+import { tr } from '../i18n';
 
 /*
  * Lite kart i jobbskjemaet. Klikk i kartet eller dra nålen for å plassere jobben.
@@ -88,13 +89,13 @@ export function PinPicker({ pos, onPick, focusKey }: { pos: Pos | null; onPick: 
 
   return (
     <div className="picker">
-      <div ref={el} className="pickmap" aria-label="Kart for å plassere jobben. Klikk for å sette nålen." />
+      <div ref={el} className="pickmap" aria-label={tr('Kart for å plassere jobben. Klikk for å sette nålen.')} />
       {'geolocation' in navigator && (
         <button type="button" className="locate" onClick={locate} disabled={locating}>
           {locating ? 'Finner posisjon …' : '◎ Min posisjon'}
         </button>
       )}
-      {!pos && <div className="pickhint">Klikk i kartet for å plassere nålen</div>}
+      {!pos && <div className="pickhint">{tr('Klikk i kartet for å plassere nålen')}</div>}
     </div>
   );
 }

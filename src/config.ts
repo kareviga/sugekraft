@@ -78,6 +78,8 @@ export interface AppConfig {
   units: string[];
   depots: string[];
   jobPrefix: string;
+  /** Engelske navn på data over (tjenester, masser, deponier, enheter, biltyper). Mangler et navn, vises norsk. */
+  translations: { en: Record<string, string> };
   /** Endre nøkkelen for å tvinge fram nye eksempeldata hos alle som har åpnet demoen før. */
   storageKey: string;
 }
@@ -133,9 +135,9 @@ export const config: AppConfig = {
 
   // Enkle demo-innlogginger (ikke ekte sikkerhet – alt kjører i nettleseren).
   users: [
-    { username: 'admin', password: 'admin', role: 'admin', name: 'Kontoret' },
-    { username: 'driver', password: 'driver', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
-    { username: 'client', password: 'client', role: 'client', name: 'Geir Moen', clientId: 'k1' },
+    { username: 'kontorbruker', password: 'sugekraft123', role: 'admin', name: 'Kontoret' },
+    { username: 'sjåførbruker', password: 'sugekraft123', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
+    { username: 'kundebruker', password: 'sugekraft123', role: 'client', name: 'Geir Moen', clientId: 'k1' },
   ],
 
   services: [
@@ -179,5 +181,51 @@ export const config: AppConfig = {
   ],
 
   jobPrefix: 'J',
+
+  translations: {
+    en: {
+      // oppdragstyper
+      'Tømming septik': 'Septic tank emptying',
+      'Tømming tett tank': 'Holding tank emptying',
+      'Tømming oljeutskiller': 'Oil separator emptying',
+      'Tømming fettutskiller': 'Grease trap emptying',
+      'Tømming sandfang': 'Gully / sand trap emptying',
+      'Høytrykkspyling': 'High-pressure jetting',
+      'Rørinspeksjon (kamera)': 'Pipe inspection (CCTV)',
+      'Tining av frosne rør': 'Thawing frozen pipes',
+      'Tankrengjøring': 'Tank cleaning',
+      'Farlig avfall': 'Hazardous waste',
+      'Spillolje': 'Waste oil',
+      'Vakuumgraving': 'Vacuum excavation',
+      'Blåsing av pukk': 'Gravel blowing',
+      // massetyper
+      'Septikslam': 'Septic sludge',
+      'Avløpsvann (tett tank)': 'Wastewater (holding tank)',
+      'Innhold sandfang': 'Sand trap contents',
+      'Innhold fettutskiller': 'Grease trap contents',
+      'Oljeholdig slam (oljeutskiller)': 'Oily sludge (oil separator)',
+      'Annet farlig avfall': 'Other hazardous waste',
+      'Gravemasser': 'Excavated soil',
+      'Pukk': 'Gravel',
+      'Spylevann': 'Jetting water',
+      'Ingen masse (kun spyling/inspeksjon)': 'No material (jetting/inspection only)',
+      // enheter
+      'tonn': 'tonnes',
+      'liter': 'litres',
+      // deponier
+      'Bekkelaget renseanlegg': 'Bekkelaget treatment plant',
+      'VEAS renseanlegg': 'VEAS treatment plant',
+      'Massemottak Grorud': 'Grorud soil reception',
+      'Haraldrud – mottak farlig avfall': 'Haraldrud – hazardous waste reception',
+      'Levert tilbake på tomt': 'Returned to site',
+      // biltyper
+      'Supersuger': 'Super sucker',
+      'Slamsuger': 'Vacuum tanker',
+      'Spylebil': 'Jetting truck',
+      'Kombibil': 'Combination truck',
+      'ADR-tankbil': 'ADR tanker',
+      'Slamsuger (reserve)': 'Vacuum tanker (spare)',
+    },
+  },
   storageKey: 'sugekraft-demo-v7',
 };

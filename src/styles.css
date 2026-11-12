@@ -422,6 +422,13 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 .vnow { min-width: 220px; }
 .vsub td { background: var(--soft); padding: 8px 14px 10px 30px; }
 
+.langsw { display: inline-flex; border: 1px solid #4b5f65; border-radius: 4px; overflow: hidden; }
+.langsw button { background: transparent; border: 0; color: #b9c8cb; padding: 5px 8px; font: 700 12px var(--body); letter-spacing: 0.05em; cursor: pointer; }
+.langsw button[aria-pressed='true'] { background: #fff; color: var(--header); }
+.langsw.light { border-color: #aebab5; }
+.langsw.light button { color: var(--muted); }
+.langsw.light button[aria-pressed='true'] { background: var(--ink); color: #fff; }
+
 /* ---------- dialoger ---------- */
 .ov { position: fixed; inset: 0; background: rgba(15, 25, 30, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px 24px; overflow: auto; z-index: 2000; }
 .dlg { background: #fff; border-radius: 8px; width: 100%; max-width: 580px; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }

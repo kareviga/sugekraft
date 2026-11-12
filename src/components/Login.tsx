@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { config } from '../config';
 import { login, ROLE_LABEL } from '../lib/auth';
 import { Logo } from './ui';
+import { LangSwitch } from './LangSwitch';
+import { tr } from '../i18n';
 
 export function Login() {
   const [u, setU] = useState('');
@@ -10,7 +12,7 @@ export function Login() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!login(u, p)) setErr('Feil brukernavn eller passord.');
+    if (!login(u, p)) setErr(tr('Feil brukernavn eller passord.'));
   };
 
   return (
@@ -21,25 +23,28 @@ export function Login() {
           <div>
             <h1>{config.company.name}</h1>
             <span className="muted">
-              Drevet av <b>{config.appName}</b>
+              {tr('Drevet av')} <b>{config.appName}</b>
             </span>
           </div>
         </div>
-        <h2>Logg inn</h2>
+        <div className="spread">
+          <h2>{tr('Logg inn')}</h2>
+          <LangSwitch light />
+        </div>
         <div className="field">
-          <label htmlFor="l-user">Brukernavn</label>
+          <label htmlFor="l-user">{tr('Brukernavn')}</label>
           <input id="l-user" autoComplete="username" autoCapitalize="none" value={u} onChange={e => setU(e.target.value)} autoFocus />
         </div>
         <div className="field">
-          <label htmlFor="l-pass">Passord</label>
+          <label htmlFor="l-pass">{tr('Passord')}</label>
           <input id="l-pass" type="password" autoComplete="current-password" value={p} onChange={e => setP(e.target.value)} />
         </div>
         {err && <p className="alert">{err}</p>}
         <button className="btn big" type="submit">
-          Logg inn
+          {tr('Logg inn')}
         </button>
         <div className="demousers">
-          <span className="muted">Demo-brukere – trykk for å fylle ut:</span>
+          <span className="muted">{tr('Demo-brukere – trykk for å fylle ut:')}</span>
           <div>
             {config.users.map(x => (
               <button
@@ -51,7 +56,7 @@ export function Login() {
                   setErr('');
                 }}
               >
-                <b>{ROLE_LABEL[x.role]}</b>
+                <b>{tr(ROLE_LABEL[x.role])}</b>
                 <small>
                   {x.username} / {x.password}
                 </small>

@@ -1,5 +1,6 @@
 import { config } from '../config';
 import type { Job } from '../types';
+import { locale, tr, trd } from '../i18n';
 
 export const iso = (d: Date) => {
   const z = new Date(d.getTime() - d.getTimezoneOffset() * 6e4);
@@ -27,24 +28,24 @@ export const nice = (s: string) => {
 const WD = ['søn.', 'man.', 'tir.', 'ons.', 'tor.', 'fre.', 'lør.'];
 export const relDay = (s: string) => {
   const n = daysBetween(dayOffset(0), s);
-  if (n === 0) return 'I dag';
-  if (n === 1) return 'I morgen';
-  if (n === -1) return 'I går';
+  if (n === 0) return tr('I dag');
+  if (n === 1) return tr('I morgen');
+  if (n === -1) return tr('I går');
   const [y, m, d] = s.split('-').map(Number);
-  const wd = WD[new Date(y, m - 1, d).getDay()];
+  const wd = tr(WD[new Date(y, m - 1, d).getDay()]);
   return `${wd} ${d}.${m}.`;
 };
-export const num = (n: number) => (Math.round(n * 10) / 10).toLocaleString('nb-NO');
+export const num = (n: number) => (Math.round(n * 10) / 10).toLocaleString(locale());
 export const nowHHMM = () => {
   const n = new Date();
   return String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
 };
 
 export const vehicle = (id: string) => config.vehicles.find(v => v.id === id);
-export const vehicleName = (id: string) => vehicle(id)?.name ?? 'Ikke tildelt';
+export const vehicleName = (id: string) => vehicle(id)?.name ?? tr('Ikke tildelt');
 export const vehicleLong = (id: string) => {
   const v = vehicle(id);
-  return v ? `${v.name} – ${v.type}` : 'Ikke tildelt';
+  return v ? `${v.name} – ${v.type}` : tr('Ikke tildelt');
 };
 export const driver = (id: string | undefined) => (id ? config.drivers.find(d => d.id === id) : undefined);
 /** Sjåførnavn for en jobb: den som lukket den (ferdig), ellers den som er tildelt. */
@@ -62,23 +63,23 @@ export function hours(j: Pick<Job, 'start' | 'end'>) {
 const mass = (name: string) => config.massTypes.find(m => m.name === name);
 export const isHaz = (j: Job) => !!mass(j.massType)?.hazardous;
 export const isNoMass = (j: Job) => !!mass(j.massType)?.noMass;
-export const fmtAmount = (j: Job) => (isNoMass(j) || !j.amount ? '–' : `${num(+j.amount)} ${j.unit}`);
+export const fmtAmount = (j: Job) => (isNoMass(j) || !j.amount ? '–' : `${num(+j.amount)} ${trd(j.unit)}`);
 
 /** Påkrevde felt før en jobb kan lukkes. [etikett, oppfylt] */
 export function requirements(j: Job): [string, boolean][] {
   const r: [string, boolean][] = [
-    ['Bilde av kjøreseddel', j.ticketPhotos.length > 0],
-    ['Kjøreseddelnummer', !!j.ticketNo.trim()],
-    ['Bilde av jobben', j.jobPhotos.length > 0],
-    ['Type masse', !!j.massType],
+    [tr('Bilde av kjøreseddel'), j.ticketPhotos.length > 0],
+    [tr('Kjøreseddelnummer'), !!j.ticketNo.trim()],
+    [tr('Bilde av jobben'), j.jobPhotos.length > 0],
+    [tr('Type masse'), !!j.massType],
   ];
   if (j.massType && !isNoMass(j)) {
-    r.push(['Mengde', +j.amount > 0]);
-    r.push(['Ankommet deponi (deponi valgt)', !!j.disposal]);
+    r.push([tr('Mengde'), +j.amount > 0]);
+    r.push([tr('Ankommet deponi (deponi valgt)'), !!j.disposal]);
   }
-  if (isHaz(j)) r.push(['Deklarasjonsnummer (farlig avfall)', !!j.decl.trim()]);
-  r.push(['Statuspunkt «Startet arbeid»', !!j.steps?.arbeid]);
-  r.push(['Statuspunkt «Fullført arbeid»', !!j.steps?.fullfort]);
+  if (isHaz(j)) r.push([tr('Deklarasjonsnummer (farlig avfall)'), !!j.decl.trim()]);
+  r.push([tr('Statuspunkt «Startet arbeid»'), !!j.steps?.arbeid]);
+  r.push([tr('Statuspunkt «Fullført arbeid»'), !!j.steps?.fullfort]);
   return r;
 }
 export const missing = (j: Job) => requirements(j).filter(r => !r[1]).map(r => r[0]);
@@ -128,7 +129,7 @@ export function totals(list: Job[]) {
   const amounts: Record<string, number> = {};
   list.forEach(j => {
     if (!j.amount || fmtAmount(j) === '–') return;
-    const k = `${j.massType} (${j.unit})`;
+    const k = `${trd(j.massType)} (${trd(j.unit)})`;
     amounts[k] = (amounts[k] || 0) + +j.amount;
   });
   return {

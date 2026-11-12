@@ -42,11 +42,22 @@ Demo-innlogginger (settes i `config.ts` under `users`):
 
 | Brukernavn | Passord | Rolle | Ser |
 |---|---|---|---|
-| `admin` | `admin` | Kontor | Alt: Kontor, Kunder, Bilpark, Sjåfør, Arkiv og faktura |
-| `driver` | `driver` | Sjåfør | Egne oppdrag (koblet til sjåfør via `driverId`) |
-| `client` | `client` | Kunde | Kundeportalen for sin kunde (koblet via `clientId`) |
+| `kontorbruker` | `sugekraft123` | Kontor | Alt: Kontor, Kunder, Bilpark, Sjåfør, Arkiv og faktura |
+| `sjåførbruker` | `sugekraft123` | Sjåfør | Egne oppdrag (koblet til sjåfør via `driverId`) |
+| `kundebruker` | `sugekraft123` | Kunde | Kundeportalen for sin kunde (koblet via `clientId`) |
 
 Innloggingen er bare for demo (alt kjører i nettleseren) og huskes til man logger ut.
+`sjåførbruker` kan også skrives `sjaforbruker`.
+
+## Språk (norsk / engelsk)
+
+Språkvelgeren **NO | EN** står i toppmenyen og på innloggingssiden, og valget huskes i nettleseren.
+
+- All tekst i grensesnittet slås opp med `tr('Norsk tekst')`. Engelsk oversettelse ligger i
+  `src/i18n/en.ts`, med norsk tekst som nøkkel. Mangler en oversettelse, vises norsk.
+- Tjenester, massetyper, deponier, enheter og biltyper fra konfigfilen oversettes via
+  `translations.en` i `src/config.ts`. Husk å legge inn engelske navn når du endrer dem.
+- Fritekst skrevet av brukere (beskjeder, kommentarer, kundenavn og adresser) oversettes ikke.
 
 ## Kunder og bestillinger
 
@@ -105,6 +116,7 @@ src/lib/geo.ts         adressesøk og nærmeste adresse (Geonorge)
 src/lib/steps.ts       statuspunkter (rekkefølge, fremdrift, tider)
 src/lib/fleet.ts       bilstatus utledet av oppdragene
 src/lib/auth.ts        demo-innlogging og roller
+src/i18n/              språk: tr()/trd() og engelsk ordbok (en.ts)
 src/views/Clients.tsx  kunderegister (admin)
 src/views/ClientPortal.tsx  kundeportal
 src/views/             Kontor, Sjåfør, Arkiv

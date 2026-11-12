@@ -13,6 +13,7 @@ import { RequestsPanel } from '../components/Requests';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
+import { tr, trd } from '../i18n';
 
 const ORDER: Record<Status, number> = { aktiv: 0, kommende: 1, ferdig: 2 };
 const DONE_RANGE: Record<string, [string, number]> = {
@@ -74,7 +75,7 @@ export function Office({
 
   return (
     <div className="kontor">
-      <section className="col list" aria-label="Jobbliste">
+      <section className="col list" aria-label={tr('Jobbliste')}>
         <div className="tools">
           <RequestsPanel
             requests={requests}
@@ -84,7 +85,7 @@ export function Office({
             }}
           />
           <button className="btn" onClick={() => setForm({})}>
-            + Ny jobb
+            {tr('+ Ny jobb')}
           </button>
           <div className="filters">
             {(Object.keys(STATUS_LABEL) as Status[]).map(k => (
@@ -92,39 +93,39 @@ export function Office({
                 <b>{count(k)}</b>
                 <span>
                   <Mark status={k} />
-                  {STATUS_LABEL[k]}
+                  {tr(STATUS_LABEL[k])}
                 </span>
               </button>
             ))}
           </div>
           <div className="two">
-            <select className="sel-in" aria-label="Filtrer på bil" value={carF} onChange={e => setCarF(e.target.value)}>
-              <option value="">Alle biler</option>
+            <select className="sel-in" aria-label={tr('Filtrer på bil')} value={carF} onChange={e => setCarF(e.target.value)}>
+              <option value="">{tr('Alle biler')}</option>
               {config.vehicles.map(v => (
                 <option key={v.id} value={v.id}>
                   {v.name}
                 </option>
               ))}
-              <option value="-">Uten bil ({noCar})</option>
+              <option value="-">{tr('Uten bil')} ({noCar})</option>
             </select>
-            <select className="sel-in" aria-label="Filtrer på sjåfør" value={drvF} onChange={e => setDrvF(e.target.value)}>
-              <option value="">Alle sjåfører</option>
+            <select className="sel-in" aria-label={tr('Filtrer på sjåfør')} value={drvF} onChange={e => setDrvF(e.target.value)}>
+              <option value="">{tr('Alle sjåfører')}</option>
               {config.drivers.map(d => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
               ))}
-              <option value="-">Uten sjåfør ({noDriver})</option>
+              <option value="-">{tr('Uten sjåfør')} ({noDriver})</option>
             </select>
           </div>
-          <select className="sel-in" aria-label="Periode for ferdige jobber" value={doneRange} onChange={e => setDoneRange(e.target.value)}>
+          <select className="sel-in" aria-label={tr('Periode for ferdige jobber')} value={doneRange} onChange={e => setDoneRange(e.target.value)}>
             {Object.entries(DONE_RANGE).map(([k, [l]]) => (
               <option key={k} value={k}>
-                Ferdige jobber: {l.toLowerCase()}
+                {tr('Ferdige jobber')}: {tr(l).toLowerCase()}
               </option>
             ))}
           </select>
-          <input className="sel-in" type="search" placeholder="Søk kunde, adresse, jobbnr …" value={q} onChange={e => setQ(e.target.value)} aria-label="Søk i jobber" />
+          <input className="sel-in" type="search" placeholder={tr('Søk kunde, adresse, jobbnr …')} value={q} onChange={e => setQ(e.target.value)} aria-label={tr('Søk i jobber')} />
         </div>
         {list.length ? (
           list.map(j => {
@@ -134,34 +135,34 @@ export function Office({
               <button key={j.id} className={cx('row', j.status, j.id === sel && 'sel')} onClick={() => pick(j.id, true)}>
                 <span className="top">
                   <span>
-                    {j.urgent && j.status !== 'ferdig' && <span className="hast">HAST</span>}
+                    {j.urgent && j.status !== 'ferdig' && <span className="hast">{tr('HAST')}</span>}
                     {j.customer}
                   </span>
                   <Pill status={j.status} />
                 </span>
                 <small>
-                  {j.service} · {j.place}
+                  {trd(j.service)} · {j.place}
                 </small>
                 <small className="meta">
                   <span>
                     {relDay(j.date)}
-                    {j.time && j.status !== 'ferdig' && !underway(j) ? ` kl. ${j.time}` : ''}
+                    {j.time && j.status !== 'ferdig' && !underway(j) ? ` ${tr('kl.')} ${j.time}` : ''}
                   </span>
-                  {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">Uten bil</span>}
-                  {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">Uten sjåfør</span>}
+                  {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten bil')}</span>}
+                  {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten sjåfør')}</span>}
                   {underway(j) && <span className="pill prog">{progress(j)}</span>}
-                  {m > 0 && <span className="pill warn">Mangler {m}</span>}
-                  {j.status === 'ferdig' && (j.invoiced ? <span className="pill ok">Fakturert</span> : null)}
+                  {m > 0 && <span className="pill warn">{tr('Mangler {n}', { n: m })}</span>}
+                  {j.status === 'ferdig' && (j.invoiced ? <span className="pill ok">{tr('Fakturert')}</span> : null)}
                 </small>
               </button>
             );
           })
         ) : (
-          <p className="empty">Ingen jobber passer med filteret.</p>
+          <p className="empty">{tr('Ingen jobber passer med filteret.')}</p>
         )}
       </section>
 
-      <section className="mapwrap" aria-label="Kart">
+      <section className="mapwrap" aria-label={tr('Kart')}>
         <JobMap
           jobs={list}
           selectedId={sel}
@@ -172,16 +173,16 @@ export function Office({
         <div className="legend" aria-hidden="true">
           {(Object.keys(STATUS_LABEL) as Status[]).map(k => (
             <span key={k}>
-              <Mark status={k} /> {STATUS_LABEL[k]}
+              <Mark status={k} /> {tr(STATUS_LABEL[k])}
             </span>
           ))}
         </div>
       </section>
 
-      <aside className="col det" aria-label="Jobbdetaljer">
+      <aside className="col det" aria-label={tr('Jobbdetaljer')}>
         {s && (
           <button className="back" onClick={() => setSel(null)}>
-            ‹ Bilparken i dag
+            {tr('‹ Bilparken i dag')}
           </button>
         )}
         {s ? (
@@ -206,21 +207,21 @@ export function Office({
             setForm(null);
             setShow(o => ({ ...o, [j.status]: true }));
             pick(j.id, true);
-            toast(`${j.id} er lagret${j.driver ? ` – ${driver(j.driver)?.name}${j.car ? ` med ${vehicleName(j.car)}` : ''}. Oppdraget er aktivt.` : ' som kommende (ingen sjåfør ennå).'}`);
+            toast(j.driver ? tr('{id} er lagret – {d}. Oppdraget er aktivt.', { id: j.id, d: `${driver(j.driver)?.name}${j.car ? ` / ${vehicleName(j.car)}` : ''}` }) : tr('{id} er lagret som kommende (ingen sjåfør ennå).', { id: j.id }));
           }}
         />
       )}
       {confirmDel && (
         <Confirm
           title={`Slette ${confirmDel.id}?`}
-          text={`Jobben for ${confirmDel.customer} ${nice(confirmDel.date)} slettes.`}
+          text={tr('Jobben for {c} {d} slettes.', { c: confirmDel.customer, d: nice(confirmDel.date) })}
           ok="Slett jobb"
           danger
           onClose={() => setConfirmDel(null)}
           onOk={() => {
             deleteJob(confirmDel.id);
             setSel(null);
-            toast(`${confirmDel.id} er slettet.`);
+            toast(tr('{id} er slettet.', { id: confirmDel.id }));
           }}
         />
       )}
@@ -250,92 +251,92 @@ function Detail({
         <div>
           <h2>{j.customer}</h2>
           <small>
-            {j.id} · {j.service}
+            {j.id} · {trd(j.service)}
           </small>
         </div>
         <Pill status={j.status} />
       </div>
-      {j.urgent && j.status !== 'ferdig' && <p className="alert">Hasteoppdrag</p>}
+      {j.urgent && j.status !== 'ferdig' && <p className="alert">{tr('Hasteoppdrag')}</p>}
       {j.status === 'ferdig' ? (
         <dl className="kv">
-          <dt>Bil</dt>
+          <dt>{tr('Bil')}</dt>
           <dd>{vehicleLong(j.car)}</dd>
-          <dt>Sjåfør</dt>
+          <dt>{tr('Sjåfør')}</dt>
           <dd>{jobDriverName(j) || '–'}</dd>
         </dl>
       ) : (
         <Assign j={j} />
       )}
       <dl className="kv">
-        <dt>{j.pin === 'kart' ? 'Sted' : 'Adresse'}</dt>
+        <dt>{j.pin === 'kart' ? tr('Sted') : tr('Adresse')}</dt>
         <dd>
           {j.address}
           {j.place ? `, ${j.place}` : ''}
           <br />
           <small className="muted">
-            {j.pin === 'kart' ? `Nål plassert manuelt (${fmtCoord(j)})` : 'Fra adresseregisteret'}
-            {j.status !== 'ferdig' ? ' · flytt nålen under Rediger' : ''} ·{' '}
+            {j.pin === 'kart' ? `${tr('Nål plassert manuelt')} (${fmtCoord(j)})` : tr('Fra adresseregisteret')}
+            {j.status !== 'ferdig' ? tr(' · flytt nålen under Rediger') : ''} ·{' '}
             <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
-              Google Maps
+              {tr('Google Maps')}
             </a>
           </small>
         </dd>
-        <dt>Dato</dt>
+        <dt>{tr('Dato')}</dt>
         <dd>
           {nice(j.date)}
-          {j.time ? ` kl. ${j.time}` : ''}
+          {j.time ? ` ${tr('kl.')} ${j.time}` : ''}
         </dd>
-        <dt>Kontakt</dt>
+        <dt>{tr('Kontakt')}</dt>
         <dd>
           {j.contact} {j.phone && <a href={`tel:${j.phone.replace(/\s/g, '')}`}>{j.phone}</a>}
         </dd>
-        <dt>Kundens ref.</dt>
+        <dt>{tr('Kundens ref.')}</dt>
         <dd>{j.ref || '–'}</dd>
         {j.note && (
           <>
-            <dt>Beskjed</dt>
+            <dt>{tr('Beskjed')}</dt>
             <dd>{j.note}</dd>
           </>
         )}
         {j.status !== 'kommende' && j.massType && (
           <>
-            <dt>Masse</dt>
+            <dt>{tr('Masse')}</dt>
             <dd>
-              {j.massType} · {fmtAmount(j)}
-              {j.disposal ? ` → ${j.disposal}` : ''}
+              {trd(j.massType)} · {fmtAmount(j)}
+              {j.disposal ? ` → ${trd(j.disposal)}` : ''}
             </dd>
           </>
         )}
       </dl>
       {j.status === 'kommende' ? (
-        <p className="infobox">Jobben er ikke tildelt. Velg bil over for å sende den til sjåføren – da blir den aktiv.</p>
+        <p className="infobox">{tr('Jobben har ingen sjåfør. Velg sjåfør over for å sende den ut – da blir den aktiv.')}</p>
       ) : underway(j) || j.status === 'ferdig' ? (
         <>
-          <div className="lab">Statuspunkter</div>
+          <div className="lab">{tr('Statuspunkter')}</div>
           <StepTimeline j={j} />
           <Checklist job={j} />
         </>
       ) : (
-        <p className="note">Sjåføren har ikke begynt på jobben ennå.</p>
+        <p className="note">{tr('Sjåføren har ikke begynt på jobben ennå.')}</p>
       )}
       <Thumbs job={j} refs={[...j.ticketPhotos, ...j.jobPhotos]} onOpen={onZoom} />
       {j.status !== 'ferdig' ? (
         <div className="btnrow">
           <button className="btn alt" onClick={onEdit}>
-            Rediger
+            {tr('Rediger')}
           </button>
-          <button className="btn alt" onClick={onDriver} disabled={!j.driver} title={j.driver ? '' : 'Sett på en sjåfør først'}>
-            Åpne som sjåfør
+          <button className="btn alt" onClick={onDriver} disabled={!j.driver} title={j.driver ? '' : tr('Sett på en sjåfør først')}>
+            {tr('Åpne som sjåfør')}
           </button>
           {!underway(j) && (
             <button className="btn alt danger" onClick={onDelete}>
-              Slett
+              {tr('Slett')}
             </button>
           )}
         </div>
       ) : (
         <button className="btn alt" onClick={onArchive}>
-          Åpne i arkivet
+          {tr('Åpne i arkivet')}
         </button>
       )}
     </>
@@ -351,39 +352,39 @@ function Assign({ j }: { j: Job }) {
   return (
     <div className="assign">
       <div className="field">
-        <label htmlFor="d-car">Bil</label>
+        <label htmlFor="d-car">{tr('Bil')}</label>
         <select
           id="d-car"
           value={j.car}
           onChange={e => {
             updateJob(j.id, { car: e.target.value }, true);
-            toast(e.target.value ? `${j.id}: ${vehicleLong(e.target.value)} er valgt.` : `${j.id}: bilen er fjernet.`);
+            toast(e.target.value ? tr('{id}: {v} er valgt.', { id: j.id, v: vehicleLong(e.target.value) }) : tr('{id}: bilen er fjernet.', { id: j.id }));
           }}
         >
-          <option value="">Ingen bil valgt</option>
+          <option value="">{tr('Ingen bil valgt')}</option>
           <VehicleOptions exceptJob={j.id} />
         </select>
       </div>
       <div className="field">
-        <label htmlFor="d-drv">Sjåfør</label>
+        <label htmlFor="d-drv">{tr('Sjåfør')}</label>
         <select
           id="d-drv"
           value={j.driver}
           onChange={e => {
             const d = driver(e.target.value);
             updateJob(j.id, { driver: e.target.value }, true);
-            toast(d ? `${d.name} er satt på ${j.id}. Oppdraget er aktivt.` : `Sjåføren er fjernet. ${j.id} er kommende igjen.`);
+            toast(d ? tr('{d} er satt på {id}. Oppdraget er aktivt.', { d: d.name, id: j.id }) : tr('Sjåføren er fjernet. {id} er kommende igjen.', { id: j.id }));
           }}
         >
-          <option value="">Ingen sjåfør – Kommende</option>
+          <option value="">{tr('Ingen sjåfør – Kommende')}</option>
           <DriverOptions exceptJob={j.id} />
         </select>
       </div>
-      {!j.car && j.driver && <p className="alert small">Velg bil før sjåføren kjører ut.</p>}
-      {carOut && <p className="alert small">{vehicleName(j.car)} er ute av drift: {out[j.car] || 'ingen årsak oppgitt'}.</p>}
+      {!j.car && j.driver && <p className="alert small">{tr('Velg bil før sjåføren kjører ut.')}</p>}
+      {carOut && <p className="alert small">{vehicleName(j.car)} er ute av drift: {out[j.car] || tr('ingen årsak oppgitt')}.</p>}
       {busy && j.status === 'aktiv' && !underway(j) && (
         <p className="note">
-          {driver(j.driver)?.name} er på oppdrag hos {busy.customer} nå.
+          {tr('{d} er på oppdrag hos {c} nå.', { d: driver(j.driver)?.name ?? '', c: busy.customer })}
         </p>
       )}
     </div>

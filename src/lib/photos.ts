@@ -1,6 +1,7 @@
 import { config } from '../config';
 import type { Job } from '../types';
 import { nice, vehicleName } from './utils';
+import { getLang, tr, trd } from '../i18n';
 
 /*
  * Bilder lagres som data-URL-er (JPEG) i localStorage.
@@ -46,22 +47,22 @@ function ticketImg(j: Job): string {
   x.fillText(`Org.nr ${config.company.orgNr} · ${config.company.phone}`, 50, 98);
   x.fillStyle = '#222';
   x.font = 'bold 44px Arial';
-  x.fillText('KJØRESEDDEL', 50, 165);
+  x.fillText(tr('KJØRESEDDEL'), 50, 165);
   x.font = 'bold 30px "Courier New", monospace';
   x.fillStyle = '#b3261e';
   x.fillText('Nr. ' + (j.ticketNo || '—'), 540, 165);
   x.fillStyle = '#222';
   x.fillRect(50, 185, 700, 4);
   const rows: [string, string][] = [
-    ['Dato', nice(j.date)],
-    ['Kunde', j.customer],
-    ['Adresse', `${j.address}, ${j.place}`],
-    ['Bil', vehicleName(j.car)],
-    ['Oppdrag', j.service],
-    ['Masse', j.massType],
-    ['Mengde', j.amount ? `${j.amount} ${j.unit}` : ''],
-    ['Levert', j.disposal],
-    ['Tid', j.start && j.end ? `${j.start} – ${j.end}` : ''],
+    [tr('Dato'), nice(j.date)],
+    [tr('Kunde'), j.customer],
+    [tr('Adresse'), `${j.address}, ${j.place}`],
+    [tr('Bil'), vehicleName(j.car)],
+    [tr('Oppdrag'), trd(j.service)],
+    [tr('Masse'), trd(j.massType)],
+    [tr('Mengde'), j.amount ? `${j.amount} ${j.unit}` : ''],
+    [tr('Levert'), trd(j.disposal)],
+    [tr('Tid'), j.start && j.end ? `${j.start} – ${j.end}` : ''],
   ];
   rows.forEach(([k, v], i) => {
     const y = 250 + i * 78;
@@ -81,7 +82,7 @@ function ticketImg(j: Job): string {
   // signatur
   x.font = '20px Arial';
   x.fillStyle = '#666';
-  x.fillText('Signatur sjåfør', 50, 990);
+  x.fillText(tr('Signatur sjåfør'), 50, 990);
   x.strokeStyle = '#1b3f8f';
   x.lineWidth = 3;
   x.beginPath();
@@ -190,7 +191,7 @@ const cache = new Map<string, string>();
 /** Gjør om en bildereferanse til noe <img>/jsPDF kan bruke. */
 export function photoSrc(ref: string, j: Job): string {
   if (!ref.startsWith('demo:')) return ref;
-  const key = ref === 'demo:ticket' ? `t|${j.id}|${j.ticketNo}|${j.amount}|${j.disposal}|${j.end}` : ref;
+  const key = ref === 'demo:ticket' ? `t|${getLang()}|${j.id}|${j.ticketNo}|${j.amount}|${j.disposal}|${j.end}` : ref;
   let v = cache.get(key);
   if (!v) {
     v = ref === 'demo:ticket' ? ticketImg(j) : jobImg(+ref.split(':')[2] || 1);

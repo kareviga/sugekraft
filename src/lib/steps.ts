@@ -1,5 +1,6 @@
 import type { Job, StepKey } from '../types';
 import { config } from '../config';
+import { tr } from '../i18n';
 
 /*
  * Statuspunkter sjåføren huker av, i fast rekkefølge.
@@ -10,19 +11,19 @@ import { config } from '../config';
 
 export interface StepDef {
   key: StepKey;
-  label: string;
+  readonly label: string;
   /** Tekst på knappen når punktet står for tur */
-  action: string;
+  readonly action: string;
 }
 
 export const STEPS: StepDef[] = [
-  { key: 'kjoring', label: 'Startet kjøring', action: 'Start kjøring' },
-  { key: 'ankommet', label: 'Ankommet sted', action: 'Ankommet sted' },
-  { key: 'arbeid', label: 'Startet arbeid', action: 'Start arbeid' },
-  { key: 'fullfort', label: 'Fullført arbeid', action: 'Fullført arbeid' },
-  { key: 'kjortFra', label: 'Kjørt fra sted', action: 'Kjørt fra sted' },
-  { key: 'deponi', label: 'Ankommet deponi', action: 'Ankommet deponi' },
-  { key: 'ferdig', label: 'Ferdig', action: 'Ferdig – avslutt jobben' },
+  { key: 'kjoring', get label() { return tr('Startet kjøring'); }, get action() { return tr('Start kjøring'); } },
+  { key: 'ankommet', get label() { return tr('Ankommet sted'); }, get action() { return tr('Ankommet sted'); } },
+  { key: 'arbeid', get label() { return tr('Startet arbeid'); }, get action() { return tr('Start arbeid'); } },
+  { key: 'fullfort', get label() { return tr('Fullført arbeid'); }, get action() { return tr('Fullført arbeid'); } },
+  { key: 'kjortFra', get label() { return tr('Kjørt fra sted'); }, get action() { return tr('Kjørt fra sted'); } },
+  { key: 'deponi', get label() { return tr('Ankommet deponi'); }, get action() { return tr('Ankommet deponi'); } },
+  { key: 'ferdig', get label() { return tr('Ferdig'); }, get action() { return tr('Ferdig – avslutt jobben'); } },
 ];
 
 const noMass = (j: Job) => !!config.massTypes.find(m => m.name === j.massType)?.noMass;
@@ -42,7 +43,7 @@ export const underway = (j: Job) => j.status === 'aktiv' && !!j.steps.kjoring;
 /** Kort tekst om hvor langt jobben har kommet, f.eks. «Ankommet sted 08:40» */
 export function progress(j: Job): string {
   const l = lastStep(j);
-  return l ? `${l.label} ${j.steps[l.key]!.time}` : 'Ikke startet';
+  return l ? `${l.label} ${j.steps[l.key]!.time}` : tr('Ikke startet');
 }
 
 /** Felt som følger med statuspunktene */

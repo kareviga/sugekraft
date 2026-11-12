@@ -7,6 +7,7 @@ import { JobForm } from './JobForm';
 import { JobMap } from './JobMap';
 import { Modal } from './ui';
 import { DriverOptions, VehicleOptions } from './VehicleOptions';
+import { tr, trd } from '../i18n';
 
 /*
  * Nye bestillinger fra kundeportalen. Kontoret godtar (og kan sette bil/sjåfør med en gang) eller avviser.
@@ -22,7 +23,7 @@ export function RequestsPanel({ requests, onAccepted }: { requests: Job[]; onAcc
     <div className="reqpanel">
       <button className="reqhead" onClick={() => setOpen(o => !o)} aria-expanded={open}>
         <span className="reqbadge">{requests.length}</span>
-        <b>{requests.length === 1 ? 'Ny bestilling fra kunde' : 'Nye bestillinger fra kunder'}</b>
+        <b>{requests.length === 1 ? tr('Ny bestilling fra kunde') : tr('Nye bestillinger fra kunder')}</b>
         <span className="muted">{open ? '▾' : '▸'}</span>
       </button>
       {open && (
@@ -35,8 +36,8 @@ export function RequestsPanel({ requests, onAccepted }: { requests: Job[]; onAcc
                   <small className="muted">{r.orderedAt.slice(11)}</small>
                 </span>
                 <small>
-                  {r.service} · ønsket {relDay(r.date).toLowerCase()}
-                  {r.time ? ` kl. ${r.time}` : ''}
+                  {trd(r.service)} · {tr('ønsket')} {relDay(r.date).toLowerCase()}
+                  {r.time ? ` ${tr('kl.')} ${r.time}` : ''}
                 </small>
               </button>
             </li>
@@ -70,44 +71,44 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
   return (
     <Modal
       wide
-      title={`Bestilling ${r.id} fra ${r.customer}`}
+      title={tr('Bestilling {id} fra {c}', { id: r.id, c: r.customer })}
       onClose={onClose}
       footer={
         declining ? (
           <>
             <button className="btn alt" onClick={() => setDeclining(false)}>
-              Tilbake
+              {tr('Tilbake')}
             </button>
             <button
               className="btn danger"
               disabled={!reason.trim()}
               onClick={() => {
                 declineRequest(r.id, reason.trim());
-                toast(`Bestillingen er avvist. ${r.customer} ser begrunnelsen i portalen.`);
+                toast(tr('Bestillingen er avvist. {c} ser begrunnelsen i portalen.', { c: r.customer }));
                 onClose();
               }}
             >
-              Avvis bestillingen
+              {tr('Avvis bestillingen')}
             </button>
           </>
         ) : (
           <>
             <button className="btn alt danger" onClick={() => setDeclining(true)}>
-              Avvis
+              {tr('Avvis')}
             </button>
             <button className="btn alt" onClick={() => setEdit(true)}>
-              Rediger
+              {tr('Rediger')}
             </button>
             <button
               className="btn finish"
               onClick={() => {
                 acceptRequest(r.id, { car, driver: drv });
                 const d = driver(drv);
-                toast(`${r.id} er godtatt${d ? ` og satt på ${d.name}` : ' og ligger som kommende'}.`);
+                toast(d ? tr('{id} er godtatt og satt på {d}.', { id: r.id, d: d.name }) : tr('{id} er godtatt og ligger som kommende.', { id: r.id }));
                 onAccepted({ ...r, car, driver: drv });
               }}
             >
-              Godta bestillingen
+              {tr('Godta bestillingen')}
             </button>
           </>
         )
@@ -115,42 +116,42 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
     >
       <div className="formcols">
         <dl className="kv">
-          <dt>Kunde</dt>
+          <dt>{tr('Kunde')}</dt>
           <dd>
             {r.customer}
             {client?.orgNr ? <small className="muted"> · org.nr {client.orgNr}</small> : ''}
           </dd>
-          <dt>Oppdrag</dt>
+          <dt>{tr('Oppdrag')}</dt>
           <dd>
-            <b>{r.service}</b>
-            {r.urgent && <span className="hast" style={{ marginLeft: 6 }}>HASTER</span>}
+            <b>{trd(r.service)}</b>
+            {r.urgent && <span className="hast" style={{ marginLeft: 6 }}>{tr('HASTER')}</span>}
           </dd>
-          <dt>Sted</dt>
+          <dt>{tr('Sted')}</dt>
           <dd>
             {r.address}
             {r.place ? `, ${r.place}` : ''}
-            {r.pin === 'kart' && <small className="muted"> (nål satt i kartet)</small>}
+            {r.pin === 'kart' && <small className="muted">{' '}{tr('(nål satt i kartet)')}</small>}
           </dd>
-          <dt>Ønsket</dt>
+          <dt>{tr('Ønsket')}</dt>
           <dd>
             {nice(r.date)}
-            {r.time ? ` kl. ${r.time}` : ''}
+            {r.time ? ` ${tr('kl.')} ${r.time}` : ''}
           </dd>
-          <dt>Kontakt</dt>
+          <dt>{tr('Kontakt')}</dt>
           <dd>
             {r.contact} {r.phone}
           </dd>
-          <dt>Referanse</dt>
+          <dt>{tr('Referanse')}</dt>
           <dd>{r.ref || '–'}</dd>
           {r.note && (
             <>
-              <dt>Beskrivelse</dt>
+              <dt>{tr('Beskrivelse')}</dt>
               <dd>{r.note}</dd>
             </>
           )}
-          <dt>Mottatt</dt>
+          <dt>{tr('Mottatt')}</dt>
           <dd>
-            {nice(r.orderedAt.slice(0, 10))} kl. {r.orderedAt.slice(11)}
+            {nice(r.orderedAt.slice(0, 10))} {tr('kl.')} {r.orderedAt.slice(11)}
           </dd>
         </dl>
         <div className="locmap portalmap">
@@ -159,24 +160,24 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
       </div>
       {declining ? (
         <div className="field">
-          <label htmlFor="r-reason">Begrunnelse til kunden</label>
-          <textarea id="r-reason" rows={3} value={reason} onChange={e => setReason(e.target.value)} placeholder="F.eks. ingen ledig kapasitet den dagen – foreslå ny dato" autoFocus />
+          <label htmlFor="r-reason">{tr('Begrunnelse til kunden')}</label>
+          <textarea id="r-reason" rows={3} value={reason} onChange={e => setReason(e.target.value)} placeholder={tr('F.eks. ingen ledig kapasitet den dagen – foreslå ny dato')} autoFocus />
         </div>
       ) : (
         <>
-          <div className="lab">Sett opp med en gang (valgfritt)</div>
+          <div className="lab">{tr('Sett opp med en gang (valgfritt)')}</div>
           <div className="assign">
             <div className="field">
-              <label htmlFor="r-car">Bil</label>
+              <label htmlFor="r-car">{tr('Bil')}</label>
               <select id="r-car" value={car} onChange={e => setCar(e.target.value)}>
-                <option value="">Velg senere</option>
+                <option value="">{tr('Velg senere')}</option>
                 <VehicleOptions />
               </select>
             </div>
             <div className="field">
-              <label htmlFor="r-drv">Sjåfør</label>
+              <label htmlFor="r-drv">{tr('Sjåfør')}</label>
               <select id="r-drv" value={drv} onChange={e => setDrv(e.target.value)}>
-                <option value="">Velg senere (Kommende)</option>
+                <option value="">{tr('Velg senere (Kommende)')}</option>
                 <DriverOptions />
               </select>
             </div>

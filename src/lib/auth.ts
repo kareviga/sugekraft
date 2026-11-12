@@ -20,7 +20,9 @@ function read(): User | null {
 let current = read();
 
 export function login(username: string, password: string): User | null {
-  const u = config.users.find(x => x.username === username.trim().toLowerCase() && x.password === password);
+  // æ/ø/å kan skrives som ae/o/a (f.eks. «sjaforbruker»)
+  const norm = (v: string) => v.trim().toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/å/g, 'a');
+  const u = config.users.find(x => norm(x.username) === norm(username) && x.password === password);
   if (!u) return null;
   current = u;
   try {

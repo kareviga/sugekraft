@@ -4,6 +4,7 @@ import type { Job } from '../types';
 import { photoSrc, rasterize } from './photos';
 import { stepsFor, totalHours } from './steps';
 import { dayOffset, download, fmtAmount, hexToRgb, hours, jobDriverName, nice, num, totals, vehicle } from './utils';
+import { tr, trd } from '../i18n';
 
 /*
  * Fakturagrunnlag som PDF:
@@ -62,7 +63,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   };
 
   // ---------- samleside ----------
-  header('Fakturagrunnlag', `Vedlegg til faktura · Utskrevet ${nice(dayOffset(0))}`);
+  header(tr('Fakturagrunnlag'), tr('Vedlegg til faktura · Utskrevet {d}', { d: nice(dayOffset(0)) }));
 
   // kundeboks
   d.setFillColor(243, 246, 245);
@@ -77,24 +78,24 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
     d.text(t(val), x, y + 5);
     d.setFont('helvetica', 'normal');
   };
-  box('Kunde', cust, L + 4, 51);
-  box('Kontaktperson', first.contact || '-', L + 98, 51);
-  box('Periode', `${nice(first.date)} - ${nice(last.date)}`, L + 4, 62);
-  box('Antall jobber', String(jobs.length), L + 98, 62);
+  box(tr('Kunde'), cust, L + 4, 51);
+  box(tr('Kontaktperson'), first.contact || '-', L + 98, 51);
+  box(tr('Periode'), `${nice(first.date)} - ${nice(last.date)}`, L + 4, 62);
+  box(tr('Antall jobber'), String(jobs.length), L + 98, 62);
   const refs = [...new Set(jobs.map(j => j.ref).filter(Boolean))];
-  box('Kundens referanser', refs.length ? refs.join(', ').slice(0, 40) : '-', L + 140, 62);
+  box(tr('Kundens referanser'), refs.length ? refs.join(', ').slice(0, 40) : '-', L + 140, 62);
 
   // tabell
   const cols: [string, number, ('r' | undefined)?][] = [
-    ['Jobb', 16],
-    ['Dato', 19],
-    ['Ref.', 18],
-    ['Sted / adresse', 34],
-    ['Oppdrag', 30],
-    ['Masse', 28],
-    ['Mengde', 15, 'r'],
-    ['Kj.sed.', 12],
-    ['Timer', 10, 'r'],
+    [tr('Jobb'), 16],
+    [tr('Dato'), 19],
+    [tr('Ref.'), 18],
+    [tr('Sted / adresse'), 34],
+    [tr('Oppdrag'), 30],
+    [tr('Masse'), 28],
+    [tr('Mengde'), 15, 'r'],
+    [tr('Kj.sed.'), 12],
+    [tr('Timer'), 10, 'r'],
   ];
   let y = 80;
   const thead = () => {
@@ -115,13 +116,13 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   thead();
   d.setFontSize(8.5);
   jobs.forEach((j, idx) => {
-    const vals = [j.id, nice(j.date), j.ref || '-', `${j.address}, ${j.place}`, j.service, j.massType.replace(/ \(kun spyling\/inspeksjon\)/, ''), t(fmtAmount(j)), j.ticketNo, num(hours(j))];
+    const vals = [j.id, nice(j.date), j.ref || '-', `${j.address}, ${j.place}`, trd(j.service), trd(j.massType).replace(/ \((kun spyling\/inspeksjon|jetting\/inspection only)\)/, ''), t(fmtAmount(j)), j.ticketNo, num(hours(j))];
     const wr = vals.map((v, i) => d.splitTextToSize(t(v), cols[i][1] - 2.5) as string[]);
     const n = Math.max(...wr.map(a => a.length));
     const h = n * 3.7 + 2.6;
     if (y + h > 262) {
       d.addPage();
-      header('Fakturagrunnlag (forts.)', cust);
+      header(tr('Fakturagrunnlag (forts.)'), cust);
       y = 52;
       thead();
       d.setFontSize(8.5);
@@ -144,17 +145,17 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
 
   // summer
   const sum = totals(jobs);
-  const lines: [string, string][] = [['Arbeidstimer totalt', num(sum.hours) + ' t']];
+  const lines: [string, string][] = [[tr('Arbeidstimer totalt'), num(sum.hours) + ' ' + tr('t')]];
   Object.entries(sum.amounts).forEach(([k, v]) => lines.push([k, num(v)]));
-  lines.push(['Bilder og kjøresedler (vedlagt)', String(sum.photos)]);
+  lines.push([tr('Bilder og kjøresedler (vedlagt)'), String(sum.photos)]);
   if (y + 10 + lines.length * 6 > 275) {
     d.addPage();
-    header('Fakturagrunnlag (forts.)', cust);
+    header(tr('Fakturagrunnlag (forts.)'), cust);
     y = 52;
   } else y += 6;
   d.setFont('helvetica', 'bold');
   d.setFontSize(11);
-  d.text('Sammendrag', L, y);
+  d.text(t(tr('Sammendrag')), L, y);
   y += 6;
   d.setFontSize(9.5);
   lines.forEach(([a, b]) => {
@@ -170,30 +171,30 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   d.setFont('helvetica', 'normal');
   d.setFontSize(8.5);
   d.setTextColor(...MUTED);
-  d.text('Dokumentasjon for hver jobb følger på de neste sidene.', L, y + 4);
+  d.text(t(tr('Dokumentasjon for hver jobb følger på de neste sidene.')), L, y + 4);
   d.setTextColor(...INK);
 
   // ---------- én side per jobb ----------
   for (const j of jobs) {
     d.addPage();
-    header(`${j.id} · ${j.service}`, `${cust} · ${nice(j.date)}`);
+    header(`${j.id} · ${trd(j.service)}`, `${cust} · ${nice(j.date)}`);
     const v = vehicle(j.car);
     const f: [string, string][] = [
-      ['Kunde', j.customer],
-      ['Kontakt', [j.contact, j.phone].filter(Boolean).join(', ')],
-      ['Adresse', `${j.address}, ${j.place}`],
-      ['Kundens ref.', j.ref],
-      ['Dato', nice(j.date)],
-      ['Arbeidstid', j.start && j.end ? `${j.start} - ${j.end} (${num(hours(j))} t)` : '-'],
-      ['Total tid inkl. kjøring', totalHours(j) ? `${j.steps.kjoring?.time} - ${j.steps.ferdig?.time ?? ''} (${num(totalHours(j))} t)` : '-'],
-      ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '-'} / ${jobDriverName(j) || '-'}`],
-      ['Kjøreseddel', j.ticketNo],
-      ['Masse', j.massType],
-      ['Mengde', fmtAmount(j)],
-      ['Deponi / mottak', j.disposal || '-'],
+      [tr('Kunde'), j.customer],
+      [tr('Kontakt'), [j.contact, j.phone].filter(Boolean).join(', ')],
+      [tr('Adresse'), `${j.address}, ${j.place}`],
+      [tr('Kundens ref.'), j.ref],
+      [tr('Dato'), nice(j.date)],
+      [tr('Arbeidstid'), j.start && j.end ? `${j.start} - ${j.end} (${num(hours(j))} t)` : '-'],
+      [tr('Total tid inkl. kjøring'), totalHours(j) ? `${j.steps.kjoring?.time} - ${j.steps.ferdig?.time ?? ''} (${num(totalHours(j))} t)` : '-'],
+      [tr('Bil / sjåfør'), `${v ? `${v.name} (${v.regNr})` : '-'} / ${jobDriverName(j) || '-'}`],
+      [tr('Kjøreseddel'), j.ticketNo],
+      [tr('Masse'), trd(j.massType)],
+      [tr('Mengde'), fmtAmount(j)],
+      [tr('Deponi / mottak'), trd(j.disposal) || '-'],
     ];
-    if (j.decl) f.push(['Deklarasjonsnr.', j.decl]);
-    if (j.comment) f.push(['Kommentar', j.comment]);
+    if (j.decl) f.push([tr('Deklarasjonsnr.'), j.decl]);
+    if (j.comment) f.push([tr('Kommentar'), j.comment]);
     let yy = 48;
     d.setFontSize(9.5);
     // to kolonner for korte felt, kommentar over full bredde
@@ -226,7 +227,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       yy += 1;
       d.setTextColor(...MUTED);
       d.setFontSize(7.5);
-      d.text('STATUSPUNKTER', L, yy);
+      d.text(t(tr('STATUSPUNKTER')), L, yy);
       yy += 4.5;
       d.setFontSize(9);
       sl.forEach(s => {
@@ -235,7 +236,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
         d.setFont('helvetica', 'bold');
         d.text(st.time, L, yy);
         d.setFont('helvetica', 'normal');
-        const extra = [s.key === 'deponi' && j.disposal ? j.disposal : '', st.comment ? `"${st.comment}"` : ''].filter(Boolean).join(' - ');
+        const extra = [s.key === 'deponi' && j.disposal ? trd(j.disposal) : '', st.comment ? `"${st.comment}"` : ''].filter(Boolean).join(' - ');
         d.text(t(s.label), L + 12, yy);
         if (extra) {
           d.setTextColor(...MUTED);
@@ -252,8 +253,8 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
     yy += 6;
 
     const pics: [string, string][] = [
-      ...j.ticketPhotos.map((p, i) => [p, `Kjøreseddel${j.ticketPhotos.length > 1 ? ' ' + (i + 1) : ''}`] as [string, string]),
-      ...j.jobPhotos.map((p, i) => [p, `Bilde ${i + 1}`] as [string, string]),
+      ...j.ticketPhotos.map((p, i) => [p, j.ticketPhotos.length > 1 ? tr('Kjøreseddel {n}', { n: i + 1 }) : tr('Kjøreseddel')] as [string, string]),
+      ...j.jobPhotos.map((p, i) => [p, tr('Bilde {n}', { n: i + 1 })] as [string, string]),
     ];
     // bildehøyde: krymp litt hvis det gjør at alt får plass på siden
     const rows = Math.ceil(pics.length / 2);
@@ -264,7 +265,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       if (i % 2 === 0 && i > 0) yy += bh + 10;
       if (yy + bh + 6 > 284) {
         d.addPage();
-        header(`${j.id} · bilder (forts.)`, `${cust} · ${nice(j.date)}`);
+        header(tr('{id} · bilder (forts.)', { id: j.id }), `${cust} · ${nice(j.date)}`);
         yy = 48;
         i = 0;
       }
@@ -294,8 +295,8 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
     d.setPage(p);
     d.setFontSize(7.5);
     d.setTextColor(...MUTED);
-    d.text(t(`${config.company.name} · Fakturagrunnlag ${cust}`), L, 291);
-    d.text(`Side ${p} av ${n}`, R, 291, { align: 'right' });
+    d.text(t(`${config.company.name} · ${tr('Fakturagrunnlag {c}', { c: cust })}`), L, 291);
+    d.text(tr('Side {p} av {n}', { p, n }), R, 291, { align: 'right' });
   }
 
   return { doc: d, filename: `Fakturagrunnlag_${download(cust)}_${dayOffset(0)}.pdf` };

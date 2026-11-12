@@ -8,6 +8,7 @@ import { toast } from '../lib/toast';
 import { cx, driver, relDay } from '../lib/utils';
 import { progress } from '../lib/steps';
 import type { Job } from '../types';
+import { tr, trd } from '../i18n';
 
 /*
  * Bilpark: bare bilene. Status og hvem som er i bilen utledes av oppdragene –
@@ -30,21 +31,21 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
       <p className="bp-summary">
         {(['oppdrag', 'planlagt', 'ledig', 'ute'] as VState[]).map(k => (
           <span key={k}>
-            <i className={cx('vdot', k)} /> <b>{count(k)}</b> {VSTATE_LABEL[k].toLowerCase()}
+            <i className={cx('vdot', k)} /> <b>{count(k)}</b> {tr(VSTATE_LABEL[k]).toLowerCase()}
           </span>
         ))}
       </p>
 
       <div className="bp-main">
-        <section className="card bp-table" aria-label="Biler">
+        <section className="card bp-table" aria-label={tr('Biler')}>
           <table>
             <thead>
               <tr>
-                <th>Bil</th>
-                <th>Status</th>
-                <th>I bilen nå</th>
-                <th>Nå / neste</th>
-                <th className="n">I dag</th>
+                <th>{tr('Bil')}</th>
+                <th>{tr('Status')}</th>
+                <th>{tr('I bilen nå')}</th>
+                <th>{tr('Nå / neste')}</th>
+                <th className="n">{tr('I dag')}</th>
                 <th />
               </tr>
             </thead>
@@ -74,7 +75,7 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
               tags
             />
           </div>
-          <p className="note">Kartet viser hvor bilene er nå eller skal neste gang (tallet er bilnummeret). Bil og sjåfør velges i hvert oppdrag under Kontor.</p>
+          <p className="note">{tr('Kartet viser hvor bilene er nå eller skal neste gang (tallet er bilnummeret). Bil og sjåfør velges i hvert oppdrag under Kontor.')}</p>
         </aside>
       </div>
 
@@ -114,12 +115,12 @@ function FleetRow({
           </span>
         </td>
         <td>
-          <span className={cx('vstate', s.state)}>{VSTATE_LABEL[s.state]}</span>
+          <span className={cx('vstate', s.state)}>{tr(VSTATE_LABEL[s.state])}</span>
         </td>
         <td>{s.nowDriver || <span className="muted">–</span>}</td>
         <td className="vnow">
           {s.state === 'ute' ? (
-            <span className="warntext">{s.outNote || 'Ute av drift'}</span>
+            <span className="warntext">{s.outNote || tr('Ute av drift')}</span>
           ) : s.active ? (
             <>
               <button className="link" onClick={e => (stop(e), openJob(s.active!.id))}>
@@ -129,18 +130,18 @@ function FleetRow({
             </>
           ) : s.next ? (
             <>
-              <span className="muted">Neste: </span>
+              <span className="muted">{tr('Neste:')}{' '}</span>
               <button className="link" onClick={e => (stop(e), openJob(s.next!.id))}>
                 {s.next.customer}
               </button>
               <small className="muted">
                 {' '}
                 · {relDay(s.next.date).toLowerCase()}
-                {s.next.time ? ` kl. ${s.next.time}` : ''}
+                {s.next.time ? ` ${tr('kl.')} ${s.next.time}` : ''}
               </small>
             </>
           ) : (
-            <span className="muted">Ingen åpne jobber</span>
+            <span className="muted">{tr('Ingen åpne jobber')}</span>
           )}
         </td>
         <td className="n">
@@ -154,14 +155,14 @@ function FleetRow({
               onClick={e => {
                 stop(e);
                 setOut(v.id, null);
-                toast(`${v.name} er satt i drift igjen.`);
+                toast(tr('{v} er satt i drift igjen.', { v: v.name }));
               }}
             >
-              Sett i drift
+              {tr('Sett i drift')}
             </button>
           ) : (
             <button className="link warnlink" onClick={e => (stop(e), onOut())}>
-              Ute av drift
+              {tr('Ute av drift')}
             </button>
           )}
         </td>
@@ -178,7 +179,7 @@ function FleetRow({
                       {j.customer}
                       <span className="muted">
                         {' '}
-                        · {j.service} · {driver(j.driver)?.name ?? 'ingen sjåfør'}
+                        · {trd(j.service)} · {driver(j.driver)?.name ?? tr('ingen sjåfør')}
                       </span>
                     </button>
                     <Pill status={j.status} />
@@ -186,7 +187,7 @@ function FleetRow({
                 ))}
               </ol>
             ) : (
-              <span className="muted">Ingen jobber på {v.name} i dag.</span>
+              <span className="muted">{tr('Ingen jobber på {v} i dag.', { v: v.name })}</span>
             )}
           </td>
         </tr>
@@ -200,31 +201,31 @@ function OutDialog({ vehicleId, onClose }: { vehicleId: string; onClose: () => v
   const [note, setNote] = useState('');
   return (
     <Modal
-      title={`${v.name} ute av drift`}
+      title={tr('{v} ute av drift', { v: v.name })}
       onClose={onClose}
       footer={
         <>
           <button className="btn alt" onClick={onClose}>
-            Avbryt
+            {tr('Avbryt')}
           </button>
           <button
             className="btn danger"
             onClick={() => {
               setOut(v.id, note.trim());
-              toast(`${v.name} er satt ute av drift.`);
+              toast(tr('{v} er satt ute av drift.', { v: v.name }));
               onClose();
             }}
           >
-            Sett ute av drift
+            {tr('Sett ute av drift')}
           </button>
         </>
       }
     >
       <div className="field">
-        <label htmlFor="out-note">Årsak (valgfritt)</label>
-        <input id="out-note" value={note} onChange={e => setNote(e.target.value)} placeholder="F.eks. verksted, EU-kontroll, skade" />
+        <label htmlFor="out-note">{tr('Årsak (valgfritt)')}</label>
+        <input id="out-note" value={note} onChange={e => setNote(e.target.value)} placeholder={tr('F.eks. verksted, EU-kontroll, skade')} />
       </div>
-      <p className="note">Oppdragene som har denne bilen, blir liggende. Bytt bil på dem i Kontor om nødvendig.</p>
+      <p className="note">{tr('Oppdragene som har denne bilen, blir liggende. Bytt bil på dem i Kontor om nødvendig.')}</p>
     </Modal>
   );
 }
@@ -235,12 +236,12 @@ export function FleetCompact({ jobs, onPick, openFleet }: { jobs: Job[]; onPick:
   return (
     <>
       <div className="spread">
-        <h2>Bilparken nå</h2>
+        <h2>{tr('Bilparken nå')}</h2>
         <button className="link" onClick={openFleet}>
-          Åpne bilpark ›
+          {tr('Åpne bilpark ›')}
         </button>
       </div>
-      <p className="note">Velg en jobb i listen eller kartet for å se detaljer.</p>
+      <p className="note">{tr('Velg en jobb i listen eller kartet for å se detaljer.')}</p>
       <ul className="fleet">
         {config.vehicles.map(v => {
           const s = vehicleStatus(v, jobs, out);
@@ -253,18 +254,18 @@ export function FleetCompact({ jobs, onPick, openFleet }: { jobs: Job[]; onPick:
                   {s.nowDriver ? ` · ${s.nowDriver}` : ''}
                 </b>
                 {s.state === 'ute' ? (
-                  <small className="warntext">Ute av drift{s.outNote ? `: ${s.outNote}` : ''}</small>
+                  <small className="warntext">{tr('Ute av drift')}{s.outNote ? `: ${s.outNote}` : ''}</small>
                 ) : s.active ? (
                   <button className="link" onClick={() => onPick(s.active!.id)}>
-                    På oppdrag: {s.active.customer}
+                    {tr('På oppdrag')}: {s.active.customer}
                   </button>
                 ) : s.next && s.state === 'planlagt' ? (
                   <button className="link" onClick={() => onPick(s.next!.id)}>
-                    Neste: {s.next.customer}
-                    {s.next.time ? ` kl. ${s.next.time}` : ''}
+                    {tr('Neste')}: {s.next.customer}
+                    {s.next.time ? ` ${tr('kl.')} ${s.next.time}` : ''}
                   </button>
                 ) : (
-                  <small>Ledig</small>
+                  <small>{tr('Ledig')}</small>
                 )}
                 {s.doneToday > 0 && <small>{s.doneToday} ferdig i dag</small>}
               </div>

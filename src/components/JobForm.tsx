@@ -7,6 +7,7 @@ import type { Client, Job, JobOrder } from '../types';
 import { PinPicker, type Pos } from './PinPicker';
 import { Modal } from './ui';
 import { DriverOptions, VehicleOptions } from './VehicleOptions';
+import { tr, trd } from '../i18n';
 
 type Form = Omit<JobOrder, 'lat' | 'lon' | 'pin'>;
 
@@ -152,7 +153,7 @@ export function JobForm({
       }
       setSaving(false);
       if (!p) {
-        setErr('Jobben mangler plassering. Velg en adresse fra listen, eller klikk i kartet der jobben er.');
+        setErr(tr('Jobben mangler plassering. Velg en adresse fra listen, eller klikk i kartet der jobben er.'));
         return;
       }
     }
@@ -165,15 +166,15 @@ export function JobForm({
   return (
     <Modal
       wide
-      title={isClient ? (job ? `Endre bestilling ${job.id}` : 'Ny bestilling') : job ? `Rediger ${job.id}` : 'Ny jobb'}
+      title={isClient ? (job ? tr('Endre bestilling {id}', { id: job.id }) : tr('Ny bestilling')) : job ? tr('Rediger {id}', { id: job.id }) : tr('Ny jobb')}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn alt" onClick={onClose}>
-            Avbryt
+            {tr('Avbryt')}
           </button>
           <button className="btn" type="submit" form="jobform" disabled={saving}>
-            {saving ? 'Finner adresse …' : isClient ? (job ? 'Lagre bestilling' : 'Send bestilling') : job ? 'Lagre endringer' : 'Opprett jobb'}
+            {saving ? tr('Finner adresse …') : isClient ? (job ? tr('Lagre bestilling') : tr('Send bestilling')) : job ? tr('Lagre endringer') : tr('Opprett jobb')}
           </button>
         </>
       }
@@ -183,37 +184,39 @@ export function JobForm({
           <div className="form">
             {isClient ? (
               <div className="custbox">
-                <span className="muted">Bestilles av</span>
+                <span className="muted">{tr('Bestilles av')}</span>
                 <b>{v.customer}</b>
               </div>
             ) : (
               <div className="field">
-                <label htmlFor="f-customer">Kunde</label>
-                <input id="f-customer" list="custs" required value={v.customer} onChange={e => setCustomer(e.target.value)} autoComplete="off" placeholder="Velg fra kunderegisteret eller skriv navn" />
+                <label htmlFor="f-customer">{tr('Kunde')}</label>
+                <input id="f-customer" list="custs" required value={v.customer} onChange={e => setCustomer(e.target.value)} autoComplete="off" placeholder={tr('Velg fra kunderegisteret eller skriv navn')} />
                 <datalist id="custs">
                   {names.map(c => (
                     <option key={c} value={c} />
                   ))}
                 </datalist>
-                <small className="hint">{linked ? `✓ Registrert kunde${linked.orgNr ? ` · org.nr ${linked.orgNr}` : ''}` : v.customer ? 'Ikke i kunderegisteret (f.eks. telefonbestilling) – det er helt greit.' : ''}</small>
+                <small className="hint">{linked ? `✓ ${tr('Registrert kunde')}${linked.orgNr ? ` · ${tr('org.nr')} ${linked.orgNr}` : ''}` : v.customer ? tr('Ikke i kunderegisteret (f.eks. telefonbestilling) – det er helt greit.') : ''}</small>
               </div>
             )}
             <div className="two">
               <div className="field">
-                <label htmlFor="f-contact">Kontaktperson</label>
+                <label htmlFor="f-contact">{tr('Kontaktperson')}</label>
                 <input id="f-contact" value={v.contact} onChange={e => set('contact', e.target.value)} />
               </div>
               <div className="field">
-                <label htmlFor="f-phone">Telefon</label>
+                <label htmlFor="f-phone">{tr('Telefon')}</label>
                 <input id="f-phone" inputMode="tel" value={v.phone} onChange={e => set('phone', e.target.value)} />
               </div>
             </div>
             <div className="two">
               <div className="field">
-                <label htmlFor="f-service">Oppdragstype</label>
+                <label htmlFor="f-service">{tr('Oppdragstype')}</label>
                 <select id="f-service" value={v.service} onChange={e => set('service', e.target.value)}>
                   {config.services.map(s => (
-                    <option key={s}>{s}</option>
+                    <option key={s} value={s}>
+                      {trd(s)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -224,11 +227,11 @@ export function JobForm({
             </div>
             <div className="two">
               <div className="field">
-                <label htmlFor="f-date">{isClient ? 'Ønsket dato' : 'Dato'}</label>
+                <label htmlFor="f-date">{isClient ? tr('Ønsket dato') : tr('Dato')}</label>
                 <input id="f-date" type="date" required value={v.date} onChange={e => set('date', e.target.value)} />
               </div>
               <div className="field">
-                <label htmlFor="f-time">{isClient ? 'Ønsket tidspunkt' : 'Oppmøte'}</label>
+                <label htmlFor="f-time">{isClient ? tr('Ønsket tidspunkt') : tr('Oppmøte')}</label>
                 <input id="f-time" type="time" value={v.time} onChange={e => set('time', e.target.value)} />
               </div>
             </div>
@@ -236,36 +239,36 @@ export function JobForm({
             <>
             <div className="two">
               <div className="field">
-                <label htmlFor="f-car">Bil</label>
+                <label htmlFor="f-car">{tr('Bil')}</label>
                 <select id="f-car" value={v.car} onChange={e => set('car', e.target.value)}>
-                  <option value="">Ingen bil valgt</option>
+                  <option value="">{tr('Ingen bil valgt')}</option>
                   <VehicleOptions exceptJob={job?.id} />
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="f-drv">Sjåfør</label>
+                <label htmlFor="f-drv">{tr('Sjåfør')}</label>
                 <select id="f-drv" value={v.driver} onChange={e => set('driver', e.target.value)}>
-                  <option value="">Ingen sjåfør ennå</option>
+                  <option value="">{tr('Ingen sjåfør ennå')}</option>
                   <DriverOptions exceptJob={job?.id} />
                 </select>
               </div>
             </div>
             <small className="hint">
               {v.driver
-                ? 'Med sjåfør blir oppdraget Aktivt og vises hos sjåføren.'
-                : 'Uten sjåfør ligger oppdraget som Kommende til en sjåfør settes på.'}
-              {v.driver && !v.car ? ' Husk å velge bil.' : ''}
+                ? tr('Med sjåfør blir oppdraget Aktivt og vises hos sjåføren.')
+                : tr('Uten sjåfør ligger oppdraget som Kommende til en sjåfør settes på.')}
+              {v.driver && !v.car ? tr(' Husk å velge bil.') : ''}
             </small>
             </>
             )}
             <div className="field">
-              <label htmlFor="f-note">{isClient ? 'Beskrivelse og beskjed' : 'Beskjed til sjåfør'}</label>
+              <label htmlFor="f-note">{isClient ? tr('Beskrivelse og beskjed') : tr('Beskjed til sjåfør')}</label>
               <textarea
                 id="f-note"
                 rows={isClient ? 4 : 2}
                 value={v.note}
                 onChange={e => set('note', e.target.value)}
-                placeholder={isClient ? 'Hva skal gjøres? Adkomst, nøkler/koder, kontaktperson på stedet …' : 'Adkomst, nøkler, koder, kontakt på stedet …'}
+                placeholder={isClient ? tr('Hva skal gjøres? Adkomst, nøkler/koder, kontaktperson på stedet …') : tr('Adkomst, nøkler, koder, kontakt på stedet …')}
               />
             </div>
             <label className="chk">
@@ -276,8 +279,8 @@ export function JobForm({
           <div className="form">
             <AddressField value={v.address} onChange={val => set('address', val)} onPick={fromAddress} />
             <div className="field">
-              <label htmlFor="f-place">Sted</label>
-              <input id="f-place" list="places" value={v.place} onChange={e => set('place', e.target.value)} placeholder="F.eks. Oslo, Sørkedalen, byggefelt nord" autoComplete="off" />
+              <label htmlFor="f-place">{tr('Sted')}</label>
+              <input id="f-place" list="places" value={v.place} onChange={e => set('place', e.target.value)} placeholder={tr('F.eks. Oslo, Sørkedalen, byggefelt nord')} autoComplete="off" />
               <datalist id="places">
                 {places.map(p => (
                   <option key={p} value={p} />
@@ -285,14 +288,14 @@ export function JobForm({
               </datalist>
             </div>
             <div className="field">
-              <span className="lab">Plassering i kart</span>
+              <span className="lab">{tr('Plassering i kart')}</span>
               <PinPicker pos={pos} onPick={fromMap} focusKey={focusKey} />
               {pos ? (
                 <small className="hint">
-                  {pin === 'adresse' ? '📍 Plassert fra adresseregisteret.' : '📍 Plassert manuelt.'} Dra nålen eller klikk i kartet for å justere. ({fmtCoord(pos)})
+                  {pin === 'adresse' ? tr('📍 Plassert fra adresseregisteret.') : tr('📍 Plassert manuelt.')} {tr('Dra nålen eller klikk i kartet for å justere.')} ({fmtCoord(pos)})
                 </small>
               ) : (
-                <small className="hint">Velg en adresse fra listen, eller klikk i kartet hvis stedet ikke har adresse.</small>
+                <small className="hint">{tr('Velg en adresse fra listen, eller klikk i kartet hvis stedet ikke har adresse.')}</small>
               )}
               {pin === 'kart' && near && near.text !== v.address && (
                 <div className="near">
@@ -307,7 +310,7 @@ export function JobForm({
                       setNear(null);
                     }}
                   >
-                    Bruk som adresse
+                    {tr('Bruk som adresse')}
                   </button>
                 </div>
               )}
@@ -315,7 +318,7 @@ export function JobForm({
             </div>
           </div>
         </div>
-        {isClient && <p className="note">Bestillingen sendes til {config.company.name}. Dere får beskjed her i portalen når den er godkjent.</p>}
+        {isClient && <p className="note">{tr('Bestillingen sendes til {c}. Dere får beskjed her i portalen når den er godkjent.', { c: config.company.name })}</p>}
       </form>
     </Modal>
   );
@@ -388,7 +391,7 @@ export function AddressField({ value, onChange, onPick, label = 'Adresse eller b
         aria-activedescendant={active >= 0 ? `addr-${active}` : undefined}
         autoComplete="off"
         value={value}
-        placeholder="Begynn å skrive, f.eks. Strømsveien 266"
+        placeholder={tr('Begynn å skrive, f.eks. Strømsveien 266')}
         onChange={e => {
           typed.current = true;
           onChange(e.target.value);
@@ -420,10 +423,10 @@ export function AddressField({ value, onChange, onPick, label = 'Adresse eller b
               </span>
             </li>
           ))}
-          {!hits.length && <li className="none">Ingen treff i adresseregisteret. Behold teksten som beskrivelse og klikk i kartet for å plassere jobben.</li>}
+          {!hits.length && <li className="none">{tr('Ingen treff i adresseregisteret. Behold teksten som beskrivelse og klikk i kartet for å plassere jobben.')}</li>}
         </ul>
       )}
-      {state === 'error' && <small className="hint warntext">Adressesøket svarer ikke. Plasser jobben ved å klikke i kartet.</small>}
+      {state === 'error' && <small className="hint warntext">{tr('Adressesøket svarer ikke. Plasser jobben ved å klikke i kartet.')}</small>}
     </div>
   );
 }
