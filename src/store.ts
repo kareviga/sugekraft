@@ -23,7 +23,7 @@ interface DB {
 /** Status følger tildelingen: uten sjåfør = kommende, med sjåfør = aktiv. Ferdig settes bare ved lukking. */
 const norm = (j: Job): Job => {
   const status = j.status === 'ferdig' ? 'ferdig' : j.driver ? 'aktiv' : 'kommende';
-  return status === j.status && j.pin ? j : { ...j, status, pin: j.pin ?? 'adresse' };
+  return status === j.status && j.pin && j.steps ? j : { ...j, status, pin: j.pin ?? 'adresse', steps: j.steps ?? {} };
 };
 
 function fresh(): DB {
@@ -132,6 +132,7 @@ export function saveOrder(order: JobOrder, id?: string): Job {
     disposal: '',
     start: '',
     end: '',
+    steps: {},
     ticketNo: '',
     ticketPhotos: [],
     jobPhotos: [],

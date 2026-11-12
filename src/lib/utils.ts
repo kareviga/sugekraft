@@ -74,10 +74,11 @@ export function requirements(j: Job): [string, boolean][] {
   ];
   if (j.massType && !isNoMass(j)) {
     r.push(['Mengde', +j.amount > 0]);
-    r.push(['Deponi eller mottak', !!j.disposal]);
+    r.push(['Ankommet deponi (deponi valgt)', !!j.disposal]);
   }
   if (isHaz(j)) r.push(['Deklarasjonsnummer (farlig avfall)', !!j.decl.trim()]);
-  r.push(['Start- og sluttid', !!(j.start && j.end)]);
+  r.push(['Statuspunkt «Startet arbeid»', !!j.steps?.arbeid]);
+  r.push(['Statuspunkt «Fullført arbeid»', !!j.steps?.fullfort]);
   return r;
 }
 export const missing = (j: Job) => requirements(j).filter(r => !r[1]).map(r => r[0]);

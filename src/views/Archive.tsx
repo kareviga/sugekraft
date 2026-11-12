@@ -4,6 +4,8 @@ import { Confirm, Lightbox, Modal, Thumbs } from '../components/ui';
 import { updateJob, updateJobs } from '../store';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, fmtAmount, hours, jobDriverName, nice, num, totals, vehicle } from '../lib/utils';
+import { totalHours } from '../lib/steps';
+import { StepTimeline } from '../components/Steps';
 import type { Job } from '../types';
 
 export interface ArchivePreset {
@@ -356,7 +358,8 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
     ['Kundens ref.', j.ref || '–'],
     ['Adresse', `${j.address}, ${j.place}`],
     ['Dato', nice(j.date)],
-    ['Tid', j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
+    ['Arbeidstid', j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
+    ['Total tid', totalHours(j) ? `${j.steps.kjoring?.time} – ${j.steps.ferdig?.time ?? '…'} (${num(totalHours(j))} t, inkl. kjøring)` : '–'],
     ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '–'} / ${jobDriverName(j) || '–'}`],
     ['Kjøreseddel', j.ticketNo || '–'],
     ['Masse', j.massType || '–'],
@@ -393,6 +396,8 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
           </div>
         ))}
       </dl>
+      <div className="lab">Statuspunkter</div>
+      <StepTimeline j={j} />
       <div className="lab">Kjøreseddel og bilder</div>
       <Thumbs job={j} refs={[...j.ticketPhotos, ...j.jobPhotos]} onOpen={setZoom} />
       {zoom && <Lightbox src={zoom} onClose={() => setZoom(null)} />}

@@ -1,6 +1,7 @@
 import { config } from '../config';
 import { useJobs, useOut } from '../store';
 import { driverBusy } from '../lib/fleet';
+import { underway } from '../lib/steps';
 
 /** <option>-er for biler. Viser om bilen er ute av drift eller på oppdrag nå. */
 export function VehicleOptions({ exceptJob }: { exceptJob?: string }) {
@@ -9,7 +10,7 @@ export function VehicleOptions({ exceptJob }: { exceptJob?: string }) {
   return (
     <>
       {config.vehicles.map(c => {
-        const busy = jobs.find(j => j.car === c.id && j.status === 'aktiv' && j.start && j.id !== exceptJob);
+        const busy = jobs.find(j => j.car === c.id && underway(j) && j.id !== exceptJob);
         return (
           <option key={c.id} value={c.id}>
             {c.name} – {c.type}

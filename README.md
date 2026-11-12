@@ -56,6 +56,21 @@ Datoene er relative til dagens dato og flyttes automatisk fram når demoen åpne
   hvem som er i bilen nå og dagens oppdrag. Alt utledes av oppdragene. Det eneste som settes der, er «ute av drift».
 - Sjåføren velger «Jeg er» og ser oppdragene sine med hvilken bil som skal brukes.
 
+## Statuspunkter for sjåføren
+
+Sjåføren huker av punktene i rekkefølge, med klokkeslett (forhåndsutfylt med nå) og valgfri kommentar:
+
+1. Startet kjøring – bilen regnes som «på oppdrag» i Bilpark
+2. Ankommet sted
+3. Startet arbeid – starten på arbeidstiden i fakturagrunnlaget
+4. Fullført arbeid – slutten på arbeidstiden
+5. Kjørt fra sted
+6. Ankommet deponi – bare når massene skal deponeres. Deponi velges fra listen.
+7. Ferdig – avslutter jobben. Krever at kjøreseddel, bilder, masse osv. er fylt ut.
+
+Siste punkt kan angres, og alle punkter kan endres. Kontor, Bilpark, arkivet og PDF-en viser fremdriften.
+PDF-en viser både arbeidstid og total tid inkludert kjøring.
+
 ## Struktur
 
 ```
@@ -65,6 +80,8 @@ src/store.ts           lagring (localStorage) og nullstilling
 src/lib/pdf.ts         PDF-fakturagrunnlag (jsPDF, lastes først ved bruk)
 src/lib/photos.ts      bildekomprimering og genererte eksempelbilder
 src/lib/geo.ts         adressesøk og nærmeste adresse (Geonorge)
+src/lib/steps.ts       statuspunkter (rekkefølge, fremdrift, tider)
+src/lib/fleet.ts       bilstatus utledet av oppdragene
 src/views/             Kontor, Sjåfør, Arkiv
 src/components/        kart (Leaflet + Kartverket), jobbskjema, dialoger
 ```

@@ -305,6 +305,30 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 
 .jcar { color: var(--ink) !important; font-weight: 600; font-size: 13.5px; display: block; margin-top: 2px; }
 
+/* ---------- statuspunkter ---------- */
+.steps ol { list-style: none; margin: 0; padding: 0; }
+.steps li { display: flex; gap: 11px; position: relative; padding-bottom: 12px; }
+.steps li:not(:last-child)::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: var(--line); }
+.steps li.done:not(:last-child)::before { background: var(--ferdig); }
+.steps .dot { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #b9c4c0; background: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #fff; z-index: 1; }
+.steps li.done .dot { background: var(--ferdig); border-color: var(--ferdig); }
+.steps li.next .dot { border-color: var(--aktiv); box-shadow: 0 0 0 3px color-mix(in srgb, var(--aktiv) 22%, transparent); }
+.steps .sbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-top: 2px; }
+.steps .shead { display: flex; justify-content: space-between; gap: 8px; }
+.steps li.todo .shead b { color: #8a9894; font-weight: 500; }
+.steps .stime { font-weight: 700; font-variant-numeric: tabular-nums; }
+.steps .sinfo { color: var(--ink); }
+.steps .scomment { color: var(--muted); font-style: italic; }
+.steps .sactions { display: flex; gap: 14px; font-size: 13px; }
+.stepbtn { margin-top: 6px; width: 100%; font: 600 19px var(--display); padding: 12px; background: var(--aktiv); border-color: var(--aktiv); }
+.stepbtn.finish, .btn.finish { background: var(--ferdig); border-color: var(--ferdig); }
+.jstep { color: var(--muted); }
+.nextbar { position: sticky; bottom: 0; margin: 0 -16px -16px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, 0.96); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.08); z-index: 5; order: 99; }
+.nextbar .stepbtn { margin: 0; }
+.steps.interactive li.next .stepbtn { display: none; }
+.driver h3 { font-size: 20px; }
+.pill.prog { background: #fff; color: var(--aktiv); border: 1px solid var(--aktiv); }
+
 /* ---------- dialoger ---------- */
 .ov { position: fixed; inset: 0; background: rgba(15, 25, 30, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px 24px; overflow: auto; z-index: 2000; }
 .dlg { background: #fff; border-radius: 8px; width: 100%; max-width: 580px; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }

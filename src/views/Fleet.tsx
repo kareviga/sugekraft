@@ -6,6 +6,7 @@ import { setOut, useOut } from '../store';
 import { VSTATE_LABEL, vehicleStatus, type VehicleStatus, type VState } from '../lib/fleet';
 import { toast } from '../lib/toast';
 import { cx, driver, relDay } from '../lib/utils';
+import { progress } from '../lib/steps';
 import type { Job } from '../types';
 
 /*
@@ -64,7 +65,7 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
                   {s.today.map(j => (
                     <li key={j.id} className={j.status}>
                       <button className="link" onClick={() => openJob(j.id)}>
-                        <span className="vt">{j.start ? j.start : j.time || '–'}</span>
+                        <span className="vt">{j.steps.kjoring?.time ?? (j.time || '–')}</span>
                         {j.customer}
                         <span className="muted"> · {driver(j.driver)?.name.split(' ')[0] ?? 'ingen sjåfør'}</span>
                       </button>
@@ -137,7 +138,7 @@ function Doing({ s, openJob }: { s: VehicleStatus; openJob: (id: string) => void
         <br />
         <small>
           {s.active.address}
-          {s.active.place ? `, ${s.active.place}` : ''} · startet {s.active.start}
+          {s.active.place ? `, ${s.active.place}` : ''} · {progress(s.active).toLowerCase()}
         </small>
       </p>
     );

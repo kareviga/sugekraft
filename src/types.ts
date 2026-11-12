@@ -7,6 +7,12 @@ export const STATUS_LABEL: Record<Status, string> = {
   ferdig: 'Ferdig',
 };
 
+export type StepKey = 'kjoring' | 'ankommet' | 'arbeid' | 'fullfort' | 'kjortFra' | 'deponi' | 'ferdig';
+export interface Step {
+  time: string; // HH:MM
+  comment: string;
+}
+
 export interface Job {
   id: string;
   status: Status;
@@ -34,8 +40,10 @@ export interface Job {
   amount: string;
   unit: string;
   disposal: string;
-  start: string;
-  end: string;
+  start: string;   // arbeid startet (fra statuspunktet «Startet arbeid»)
+  end: string;     // arbeid fullført (fra «Fullført arbeid»)
+  /** Statuspunkter sjåføren har huket av */
+  steps: Partial<Record<StepKey, Step>>;
   ticketNo: string;
   ticketPhotos: string[];
   jobPhotos: string[];

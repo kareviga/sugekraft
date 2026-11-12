@@ -1,11 +1,13 @@
 import { useState, type ChangeEvent } from 'react';
 import { config } from '../config';
 import { JobMap } from '../components/JobMap';
-import { Checklist, Confirm, Lightbox, Pill, Thumbs } from '../components/ui';
+import { Checklist, Lightbox, Pill, Thumbs } from '../components/ui';
 import { updateJob } from '../store';
 import { shrink } from '../lib/photos';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, driver, fmtCoord, hours, isHaz, isNoMass, mapsUrl, missing, navUrl, num, nowHHMM, preferredMapApp, relDay, setPreferredMapApp, vehicle, type MapApp } from '../lib/utils';
+import { cx, dayOffset, driver, fmtCoord, hours, isHaz, isNoMass, mapsUrl, missing, navUrl, num, preferredMapApp, relDay, setPreferredMapApp, vehicle, type MapApp } from '../lib/utils';
+import { nextStep, progress, underway } from '../lib/steps';
+import { NextStepBar, StepTimeline } from '../components/Steps';
 import type { Job } from '../types';
 
 export function Driver({
@@ -22,11 +24,10 @@ export function Driver({
   setJobId: (id: string | null) => void;
 }) {
   const j = jobs.find(x => x.id === jobId);
-  const me = driver(personId)?.name ?? '';
   return (
     <div className="driver">
       {j && j.status !== 'ferdig' ? (
-        <DriverJob j={j} me={me} back={() => setJobId(null)} />
+        <DriverJob j={j} back={() => setJobId(null)} />
       ) : (
         <DriverList jobs={jobs} personId={personId} setPersonId={setPersonId} open={setJobId} />
       )}
@@ -48,7 +49,7 @@ function DriverList({
   const today = dayOffset(0);
   const mine = jobs
     .filter(j => j.driver === personId && j.status === 'aktiv')
-    .sort((a, b) => (a.start ? -1 : 0) - (b.start ? -1 : 0) || a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+    .sort((a, b) => (underway(a) ? -1 : 0) - (underway(b) ? -1 : 0) || a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
   const me = driver(personId);
   const doneToday = jobs.filter(j => j.driver === personId && j.status === 'ferdig' && j.closedAt === today).length;
   return (
@@ -98,14 +99,17 @@ function DriverList({
                 </span>
                 <small>
                   {j.service} · {relDay(j.date)}
-                  {j.time && !j.start ? ` kl. ${j.time}` : ''}
+                  {j.time && !underway(j) ? ` kl. ${j.time}` : ''}
                 </small>
                 <small>
                   {j.address}
                   {j.place ? `, ${j.place}` : ''}
                 </small>
                 <small className="jcar">{vehicle(j.car) ? `🚚 ${vehicle(j.car)!.name} – ${vehicle(j.car)!.type} (${vehicle(j.car)!.regNr})` : '⚠ Ingen bil valgt – kontakt kontoret'}</small>
-                {j.start && m > 0 && <small className="warntext">{m} punkter mangler før lukking</small>}
+                <small className="jstep">
+                  {underway(j) ? <span className="pill prog">{progress(j)}</span> : null} Neste: <b>{nextStep(j)?.label}</b>
+                </small>
+                {underway(j) && m > 0 && <small className="warntext">{m} punkter mangler før jobben kan avsluttes</small>}
               </button>
             );
           })
@@ -148,10 +152,8 @@ function PhotoField({ j, k, label }: { j: Job; k: 'ticketPhotos' | 'jobPhotos'; 
   );
 }
 
-function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
-  const [confirmClose, setConfirmClose] = useState(false);
+function DriverJob({ j, back }: { j: Job; back: () => void }) {
   const [app, setApp] = useState<MapApp>(preferredMapApp);
-  // den som fyller ut jobben registreres som sjåfør
   const set = (patch: Partial<Job>) => updateJob(j.id, patch);
   const chooseApp = (a: MapApp) => {
     setApp(a);
@@ -243,6 +245,11 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
     <div className="pad">
       {head}
       <hr />
+      <h3>Statuspunkter</h3>
+      <StepTimeline j={j} interactive onClosed={back} />
+      <NextStepBar j={j} onClosed={back} />
+      <hr />
+      <h3>Dokumentasjon</h3>
       <PhotoField j={j} k="ticketPhotos" label="Bilde av kjøreseddel" />
       <div className="field">
         <label htmlFor="j-ticket">Kjøreseddelnummer</label>
@@ -277,15 +284,6 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
               </select>
             </div>
           </div>
-          <div className="field">
-            <label htmlFor="j-disposal">Deponi eller mottak</label>
-            <select id="j-disposal" value={j.disposal} onChange={e => set({ disposal: e.target.value })}>
-              <option value="">Velg</option>
-              {config.depots.map(d => (
-                <option key={d}>{d}</option>
-              ))}
-            </select>
-          </div>
         </>
       )}
       {isHaz(j) && (
@@ -294,50 +292,17 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
           <input id="j-decl" inputMode="numeric" value={j.decl} onChange={e => set({ decl: e.target.value })} />
         </div>
       )}
-      <div className="two keep">
-        <div className="field">
-          <label htmlFor="j-start">Start</label>
-          <div className="timein">
-            <input id="j-start" type="time" value={j.start} onChange={e => set({ start: e.target.value })} />
-            <button type="button" className="now" onClick={() => set({ start: nowHHMM() })}>
-              Nå
-            </button>
-          </div>
-        </div>
-        <div className="field">
-          <label htmlFor="j-end">Slutt</label>
-          <div className="timein">
-            <input id="j-end" type="time" value={j.end} onChange={e => set({ end: e.target.value })} />
-            <button type="button" className="now" onClick={() => set({ end: nowHHMM() })}>
-              Nå
-            </button>
-          </div>
-        </div>
-      </div>
-      {j.start && j.end && <p className="note">Arbeidstid: {num(hours(j))} timer</p>}
+      {j.start && j.end && <p className="note">Arbeidstid (fra statuspunktene): {num(hours(j))} timer</p>}
       <div className="field">
         <label htmlFor="j-comment">Kommentar til faktura</label>
         <textarea id="j-comment" rows={2} value={j.comment} placeholder="F.eks. ekstra slange, ventetid eller hindringer" onChange={e => set({ comment: e.target.value })} />
       </div>
       <hr />
       <Checklist job={j} />
-      {miss.length ? <p className="alert">Fyll ut {miss.length === 1 ? 'punktet' : `de ${miss.length} punktene`} som mangler før jobben kan lukkes.</p> : <p className="okline">Alt er fylt ut. Jobben kan lukkes.</p>}
-      <button className="btn big" disabled={miss.length > 0} onClick={() => setConfirmClose(true)}>
-        Lukk jobb
-      </button>
-      {confirmClose && (
-        <Confirm
-          title="Lukke jobben?"
-          text={`${j.id} for ${j.customer} sendes til arkivet og blir klar for fakturering. ${v ? v.name : ''}`}
-          ok="Lukk jobb"
-          onClose={() => setConfirmClose(false)}
-          onOk={() => {
-            if (missing(j).length) return;
-            updateJob(j.id, { status: 'ferdig', closedAt: dayOffset(0), driverName: driver(j.driver)?.name || me }, true);
-            back();
-            toast(`${j.id} er lukket og ligger i arkivet.`);
-          }}
-        />
+      {miss.length ? (
+        <p className="alert">Fyll ut {miss.length === 1 ? 'punktet' : `de ${miss.length} punktene`} som mangler. Jobben avsluttes med statuspunktet «Ferdig».</p>
+      ) : (
+        <p className="okline">Alt er fylt ut. Avslutt med statuspunktet «Ferdig» øverst.</p>
       )}
     </div>
   );

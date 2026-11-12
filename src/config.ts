@@ -159,5 +159,5 @@ export const config: AppConfig = {
   ],
 
   jobPrefix: 'J',
-  storageKey: 'sugekraft-demo-v4',
+  storageKey: 'sugekraft-demo-v5',
 };

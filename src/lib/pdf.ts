@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import { config } from '../config';
 import type { Job } from '../types';
 import { photoSrc, rasterize } from './photos';
+import { stepsFor, totalHours } from './steps';
 import { dayOffset, download, fmtAmount, hexToRgb, hours, jobDriverName, nice, num, totals, vehicle } from './utils';
 
 /*
@@ -183,7 +184,8 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       ['Adresse', `${j.address}, ${j.place}`],
       ['Kundens ref.', j.ref],
       ['Dato', nice(j.date)],
-      ['Tid', j.start && j.end ? `${j.start} - ${j.end} (${num(hours(j))} t)` : '-'],
+      ['Arbeidstid', j.start && j.end ? `${j.start} - ${j.end} (${num(hours(j))} t)` : '-'],
+      ['Total tid inkl. kjøring', totalHours(j) ? `${j.steps.kjoring?.time} - ${j.steps.ferdig?.time ?? ''} (${num(totalHours(j))} t)` : '-'],
       ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '-'} / ${jobDriverName(j) || '-'}`],
       ['Kjøreseddel', j.ticketNo],
       ['Masse', j.massType],
@@ -218,6 +220,32 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       else col = 1;
     });
     if (col === 1) endRow();
+    // statuspunkter
+    const sl = stepsFor(j).filter(s => j.steps[s.key]);
+    if (sl.length) {
+      yy += 1;
+      d.setTextColor(...MUTED);
+      d.setFontSize(7.5);
+      d.text('STATUSPUNKTER', L, yy);
+      yy += 4.5;
+      d.setFontSize(9);
+      sl.forEach(s => {
+        const st = j.steps[s.key]!;
+        d.setTextColor(...INK);
+        d.setFont('helvetica', 'bold');
+        d.text(st.time, L, yy);
+        d.setFont('helvetica', 'normal');
+        const extra = [s.key === 'deponi' && j.disposal ? j.disposal : '', st.comment ? `"${st.comment}"` : ''].filter(Boolean).join(' - ');
+        d.text(t(s.label), L + 12, yy);
+        if (extra) {
+          d.setTextColor(...MUTED);
+          const lines = d.splitTextToSize(t(extra), W - 62) as string[];
+          d.text(lines, L + 56, yy);
+          yy += (lines.length - 1) * 4;
+        }
+        yy += 4.6;
+      });
+    }
     yy += 2;
     d.setDrawColor(215, 222, 220);
     d.line(L, yy, R, yy);
@@ -227,7 +255,10 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       ...j.ticketPhotos.map((p, i) => [p, `Kjøreseddel${j.ticketPhotos.length > 1 ? ' ' + (i + 1) : ''}`] as [string, string]),
       ...j.jobPhotos.map((p, i) => [p, `Bilde ${i + 1}`] as [string, string]),
     ];
-    const gap = 6, bw = (W - gap) / 2, bh = 92;
+    // bildehøyde: krymp litt hvis det gjør at alt får plass på siden
+    const rows = Math.ceil(pics.length / 2);
+    const fit = rows ? (284 - yy - rows * 10) / rows : 92;
+    const gap = 6, bw = (W - gap) / 2, bh = Math.max(62, Math.min(92, fit));
     let i = 0;
     for (const [ref, cap] of pics) {
       if (i % 2 === 0 && i > 0) yy += bh + 10;

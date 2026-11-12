@@ -1,5 +1,5 @@
 import { config } from '../config';
-import type { Job } from '../types';
+import type { Job, Step, StepKey } from '../types';
 import { dayOffset } from '../lib/utils';
 
 /*
@@ -79,6 +79,8 @@ interface Row {
   service: string;
   car: number; // indeks i config.vehicles, -1 = ingen bil
   drv?: number; // indeks i config.drivers; standard = samme som bil, -1 = ingen sjåfør (Kommende)
+  stage?: StepKey; // siste statuspunkt for aktive jobber som er i gang (standard «arbeid»)
+  sc?: Partial<Record<StepKey, string>>; // kommentarer på statuspunkter
   ref?: string;
   time?: string;
   note?: string;
@@ -115,12 +117,12 @@ const ROWS: Row[] = [
 
   // ---- Aktiv: pågår i dag ----
   { c: 'nordbygg', a: 'stromsv', d: 0, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '12', start: '07:30', photos: [1] },
-  { c: 'kjokken', a: 'trondheimsv', d: 0, service: 'Tømming fettutskiller', car: 1, ref: 'EB-90', start: '08:15' },
+  { c: 'kjokken', a: 'trondheimsv', d: 0, service: 'Tømming fettutskiller', car: 1, ref: 'EB-90', start: '08:15', stage: 'ankommet', sc: { ankommet: 'Kjøkkenet åpner 08:30, venter på nøkkel.' } },
   { c: 'kommune', a: 'haslev', d: 0, service: 'Høytrykkspyling', car: 2, ref: 'K-2026-327', mass: 'Ingen masse (kun spyling/inspeksjon)', start: '09:00', photos: [2] },
-  { c: 'eiendom', a: 'sandaker', d: 0, service: 'Tømming tett tank', car: 3, ref: 'AE-337', mass: 'Avløpsvann (tett tank)', amount: '8', start: '10:05', ticket: '48231', ticketPhoto: true, photos: [3] },
+  { c: 'eiendom', a: 'sandaker', d: 0, service: 'Tømming tett tank', car: 3, ref: 'AE-337', mass: 'Avløpsvann (tett tank)', amount: '8', start: '10:05', end: '11:20', stage: 'kjortFra', ticket: '48231', ticketPhoto: true, photos: [3] },
 
   // ---- Ferdig ----
-  { done: true, c: 'nordbygg', a: 'stromsv', d: -1, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '18', depot: 2, start: '07:00', end: '14:30', ticket: '48213', photos: [3, 4], ticketPhoto: true, comment: 'Trang adkomst, brukte 30 m ekstra slange.' },
+  { done: true, c: 'nordbygg', a: 'stromsv', d: -1, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '18', depot: 2, start: '07:00', end: '14:30', ticket: '48213', photos: [3, 4], ticketPhoto: true, comment: 'Trang adkomst, brukte 30 m ekstra slange.', sc: { ankommet: 'Port stengt, ventet på anleggsleder.', deponi: 'Kø på mottaket, ca. 20 min.' } },
   { done: true, c: 'sorkedal', a: 'hytte', d: -2, service: 'Tømming septik', car: 1, ref: 'HYT-117', mass: 'Septikslam', amount: '6', depot: 0, start: '11:00', end: '12:10', ticket: '48210', photos: [7], ticketPhoto: true },
   { done: true, c: 'kjokken', a: 'trondheimsv', d: -2, service: 'Tømming fettutskiller', car: 1, ref: 'EB-88', mass: 'Innhold fettutskiller', amount: '4.5', depot: 0, start: '13:00', end: '13:55', ticket: '48211', photos: [9], ticketPhoto: true },
   { done: true, c: 'nordbygg', a: 'snaroy', d: -3, service: 'Blåsing av pukk', car: 0, ref: 'P-5502', mass: 'Pukk', amount: '9', unit: 'tonn', depot: 4, start: '10:00', end: '13:15', ticket: '48207', photos: [5], ticketPhoto: true },
@@ -145,6 +147,35 @@ const ROWS: Row[] = [
 /** Sjåfør for en rad: eksplisitt, ellers fast sjåfør for bilen. Noen ferdige jobber er kjørt av vikaren. */
 const D_IDX = (r: Row, i: number) => (r.drv !== undefined ? r.drv : r.car < 0 ? -1 : r.done && i % 7 === 3 ? 5 : r.car);
 const C_DRV = (n: number) => (n < 0 || !config.drivers.length ? undefined : config.drivers[n % config.drivers.length]);
+
+const ORDER: StepKey[] = ['kjoring', 'ankommet', 'arbeid', 'fullfort', 'kjortFra', 'deponi', 'ferdig'];
+const hm = (t: string, add: number) => {
+  const [h, m] = t.split(':').map(Number);
+  const x = (((h * 60 + m + add) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`;
+};
+/** Lager realistiske statuspunkter ut fra start/slutt for arbeidet. */
+function buildSteps(r: Row, needsDepot: boolean): Partial<Record<StepKey, Step>> {
+  if (!r.start) return {};
+  const T = r.start, E = r.end ?? hm(T, 75);
+  const at: Record<StepKey, string> = {
+    kjoring: hm(T, -32),
+    ankommet: hm(T, -6),
+    arbeid: T,
+    fullfort: E,
+    kjortFra: hm(E, 9),
+    deponi: hm(E, 41),
+    ferdig: hm(E, needsDepot ? 58 : 22),
+  };
+  const stage: StepKey = r.done ? 'ferdig' : r.stage ?? 'arbeid';
+  const steps: Partial<Record<StepKey, Step>> = {};
+  for (const k of ORDER) {
+    if (k === 'deponi' && !needsDepot) continue;
+    steps[k] = { time: at[k], comment: r.sc?.[k] ?? '' };
+    if (k === stage) break;
+  }
+  return steps;
+}
 
 export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string, string> } {
   const out: Record<string, string> = {};
@@ -176,8 +207,11 @@ export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string,
       amount: r.amount ?? '',
       unit: r.unit && config.units.includes(r.unit) ? r.unit : config.units[0],
       disposal: r.depot !== undefined ? D(r.depot) : '',
-      start: r.start ?? '',
-      end: r.end ?? '',
+      ...(() => {
+        const mass = r.mass ? M(r.mass, i) : '';
+        const steps = buildSteps(r, !!mass && !config.massTypes.find(m => m.name === mass)?.noMass);
+        return { steps, start: steps.arbeid?.time ?? '', end: steps.fullfort?.time ?? '' };
+      })(),
       ticketNo: r.ticket ?? '',
       ticketPhotos: r.ticketPhoto ? ['demo:ticket'] : [],
       jobPhotos: (r.photos ?? []).map(p => `demo:job:${p}`),

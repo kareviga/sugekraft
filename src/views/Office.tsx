@@ -7,6 +7,8 @@ import { deleteJob, updateJob, useJobs, useOut } from '../store';
 import { FleetCompact } from './Fleet';
 import { DriverOptions, VehicleOptions } from '../components/VehicleOptions';
 import { driverBusy } from '../lib/fleet';
+import { progress, underway } from '../lib/steps';
+import { StepTimeline } from '../components/Steps';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
@@ -116,7 +118,7 @@ export function Office({
         </div>
         {list.length ? (
           list.map(j => {
-            const m = j.status === 'aktiv' && j.start ? missing(j).length : 0;
+            const m = underway(j) ? missing(j).length : 0;
             const v = vehicle(j.car);
             return (
               <button key={j.id} className={cx('row', j.status, j.id === sel && 'sel')} onClick={() => pick(j.id, true)}>
@@ -133,10 +135,11 @@ export function Office({
                 <small className="meta">
                   <span>
                     {relDay(j.date)}
-                    {j.time && j.status !== 'ferdig' && !j.start ? ` kl. ${j.time}` : ''}
+                    {j.time && j.status !== 'ferdig' && !underway(j) ? ` kl. ${j.time}` : ''}
                   </span>
                   {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">Uten bil</span>}
                   {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">Uten sjåfør</span>}
+                  {underway(j) && <span className="pill prog">{progress(j)}</span>}
                   {m > 0 && <span className="pill warn">Mangler {m}</span>}
                   {j.status === 'ferdig' && (j.invoiced ? <span className="pill ok">Fakturert</span> : null)}
                 </small>
@@ -284,21 +287,24 @@ function Detail({
             <dd>{j.note}</dd>
           </>
         )}
-        {j.start && (
+        {j.status !== 'kommende' && j.massType && (
           <>
             <dt>Masse</dt>
-            <dd>{j.massType || '–'}</dd>
-            <dt>Mengde</dt>
-            <dd>{fmtAmount(j)}</dd>
-            <dt>Tid</dt>
-            <dd>{j.start ? `${j.start} – ${j.end || 'pågår'}` : '–'}</dd>
+            <dd>
+              {j.massType} · {fmtAmount(j)}
+              {j.disposal ? ` → ${j.disposal}` : ''}
+            </dd>
           </>
         )}
       </dl>
       {j.status === 'kommende' ? (
         <p className="infobox">Jobben er ikke tildelt. Velg bil over for å sende den til sjåføren – da blir den aktiv.</p>
-      ) : j.start || j.status === 'ferdig' ? (
-        <Checklist job={j} />
+      ) : underway(j) || j.status === 'ferdig' ? (
+        <>
+          <div className="lab">Statuspunkter</div>
+          <StepTimeline j={j} />
+          <Checklist job={j} />
+        </>
       ) : (
         <p className="note">Sjåføren har ikke begynt på jobben ennå.</p>
       )}
@@ -311,7 +317,7 @@ function Detail({
           <button className="btn alt" onClick={onDriver} disabled={!j.driver} title={j.driver ? '' : 'Sett på en sjåfør først'}>
             Åpne som sjåfør
           </button>
-          {!j.start && (
+          {!underway(j) && (
             <button className="btn alt danger" onClick={onDelete}>
               Slett
             </button>
@@ -365,7 +371,7 @@ function Assign({ j }: { j: Job }) {
       </div>
       {!j.car && j.driver && <p className="alert small">Velg bil før sjåføren kjører ut.</p>}
       {carOut && <p className="alert small">{vehicleName(j.car)} er ute av drift: {out[j.car] || 'ingen årsak oppgitt'}.</p>}
-      {busy && j.status === 'aktiv' && !j.start && (
+      {busy && j.status === 'aktiv' && !underway(j) && (
         <p className="note">
           {driver(j.driver)?.name} er på oppdrag hos {busy.customer} nå.
         </p>
