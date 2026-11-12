@@ -22,7 +22,8 @@ mappe på et webhotell). Den må serveres over http(s). Å åpne `index.html` di
    - `logo`: filnavn i `public/` eller full URL. Sett til `''` for å bruke initialer.
    - `colors`: hovedfarge, topplinje, uthevingsfarge og statusfarger
    - `map`: kartsenter, zoom og kartstil. Adressesøket viser treff nærmest kartsenteret først.
-   - `vehicles`: biler med sjåfør, type og registreringsnummer
+   - `vehicles`: biler med type og registreringsnummer
+   - `drivers`: sjåfører med telefon. Biler og sjåfører er adskilt, og hvem som kjører hvilken bil settes i Bilpark.
    - `services`: oppdragstyper
    - `massTypes`: massetyper. `hazardous: true` krever deklarasjonsnummer, `noMass: true` krever ikke mengde eller deponi.
    - `depots`: deponier og mottak
@@ -42,7 +43,16 @@ Datoene er relative til dagens dato og flyttes automatisk fram når demoen åpne
 - Adressefeltet søker i Kartverkets adresseregister (Geonorge, gratis og uten nøkkel). Velger du et treff,
   settes nålen på adressen. Uten adresse klikker du i kartet i skjemaet eller drar nålen, og appen foreslår
   nærmeste registrerte adresse.
-- Sjåføren får «Naviger til stedet», som åpner Google Maps med veibeskrivelse til nålens koordinater.
+- Sjåføren får «Naviger til stedet» med veibeskrivelse til nålens koordinater, i Google Maps eller Apple Kart.
+  iPhone/iPad bruker Apple Kart som standard, og valget huskes på enheten.
+- I Kontor kan valgt jobb flyttes ved å dra nålen i kartet, med «Angre» i meldingen.
+
+## Biler og sjåfører
+
+- **Bilpark** viser alle biler med dagens sjåfør, hva bilen gjør nå (på oppdrag, har jobber, ledig, ute av drift)
+  og dagens jobber. Her settes sjåfør på bil, og biler kan settes ute av drift.
+- Jobber tildeles en **bil**. Sjåføren som fyller ut jobben, lagres på jobben og står på PDF-en.
+- I sjåførvisningen velger sjåføren «Jeg er» og «Bil i dag». Den som sto på bilen fra før, blir tatt av.
 
 ## Struktur
 

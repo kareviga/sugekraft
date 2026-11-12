@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { config } from './config';
 import { Confirm, Logo, Toasts } from './components/ui';
-import { resetDemo, useJobs } from './store';
+import { crewOf, resetDemo, setCrew, useJobs } from './store';
 import { toast } from './lib/toast';
 import { Archive, type ArchivePreset } from './views/Archive';
 import { Driver } from './views/Driver';
+import { Fleet } from './views/Fleet';
 import { Office } from './views/Office';
 import type { View } from './types';
 
 const VIEWS: [View, string][] = [
   ['kontor', 'Kontor'],
+  ['bilpark', 'Bilpark'],
   ['sjafor', 'Sjåfør'],
   ['arkiv', 'Arkiv og faktura'],
 ];
@@ -22,7 +24,7 @@ export function App() {
   const jobs = useJobs();
   const [view, setView] = useState<View>(fromHash);
   const [officeSel, setOfficeSel] = useState<string | null>(null);
-  const [driverCar, setDriverCar] = useState(config.vehicles[0]?.id ?? '');
+  const [driverPerson, setDriverPerson] = useState(() => crewOf(config.vehicles[0]?.id ?? '') || config.drivers[0]?.id || '');
   const [driverJob, setDriverJob] = useState<string | null>(null);
   const [preset, setPreset] = useState<ArchivePreset | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -72,8 +74,19 @@ export function App() {
             jobs={jobs}
             sel={officeSel}
             setSel={setOfficeSel}
+            openFleet={() => go('bilpark')}
             openAsDriver={j => {
-              setDriverCar(j.car);
+              let p = crewOf(j.car);
+              if (!p) {
+                // bilen har ingen sjåfør: sett opp en ledig sjåfør så demoen kan fortsette
+                const busy = new Set(config.vehicles.map(v => crewOf(v.id)).filter(Boolean));
+                p = config.drivers.find(d => !busy.has(d.id))?.id ?? config.drivers[0]?.id ?? '';
+                if (p) {
+                  setCrew(j.car, p);
+                  toast(`${config.drivers.find(d => d.id === p)?.name} er satt opp på bilen.`);
+                }
+              }
+              setDriverPerson(p);
               setDriverJob(j.id);
               go('sjafor');
             }}
@@ -86,15 +99,24 @@ export function App() {
         {view === 'sjafor' && (
           <Driver
             jobs={jobs}
-            carId={driverCar}
-            setCarId={id => {
-              setDriverCar(id);
+            personId={driverPerson}
+            setPersonId={id => {
+              setDriverPerson(id);
               setDriverJob(null);
             }}
             jobId={driverJob}
             setJobId={id => {
               setDriverJob(id);
               document.querySelector('main')?.scrollTo(0, 0);
+            }}
+          />
+        )}
+        {view === 'bilpark' && (
+          <Fleet
+            jobs={jobs}
+            openJob={id => {
+              setOfficeSel(id);
+              go('kontor');
             }}
           />
         )}

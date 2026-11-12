@@ -3,9 +3,11 @@ import { config } from '../config';
 import { JobMap } from '../components/JobMap';
 import { JobForm } from '../components/JobForm';
 import { Checklist, Confirm, Lightbox, Mark, Pill, Thumbs } from '../components/ui';
-import { deleteJob, updateJob } from '../store';
+import { crewOf, deleteJob, updateJob, useCrew } from '../store';
+import { FleetCompact } from './Fleet';
+import { VehicleOptions } from '../components/VehicleOptions';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, daysBetween, fmtAmount, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
+import { cx, dayOffset, daysBetween, driver, fmtAmount, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
 
 const ORDER: Record<Status, number> = { aktiv: 0, kommende: 1, ferdig: 2 };
@@ -22,13 +24,16 @@ export function Office({
   setSel,
   openAsDriver,
   openInArchive,
+  openFleet,
 }: {
   jobs: Job[];
   sel: string | null;
   setSel: (id: string | null) => void;
   openAsDriver: (j: Job) => void;
   openInArchive: (j: Job) => void;
+  openFleet: () => void;
 }) {
+  const crew = useCrew();
   const [show, setShow] = useState<Record<Status, boolean>>({ kommende: true, aktiv: true, ferdig: true });
   const [doneRange, setDoneRange] = useState('7');
   const [carF, setCarF] = useState('');
@@ -83,7 +88,8 @@ export function Office({
               <option value="">Alle biler</option>
               {config.vehicles.map(v => (
                 <option key={v.id} value={v.id}>
-                  {v.name} – {v.driver.split(' ')[0]}
+                  {v.name}
+                  {crew[v.id] ? ` – ${driver(crew[v.id])?.name.split(' ')[0]}` : ''}
                 </option>
               ))}
               <option value="-">Ikke tildelt ({unassigned})</option>
@@ -132,14 +138,28 @@ export function Office({
       </section>
 
       <section className="mapwrap" aria-label="Kart">
-        <JobMap jobs={list} selectedId={sel} onSelect={id => pick(id, false)} fitKey={fitKey} flyKey={fly} />
+        <JobMap
+          jobs={list}
+          selectedId={sel}
+          onSelect={id => pick(id, false)}
+          fitKey={fitKey}
+          flyKey={fly}
+          dragId={s && s.status !== 'ferdig' ? s.id : null}
+          onMove={(id, lat, lon) => {
+            const j = jobs.find(x => x.id === id);
+            if (!j) return;
+            const before = { lat: j.lat, lon: j.lon, pin: j.pin };
+            updateJob(id, { lat, lon, pin: 'kart' }, true);
+            toast(`Nålen for ${id} er flyttet.`, { label: 'Angre', run: () => updateJob(id, before, true) });
+          }}
+        />
         <div className="legend" aria-hidden="true">
           {(Object.keys(STATUS_LABEL) as Status[]).map(k => (
             <span key={k}>
               <Mark status={k} /> {STATUS_LABEL[k]}
             </span>
           ))}
-          <span className="lg-note">Tallet viser bilnummer</span>
+          {s && s.status !== 'ferdig' && <span className="lg-note">Dra valgt nål for å flytte den</span>}
         </div>
       </section>
 
@@ -159,7 +179,7 @@ export function Office({
             onZoom={setZoom}
           />
         ) : (
-          <Fleet jobs={jobs} onPick={id => pick(id, true)} />
+          <FleetCompact jobs={jobs} onPick={id => pick(id, true)} openFleet={openFleet} />
         )}
       </aside>
 
@@ -229,15 +249,16 @@ function Detail({
           disabled={j.status === 'ferdig'}
           onChange={e => {
             updateJob(j.id, { car: e.target.value }, true);
-            toast(e.target.value ? `${j.id} er tildelt ${vehicleLong(e.target.value)} og er nå aktiv.` : `Tildelingen er fjernet. ${j.id} er kommende igjen.`);
+            const d = driver(crewOf(e.target.value));
+            toast(
+              e.target.value
+                ? `${j.id} er tildelt ${vehicleLong(e.target.value)}${d ? ` (${d.name})` : ' – bilen har ingen sjåfør i dag'} og er nå aktiv.`
+                : `Tildelingen er fjernet. ${j.id} er kommende igjen.`,
+            );
           }}
         >
           <option value="">Ikke tildelt</option>
-          {config.vehicles.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.name} – {c.type} ({c.driver})
-            </option>
-          ))}
+          <VehicleOptions />
         </select>
       </div>
       <dl className="kv">
@@ -247,12 +268,15 @@ function Detail({
           {j.place ? `, ${j.place}` : ''}
           <br />
           <small className="muted">
-            {j.pin === 'kart' ? `Nål plassert manuelt (${fmtCoord(j)})` : 'Fra adresseregisteret'} ·{' '}
+            {j.pin === 'kart' ? `Nål plassert manuelt (${fmtCoord(j)})` : 'Fra adresseregisteret'}
+            {j.status !== 'ferdig' ? ' · dra nålen i kartet for å flytte' : ''} ·{' '}
             <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
               Google Maps
             </a>
           </small>
         </dd>
+        <dt>Sjåfør</dt>
+        <dd>{j.status === 'ferdig' ? j.driverName || '–' : driver(crewOf(j.car))?.name ?? (j.car ? <span className="warntext">Bilen har ingen sjåfør</span> : '–')}</dd>
         <dt>Dato</dt>
         <dd>
           {nice(j.date)}
@@ -308,51 +332,6 @@ function Detail({
           Åpne i arkivet
         </button>
       )}
-    </>
-  );
-}
-
-/** Vises når ingen jobb er valgt: status per bil i dag. */
-function Fleet({ jobs, onPick }: { jobs: Job[]; onPick: (id: string) => void }) {
-  const today = dayOffset(0);
-  return (
-    <>
-      <h2>Bilparken i dag</h2>
-      <p className="note">Velg en jobb i listen eller kartet for å se detaljer.</p>
-      <ul className="fleet">
-        {config.vehicles.map(v => {
-          const mine = jobs.filter(j => j.car === v.id && j.date === today);
-          const active = mine.find(j => j.status === 'aktiv' && j.start);
-          const done = mine.filter(j => j.status === 'ferdig').length;
-          const next = mine.filter(j => j.status === 'aktiv' && !j.start).sort((a, b) => (a.time || '').localeCompare(b.time || ''))[0];
-          return (
-            <li key={v.id}>
-              <span className={cx('fleet-tag', active ? 'aktiv' : next ? 'neste' : 'idle')}>{v.tag}</span>
-              <div>
-                <b>
-                  {v.name} · {v.driver}
-                </b>
-                <small>
-                  {v.type} · {v.regNr}
-                </small>
-                {active ? (
-                  <button className="link" onClick={() => onPick(active.id)}>
-                    Pågår: {active.customer}, {active.place}
-                  </button>
-                ) : next ? (
-                  <button className="link" onClick={() => onPick(next.id)}>
-                    Neste: {next.customer}
-                    {next.time ? ` kl. ${next.time}` : ''}
-                  </button>
-                ) : (
-                  <small>Ingen flere jobber i dag</small>
-                )}
-                {done > 0 && <small>{done} ferdig i dag</small>}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
     </>
   );
 }

@@ -25,6 +25,7 @@ export interface Job {
   date: string;      // YYYY-MM-DD
   time: string;      // planlagt oppmøte HH:MM (valgfritt)
   car: string;       // vehicle id, '' = ikke tildelt
+  driverName: string; // hvem som utførte jobben (settes når sjåføren fyller ut)
   note: string;
   urgent: boolean;
   // utførelse (sjåfør)
@@ -50,4 +51,4 @@ export type JobOrder = Pick<
   'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'note' | 'urgent'
 >;
 
-export type View = 'kontor' | 'sjafor' | 'arkiv';
+export type View = 'kontor' | 'bilpark' | 'sjafor' | 'arkiv';

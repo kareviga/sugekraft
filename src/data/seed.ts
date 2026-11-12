@@ -140,7 +140,20 @@ const ROWS: Row[] = [
   { done: true, c: 'asker', a: 'hagalokk', d: -27, service: 'Spillolje', car: 4, ref: 'AM-5470', mass: 'Spillolje', amount: '600', unit: 'liter', depot: 3, decl: '3120077', start: '14:00', end: '14:45', ticket: '48097', photos: [12], ticketPhoto: true, invoiced: true },
 ];
 
-export function createSeed(): { jobs: Job[]; nextNo: number } {
+/** Bemanning i dag: bil-indeks → sjåfør-indeks. Bil 6 står uten sjåfør, Jonas er vikar. */
+const CREW: [number, number][] = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]];
+/** Hvem som kjørte de ferdige jobbene: normalt fast sjåfør, men noen ganger vikaren. */
+const histDriver = (car: number, i: number) => config.drivers[(i % 7 === 3 ? 5 : car) % config.drivers.length]?.name ?? '';
+
+export function createSeed(): { jobs: Job[]; nextNo: number; crew: Record<string, string>; out: Record<string, string> } {
+  const crew: Record<string, string> = {};
+  CREW.forEach(([v, d]) => {
+    const veh = config.vehicles[v], drv = config.drivers[d];
+    if (veh && drv) crew[veh.id] = drv.id;
+  });
+  const out: Record<string, string> = {};
+  const reserve = config.vehicles[5];
+  if (reserve) out[reserve.id] = 'EU-kontroll fredag';
   let no = 2031;
   const jobs = ROWS.map((r, i): Job => {
     const [address, place, lat, lon, how] = A[r.a] as Addr;
@@ -159,6 +172,7 @@ export function createSeed(): { jobs: Job[]; nextNo: number } {
       date: dayOffset(r.d),
       time: r.time ?? r.start ?? '',
       car,
+      driverName: r.done || r.start ? histDriver(r.car, i) : '',
       note: r.note ?? '',
       urgent: !!r.urgent,
       massType: r.mass ? M(r.mass, i) : '',
@@ -177,5 +191,5 @@ export function createSeed(): { jobs: Job[]; nextNo: number } {
       closedAt: r.done ? dayOffset(r.d) : '',
     };
   });
-  return { jobs, nextNo: no };
+  return { jobs, nextNo: no, crew, out };
 }

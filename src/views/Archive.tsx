@@ -357,7 +357,7 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
     ['Adresse', `${j.address}, ${j.place}`],
     ['Dato', nice(j.date)],
     ['Tid', j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
-    ['Bil / sjåfør', v ? `${v.name} (${v.regNr}) / ${v.driver}` : '–'],
+    ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '–'} / ${j.driverName || '–'}`],
     ['Kjøreseddel', j.ticketNo || '–'],
     ['Masse', j.massType || '–'],
     ['Mengde', fmtAmount(j)],

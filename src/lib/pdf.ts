@@ -184,7 +184,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       ['Kundens ref.', j.ref],
       ['Dato', nice(j.date)],
       ['Tid', j.start && j.end ? `${j.start} - ${j.end} (${num(hours(j))} t)` : '-'],
-      ['Bil / sjåfør', v ? `${v.name} (${v.regNr}) / ${v.driver}` : '-'],
+      ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '-'} / ${j.driverName || '-'}`],
       ['Kjøreseddel', j.ticketNo],
       ['Masse', j.massType],
       ['Mengde', fmtAmount(j)],

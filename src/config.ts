@@ -14,7 +14,12 @@ export interface Vehicle {
   tag: string;       // kort merke på kartnålen (1–2 tegn)
   type: string;      // f.eks. «Supersuger»
   regNr: string;
-  driver: string;
+}
+
+/** Sjåfører er adskilt fra bilene. Hvem som kjører hvilken bil settes i Bilpark (eller av sjåføren selv). */
+export interface Driver {
+  id: string;
+  name: string;
   phone: string;
 }
 
@@ -54,6 +59,7 @@ export interface AppConfig {
     defaultStyle: 'topo' | 'topograatone';
   };
   vehicles: Vehicle[];
+  drivers: Driver[];
   services: string[];
   massTypes: MassType[];
   units: string[];
@@ -95,11 +101,21 @@ export const config: AppConfig = {
   },
 
   vehicles: [
-    { id: 'b1', name: 'Bil 1', tag: '1', type: 'Supersuger', regNr: 'EB 41207', driver: 'Ola Haugen', phone: '900 00 101' },
-    { id: 'b2', name: 'Bil 2', tag: '2', type: 'Slamsuger', regNr: 'EB 41388', driver: 'Kari Bøe', phone: '900 00 102' },
-    { id: 'b3', name: 'Bil 3', tag: '3', type: 'Spylebil', regNr: 'EB 39915', driver: 'Per Sletten', phone: '900 00 103' },
-    { id: 'b4', name: 'Bil 4', tag: '4', type: 'Kombibil', regNr: 'EB 42051', driver: 'Ingrid Lien', phone: '900 00 104' },
-    { id: 'b5', name: 'Bil 5', tag: '5', type: 'ADR-tankbil', regNr: 'EB 40762', driver: 'Arne Rustad', phone: '900 00 105' },
+    { id: 'b1', name: 'Bil 1', tag: '1', type: 'Supersuger', regNr: 'EB 41207' },
+    { id: 'b2', name: 'Bil 2', tag: '2', type: 'Slamsuger', regNr: 'EB 41388' },
+    { id: 'b3', name: 'Bil 3', tag: '3', type: 'Spylebil', regNr: 'EB 39915' },
+    { id: 'b4', name: 'Bil 4', tag: '4', type: 'Kombibil', regNr: 'EB 42051' },
+    { id: 'b5', name: 'Bil 5', tag: '5', type: 'ADR-tankbil', regNr: 'EB 40762' },
+    { id: 'b6', name: 'Bil 6', tag: '6', type: 'Slamsuger (reserve)', regNr: 'EB 37720' },
+  ],
+
+  drivers: [
+    { id: 's1', name: 'Ola Haugen', phone: '900 00 101' },
+    { id: 's2', name: 'Kari Bøe', phone: '900 00 102' },
+    { id: 's3', name: 'Per Sletten', phone: '900 00 103' },
+    { id: 's4', name: 'Ingrid Lien', phone: '900 00 104' },
+    { id: 's5', name: 'Arne Rustad', phone: '900 00 105' },
+    { id: 's6', name: 'Jonas Vik', phone: '900 00 106' },
   ],
 
   services: [
@@ -143,5 +159,5 @@ export const config: AppConfig = {
   ],
 
   jobPrefix: 'J',
-  storageKey: 'sugekraft-demo-v2',
+  storageKey: 'sugekraft-demo-v3',
 };

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { config } from '../config';
-import { onToast } from '../lib/toast';
+import { onToast, type ToastAction } from '../lib/toast';
 import { photoSrc } from '../lib/photos';
 import { requirements } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
@@ -93,17 +93,34 @@ export function Confirm({
 
 export function Toasts() {
   const [msg, setMsg] = useState('');
+  const [action, setAction] = useState<ToastAction | null>(null);
   useEffect(() => {
     let t = 0;
-    return onToast(m => {
+    return onToast((m, a) => {
       setMsg(m);
+      setAction(a ?? null);
       clearTimeout(t);
-      t = window.setTimeout(() => setMsg(''), 3800);
+      t = window.setTimeout(() => {
+        setMsg('');
+        setAction(null);
+      }, a ? 7000 : 3800);
     });
   }, []);
   return (
-    <div id="toast" role="status" aria-live="polite">
+    <div id="toast" role="status" aria-live="polite" className={msg ? '' : 'empty'}>
       {msg}
+      {action && (
+        <button
+          className="toastbtn"
+          onClick={() => {
+            action.run();
+            setMsg('');
+            setAction(null);
+          }}
+        >
+          {action.label}
+        </button>
+      )}
     </div>
   );
 }

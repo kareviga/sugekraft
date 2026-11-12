@@ -44,8 +44,9 @@ export const vehicle = (id: string) => config.vehicles.find(v => v.id === id);
 export const vehicleName = (id: string) => vehicle(id)?.name ?? 'Ikke tildelt';
 export const vehicleLong = (id: string) => {
   const v = vehicle(id);
-  return v ? `${v.name} – ${v.type} (${v.driver})` : 'Ikke tildelt';
+  return v ? `${v.name} – ${v.type}` : 'Ikke tildelt';
 };
+export const driver = (id: string | undefined) => (id ? config.drivers.find(d => d.id === id) : undefined);
 
 export function hours(j: Pick<Job, 'start' | 'end'>) {
   if (!j.start || !j.end) return 0;
@@ -78,11 +79,35 @@ export function requirements(j: Job): [string, boolean][] {
 }
 export const missing = (j: Job) => requirements(j).filter(r => !r[1]).map(r => r[0]);
 
-/** Veibeskrivelse i Google Maps (åpner appen på mobil). Bruker koordinatene, så også manuelt plasserte nåler blir riktige. */
-export const navUrl = (j: Pick<Job, 'lat' | 'lon'>) =>
-  `https://www.google.com/maps/dir/?api=1&destination=${j.lat.toFixed(6)},${j.lon.toFixed(6)}&travelmode=driving`;
-/** Vis punktet i Google Maps */
-export const mapsUrl = (j: Pick<Job, 'lat' | 'lon'>) => `https://www.google.com/maps/search/?api=1&query=${j.lat.toFixed(6)},${j.lon.toFixed(6)}`;
+export type MapApp = 'google' | 'apple';
+const ll = (j: Pick<Job, 'lat' | 'lon'>) => `${j.lat.toFixed(6)},${j.lon.toFixed(6)}`;
+/** Veibeskrivelse (åpner kartappen på mobil). Bruker koordinatene, så også manuelt plasserte nåler blir riktige. */
+export const navUrl = (j: Pick<Job, 'lat' | 'lon'>, app: MapApp = 'google') =>
+  app === 'apple'
+    ? `https://maps.apple.com/?daddr=${ll(j)}&dirflg=d`
+    : `https://www.google.com/maps/dir/?api=1&destination=${ll(j)}&travelmode=driving`;
+/** Vis punktet i kartappen */
+export const mapsUrl = (j: Pick<Job, 'lat' | 'lon'>, app: MapApp = 'google') =>
+  app === 'apple' ? `https://maps.apple.com/?ll=${ll(j)}&q=Jobbsted` : `https://www.google.com/maps/search/?api=1&query=${ll(j)}`;
+/** iPhone/iPad (også iPad som later som den er Mac) */
+export const isApple = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const APPKEY = 'sugekraft-kartapp';
+export function preferredMapApp(): MapApp {
+  try {
+    const v = localStorage.getItem(APPKEY);
+    if (v === 'google' || v === 'apple') return v;
+  } catch {
+    /* ignorer */
+  }
+  return isApple() ? 'apple' : 'google';
+}
+export function setPreferredMapApp(a: MapApp) {
+  try {
+    localStorage.setItem(APPKEY, a);
+  } catch {
+    /* ignorer */
+  }
+}
 export const fmtCoord = (j: Pick<Job, 'lat' | 'lon'>) => `${j.lat.toFixed(5)}, ${j.lon.toFixed(5)}`;
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');

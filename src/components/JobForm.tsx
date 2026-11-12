@@ -6,6 +6,7 @@ import { dayOffset, fmtCoord } from '../lib/utils';
 import type { Job, JobOrder } from '../types';
 import { PinPicker, type Pos } from './PinPicker';
 import { Modal } from './ui';
+import { VehicleOptions } from './VehicleOptions';
 
 type Form = Omit<JobOrder, 'lat' | 'lon' | 'pin'>;
 
@@ -178,11 +179,7 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
               <label htmlFor="f-car">Bil / sjåfør</label>
               <select id="f-car" value={v.car} onChange={e => set('car', e.target.value)}>
                 <option value="">Ikke tildelt ennå</option>
-                {config.vehicles.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} – {c.type} ({c.driver})
-                  </option>
-                ))}
+                <VehicleOptions />
               </select>
               <small className="hint">{v.car ? 'Jobben blir Aktiv og vises hos sjåføren.' : 'Uten bil ligger jobben som Kommende til den tildeles.'}</small>
             </div>
