@@ -251,7 +251,7 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 .vdot.planlagt { background: var(--primary); }
 .vdot.ledig { background: var(--ferdig); }
 .vdot.ute { background: var(--warn); }
-.bp-main { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 16px; align-items: start; }
+.bp-main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
 .bp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
 .vcard { background: var(--panel); border: 1px solid var(--line); border-left: 5px solid #9aa7a3; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); cursor: pointer; }
 .vcard.oppdrag { border-left-color: var(--aktiv); }
@@ -408,6 +408,19 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 .statusbanner.done { border-color: var(--ferdig); background: color-mix(in srgb, var(--ferdig) 8%, #fff); }
 .portalmap { height: 220px; }
 .portalfoot { text-align: center; }
+
+.bp-summary { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14.5px; color: var(--muted); }
+.bp-summary span { display: flex; align-items: center; gap: 6px; }
+.bp-summary b { color: var(--ink); font-size: 16px; }
+.bp-table { overflow-x: auto; }
+.bp-table td { vertical-align: middle; }
+.vrow2 { cursor: pointer; }
+.vrow2.on td { background: color-mix(in srgb, var(--primary) 7%, #fff); }
+.vname { display: flex; align-items: center; gap: 10px; }
+.vname > span { display: flex; flex-direction: column; line-height: 1.25; }
+.vname small { font-size: 12.5px; white-space: nowrap; }
+.vnow { min-width: 220px; }
+.vsub td { background: var(--soft); padding: 8px 14px 10px 30px; }
 
 /* ---------- dialoger ---------- */
 .ov { position: fixed; inset: 0; background: rgba(15, 25, 30, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px 24px; overflow: auto; z-index: 2000; }

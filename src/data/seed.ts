@@ -105,51 +105,23 @@ interface Row {
 const ROWS: Row[] = [
   // ---- Bestillinger fra kundeportalen ----
   { c: 'nordbygg', a: 'snaroy', d: 3, service: 'Vakuumgraving', car: -1, ref: 'P-5530', time: '07:00', note: 'Grøft for fiberkabel, ca. 40 m. Ønsker oppmøte tidlig.', req: 'venter' },
-  { c: 'ryen', a: 'ryen', d: 5, service: 'Rørinspeksjon (kamera)', car: -1, ref: 'Sak 47/26', time: '09:00', note: 'Oppfølging etter rotinntrenging. Vaktmester møter.', req: 'venter' },
-  { c: 'nordbygg', a: 'lysaker', d: 1, service: 'Tømming oljeutskiller', car: -1, ref: 'P-5521', time: '10:00', req: 'avvist', reqNote: 'Ingen ledig ADR-bil denne dagen. Vi kan ta den mandag – ring oss gjerne.' },
 
   // ---- Kommende: ingen sjåfør ----
   { c: 'gard', a: 'maridal', d: 0, service: 'Tining av frosne rør', car: -1, time: '13:00', note: 'Fjøs uten vann siden i natt. Ring før ankomst.', urgent: true },
-  { c: 'eiendom', a: 'nydal', d: 1, service: 'Tankrengjøring', car: -1, ref: 'AE-339', note: 'Gammel fyringsoljetank, 3000 liter. Skal saneres.' },
   { c: 'kommune', a: 'kum', d: 2, service: 'Høytrykkspyling', car: 2, drv: -1, ref: 'K-2026-336', time: '08:00', note: 'Ingen adresse – se nål i kartet. Kjør inn fra parkeringen ved Haugerud.' },
-  { c: 'asker', a: 'nesbru', d: 4, service: 'Tømming oljeutskiller', car: -1, ref: 'AM-5521' },
 
   // ---- Aktiv: sjåfør tildelt, planlagt ----
   { c: 'sorkedal', a: 'hytte', d: 0, service: 'Tømming septik', car: 1, drv: 5, ref: 'HYT-118', time: '13:30', note: 'Bom ved innkjøring, kode 2580. Nålen viser tanken bak hytta.' },
-  { c: 'alna', a: 'alfaset', d: 0, service: 'Tømming oljeutskiller', car: 4, ref: 'PO-7741', time: '14:30' },
-  { c: 'kommune', a: 'grorud', d: 1, service: 'Tømming sandfang', car: 3, ref: 'K-2026-331', time: '07:30', note: 'Ring vakttelefon ved ankomst. 6 sandfang langs Grorudveien.' },
   { c: 'nordbygg', a: 'rigg', d: 1, service: 'Vakuumgraving', car: 0, byClient: true, ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
-  { c: 'kantine', a: 'holmenkoll', d: 2, service: 'Tømming fettutskiller', car: 1, ref: 'KK-2026-14', time: '10:00' },
-  { c: 'ryen', a: 'ryen', d: 2, service: 'Høytrykkspyling', car: 2, drv: 5, ref: 'Sak 44/26', time: '08:00', note: 'Stakeluke i kjeller blokk C. Vaktmester møter.' },
-  { c: 'transport', a: 'furulund', d: 3, service: 'Spillolje', car: 4, ref: 'FT-1093', time: '12:00' },
 
   // ---- Aktiv: pågår i dag ----
   { c: 'nordbygg', a: 'stromsv', d: 0, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '12', start: '07:30', photos: [1] },
-  { c: 'kjokken', a: 'trondheimsv', d: 0, service: 'Tømming fettutskiller', car: 1, ref: 'EB-90', start: '08:15', stage: 'ankommet', sc: { ankommet: 'Kjøkkenet åpner 08:30, venter på nøkkel.' } },
-  { c: 'kommune', a: 'haslev', d: 0, service: 'Høytrykkspyling', car: 2, ref: 'K-2026-327', mass: 'Ingen masse (kun spyling/inspeksjon)', start: '09:00', photos: [2] },
   { c: 'eiendom', a: 'sandaker', d: 0, service: 'Tømming tett tank', car: 3, ref: 'AE-337', mass: 'Avløpsvann (tett tank)', amount: '8', start: '10:05', end: '11:20', stage: 'kjortFra', ticket: '48231', ticketPhoto: true, photos: [3] },
 
   // ---- Ferdig ----
   { done: true, c: 'nordbygg', a: 'stromsv', d: -1, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '18', depot: 2, start: '07:00', end: '14:30', ticket: '48213', photos: [3, 4], ticketPhoto: true, comment: 'Trang adkomst, brukte 30 m ekstra slange.', sc: { ankommet: 'Port stengt, ventet på anleggsleder.', deponi: 'Kø på mottaket, ca. 20 min.' } },
-  { done: true, c: 'sorkedal', a: 'hytte', d: -2, service: 'Tømming septik', car: 1, ref: 'HYT-117', mass: 'Septikslam', amount: '6', depot: 0, start: '11:00', end: '12:10', ticket: '48210', photos: [7], ticketPhoto: true },
-  { done: true, c: 'kjokken', a: 'trondheimsv', d: -2, service: 'Tømming fettutskiller', car: 1, ref: 'EB-88', mass: 'Innhold fettutskiller', amount: '4.5', depot: 0, start: '13:00', end: '13:55', ticket: '48211', photos: [9], ticketPhoto: true },
-  { done: true, c: 'nordbygg', a: 'snaroy', d: -3, service: 'Blåsing av pukk', car: 0, ref: 'P-5502', mass: 'Pukk', amount: '9', unit: 'tonn', depot: 4, start: '10:00', end: '13:15', ticket: '48207', photos: [5], ticketPhoto: true },
   { done: true, c: 'nordbygg', a: 'lysaker', d: -4, service: 'Tømming oljeutskiller', car: 4, ref: 'P-5470', mass: 'Oljeholdig slam (oljeutskiller)', amount: '3.5', depot: 3, decl: '3127740', start: '08:00', end: '10:45', ticket: '48199', photos: [6], ticketPhoto: true },
   { done: true, c: 'kommune', a: 'tveten', d: -4, service: 'Tømming sandfang', car: 3, ref: 'K-2026-318', mass: 'Innhold sandfang', amount: '11', depot: 2, start: '07:30', end: '15:00', ticket: '48201', photos: [10, 11], ticketPhoto: true, comment: '14 sandfang tømt. Sandfang ved nr. 12 har knekt rist.' },
-  { done: true, c: 'alna', a: 'alfaset', d: -6, service: 'Spillolje', car: 4, ref: 'PO-7702', mass: 'Spillolje', amount: '850', unit: 'liter', depot: 3, decl: '3126981', start: '13:00', end: '13:50', ticket: '48188', photos: [12], ticketPhoto: true },
-  { done: true, c: 'naering', a: 'solheim', d: -7, service: 'Tømming sandfang', car: 3, ref: 'LN-220', mass: 'Innhold sandfang', amount: '6', depot: 2, start: '09:00', end: '11:40', ticket: '48184', photos: [13], ticketPhoto: true },
-  { done: true, c: 'nordbygg', a: 'oledeviks', d: -8, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '22', depot: 2, start: '07:00', end: '15:30', ticket: '48180', photos: [8, 13], ticketPhoto: true },
-  { done: true, c: 'kjokken', a: 'bygdoy', d: -9, service: 'Tømming fettutskiller', car: 1, ref: 'EB-85', mass: 'Innhold fettutskiller', amount: '4', depot: 0, start: '13:00', end: '14:20', ticket: '48176', photos: [14], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'ryen', a: 'ryen', d: -10, service: 'Rørinspeksjon (kamera)', car: 2, ref: 'Sak 41/26', mass: 'Ingen masse (kun spyling/inspeksjon)', start: '09:00', end: '11:30', ticket: '48170', photos: [15], ticketPhoto: true, comment: 'Rotinntrenging ved 14 m. Anbefaler fresing.' },
-  { done: true, c: 'kantine', a: 'holmenkoll', d: -12, service: 'Tømming fettutskiller', car: 1, ref: 'KK-2026-11', mass: 'Innhold fettutskiller', amount: '3', depot: 0, start: '10:15', end: '11:20', ticket: '48161', photos: [16], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'kommune', a: 'ekeberg', d: -14, service: 'Høytrykkspyling', car: 2, ref: 'K-2026-301', mass: 'Spylevann', amount: '5', depot: 0, start: '08:00', end: '12:45', ticket: '48152', photos: [17], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'eiendom', a: 'kjelsaas', d: -15, service: 'Tømming tett tank', car: 3, ref: 'AE-331', mass: 'Avløpsvann (tett tank)', amount: '10', depot: 1, start: '09:30', end: '10:40', ticket: '48148', photos: [18], ticketPhoto: true },
-  { done: true, c: 'asker', a: 'slepend', d: -17, service: 'Tømming oljeutskiller', car: 4, ref: 'AM-5490', mass: 'Oljeholdig slam (oljeutskiller)', amount: '2', depot: 3, decl: '3123305', start: '12:00', end: '13:10', ticket: '48139', photos: [19], ticketPhoto: true },
-  { done: true, c: 'naering', a: 'lorenskogv', d: -19, service: 'Tømming septik', car: 3, mass: 'Septikslam', amount: '7', depot: 1, start: '11:00', end: '12:30', ticket: '48130', photos: [20], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'transport', a: 'industriv', d: -21, service: 'Tømming oljeutskiller', car: 4, ref: 'FT-1071', mass: 'Oljeholdig slam (oljeutskiller)', amount: '2.5', depot: 3, decl: '3121410', start: '08:30', end: '10:00', ticket: '48122', photos: [21], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'nordbygg', a: 'kirkevski', d: -24, service: 'Vakuumgraving', car: 0, ref: 'P-5455', mass: 'Gravemasser', amount: '15', depot: 2, start: '07:00', end: '14:00', ticket: '48110', photos: [22], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'kommune', a: 'ostensjo', d: -26, service: 'Tømming sandfang', car: 3, ref: 'K-2026-290', mass: 'Innhold sandfang', amount: '9', depot: 2, start: '07:30', end: '13:30', ticket: '48101', photos: [10], ticketPhoto: true, invoiced: true },
-  { done: true, c: 'asker', a: 'hagalokk', d: -27, service: 'Spillolje', car: 4, ref: 'AM-5470', mass: 'Spillolje', amount: '600', unit: 'liter', depot: 3, decl: '3120077', start: '14:00', end: '14:45', ticket: '48097', photos: [12], ticketPhoto: true, invoiced: true },
 ];
 
 /** Sjåfør for en rad: eksplisitt, ellers fast sjåfør for bilen. Noen ferdige jobber er kjørt av vikaren. */

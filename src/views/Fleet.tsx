@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { config } from '../config';
+import { useState, type MouseEvent } from 'react';
+import { config, type Vehicle } from '../config';
 import { JobMap } from '../components/JobMap';
 import { Modal, Pill } from '../components/ui';
 import { setOut, useOut } from '../store';
@@ -27,83 +27,41 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
 
   return (
     <div className="bilpark">
-      <div className="bp-kpis">
+      <p className="bp-summary">
         {(['oppdrag', 'planlagt', 'ledig', 'ute'] as VState[]).map(k => (
-          <div key={k} className={cx('kpi', k)}>
-            <b>{count(k)}</b>
-            <span>
-              <i className={cx('vdot', k)} /> {VSTATE_LABEL[k]}
-            </span>
-          </div>
+          <span key={k}>
+            <i className={cx('vdot', k)} /> <b>{count(k)}</b> {VSTATE_LABEL[k].toLowerCase()}
+          </span>
         ))}
-      </div>
+      </p>
 
       <div className="bp-main">
-        <section className="bp-list" aria-label="Biler">
-          {rows.map(({ v, s }) => (
-            <article key={v.id} className={cx('vcard', s.state, sel === v.id && 'sel')} onClick={() => setSel(v.id)}>
-              <header>
-                <span className={cx('fleet-tag', s.state)}>{v.tag}</span>
-                <div className="vtitle">
-                  <b>{v.name}</b>
-                  <small>
-                    {v.type} · {v.regNr}
-                  </small>
-                </div>
-                <span className={cx('vstate', s.state)}>{VSTATE_LABEL[s.state]}</span>
-              </header>
-
-              <dl className="vfacts">
-                <dt>I bilen nå</dt>
-                <dd>{s.nowDriver ? <b>{s.nowDriver}</b> : <span className="muted">Ingen</span>}</dd>
-              </dl>
-
-              <Doing s={s} openJob={openJob} />
-
-              {s.today.length > 0 && (
-                <ol className="vday">
-                  {s.today.map(j => (
-                    <li key={j.id} className={j.status}>
-                      <button className="link" onClick={() => openJob(j.id)}>
-                        <span className="vt">{j.steps.kjoring?.time ?? (j.time || '–')}</span>
-                        {j.customer}
-                        <span className="muted"> · {driver(j.driver)?.name.split(' ')[0] ?? 'ingen sjåfør'}</span>
-                      </button>
-                      <Pill status={j.status} />
-                    </li>
-                  ))}
-                </ol>
-              )}
-
-              <footer>
-                <small className="muted">
-                  {s.today.length} jobber i dag · {s.doneToday} ferdig · {s.open} åpne totalt
-                </small>
-                {s.state === 'ute' ? (
-                  <button
-                    className="link"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setOut(v.id, null);
-                      toast(`${v.name} er satt i drift igjen.`);
-                    }}
-                  >
-                    Sett i drift
-                  </button>
-                ) : (
-                  <button
-                    className="link warnlink"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setOutFor(v.id);
-                    }}
-                  >
-                    Sett ute av drift
-                  </button>
-                )}
-              </footer>
-            </article>
-          ))}
+        <section className="card bp-table" aria-label="Biler">
+          <table>
+            <thead>
+              <tr>
+                <th>Bil</th>
+                <th>Status</th>
+                <th>I bilen nå</th>
+                <th>Nå / neste</th>
+                <th className="n">I dag</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ v, s }) => (
+                <FleetRow
+                  key={v.id}
+                  v={v}
+                  s={s}
+                  open={sel === v.id}
+                  onToggle={() => setSel(x => (x === v.id ? null : v.id))}
+                  onOut={() => setOutFor(v.id)}
+                  openJob={openJob}
+                />
+              ))}
+            </tbody>
+          </table>
         </section>
 
         <aside className="bp-side">
@@ -116,8 +74,7 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
               tags
             />
           </div>
-          <p className="note">Kartet viser hvor bilene er nå (jobben som pågår) eller skal neste gang. Tallet er bilnummeret.</p>
-          <p className="note">Bil og sjåfør velges i hvert oppdrag under Kontor. Bilparken oppdateres av seg selv når oppdragene startes og lukkes.</p>
+          <p className="note">Kartet viser hvor bilene er nå eller skal neste gang (tallet er bilnummeret). Bil og sjåfør velges i hvert oppdrag under Kontor.</p>
         </aside>
       </div>
 
@@ -126,37 +83,116 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
   );
 }
 
-function Doing({ s, openJob }: { s: VehicleStatus; openJob: (id: string) => void }) {
-  if (s.state === 'ute') return <p className="vdoing ute">Ute av drift{s.outNote ? `: ${s.outNote}` : ''}</p>;
-  if (s.active)
-    return (
-      <p className="vdoing oppdrag">
-        <b>På oppdrag:</b>{' '}
-        <button className="link" onClick={() => openJob(s.active!.id)}>
-          {s.active.customer}
-        </button>
-        <br />
-        <small>
-          {s.active.address}
-          {s.active.place ? `, ${s.active.place}` : ''} · {progress(s.active).toLowerCase()}
-        </small>
-      </p>
-    );
-  if (s.next)
-    return (
-      <p className="vdoing planlagt">
-        <b>Ikke på oppdrag.</b> Neste:{' '}
-        <button className="link" onClick={() => openJob(s.next!.id)}>
-          {s.next.customer}
-        </button>{' '}
-        <small>
-          {relDay(s.next.date).toLowerCase()}
-          {s.next.time ? ` kl. ${s.next.time}` : ''}
-          {s.next.driver ? ` · ${driver(s.next.driver)?.name}` : ' · ingen sjåfør ennå'}
-        </small>
-      </p>
-    );
-  return <p className="vdoing ledig">Ledig – ingen åpne jobber.</p>;
+function FleetRow({
+  v,
+  s,
+  open,
+  onToggle,
+  onOut,
+  openJob,
+}: {
+  v: Vehicle;
+  s: VehicleStatus;
+  open: boolean;
+  onToggle: () => void;
+  onOut: () => void;
+  openJob: (id: string) => void;
+}) {
+  const stop = (e: MouseEvent) => e.stopPropagation();
+  return (
+    <>
+      <tr className={cx('vrow2', open && 'on')} onClick={onToggle}>
+        <td>
+          <span className="vname">
+            <i className={cx('vdot', s.state)} />
+            <span>
+              <b>{v.name}</b>
+              <small className="muted">
+                {v.type} · {v.regNr}
+              </small>
+            </span>
+          </span>
+        </td>
+        <td>
+          <span className={cx('vstate', s.state)}>{VSTATE_LABEL[s.state]}</span>
+        </td>
+        <td>{s.nowDriver || <span className="muted">–</span>}</td>
+        <td className="vnow">
+          {s.state === 'ute' ? (
+            <span className="warntext">{s.outNote || 'Ute av drift'}</span>
+          ) : s.active ? (
+            <>
+              <button className="link" onClick={e => (stop(e), openJob(s.active!.id))}>
+                {s.active.customer}
+              </button>
+              <small className="muted"> · {progress(s.active).toLowerCase()}</small>
+            </>
+          ) : s.next ? (
+            <>
+              <span className="muted">Neste: </span>
+              <button className="link" onClick={e => (stop(e), openJob(s.next!.id))}>
+                {s.next.customer}
+              </button>
+              <small className="muted">
+                {' '}
+                · {relDay(s.next.date).toLowerCase()}
+                {s.next.time ? ` kl. ${s.next.time}` : ''}
+              </small>
+            </>
+          ) : (
+            <span className="muted">Ingen åpne jobber</span>
+          )}
+        </td>
+        <td className="n">
+          {s.today.length}
+          {s.doneToday ? <small className="muted"> ({s.doneToday} ferdig)</small> : ''}
+        </td>
+        <td className="n">
+          {s.state === 'ute' ? (
+            <button
+              className="link"
+              onClick={e => {
+                stop(e);
+                setOut(v.id, null);
+                toast(`${v.name} er satt i drift igjen.`);
+              }}
+            >
+              Sett i drift
+            </button>
+          ) : (
+            <button className="link warnlink" onClick={e => (stop(e), onOut())}>
+              Ute av drift
+            </button>
+          )}
+        </td>
+      </tr>
+      {open && (
+        <tr className="vsub">
+          <td colSpan={6}>
+            {s.today.length ? (
+              <ol className="vday">
+                {s.today.map(j => (
+                  <li key={j.id}>
+                    <button className="link" onClick={() => openJob(j.id)}>
+                      <span className="vt">{j.steps.kjoring?.time ?? (j.time || '–')}</span>
+                      {j.customer}
+                      <span className="muted">
+                        {' '}
+                        · {j.service} · {driver(j.driver)?.name ?? 'ingen sjåfør'}
+                      </span>
+                    </button>
+                    <Pill status={j.status} />
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <span className="muted">Ingen jobber på {v.name} i dag.</span>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
+  );
 }
 
 function OutDialog({ vehicleId, onClose }: { vehicleId: string; onClose: () => void }) {
