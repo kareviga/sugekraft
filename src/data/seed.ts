@@ -1,5 +1,5 @@
 import { config } from '../config';
-import type { Job, Step, StepKey } from '../types';
+import type { Client, Job, RequestState, Step, StepKey } from '../types';
 import { dayOffset } from '../lib/utils';
 
 /*
@@ -81,6 +81,9 @@ interface Row {
   drv?: number; // indeks i config.drivers; standard = samme som bil, -1 = ingen sjåfør (Kommende)
   stage?: StepKey; // siste statuspunkt for aktive jobber som er i gang (standard «arbeid»)
   sc?: Partial<Record<StepKey, string>>; // kommentarer på statuspunkter
+  req?: RequestState; // bestilling fra kundeportalen som ikke er godtatt
+  reqNote?: string;
+  byClient?: boolean; // bestilt i kundeportalen (og godtatt)
   ref?: string;
   time?: string;
   note?: string;
@@ -100,6 +103,11 @@ interface Row {
 }
 
 const ROWS: Row[] = [
+  // ---- Bestillinger fra kundeportalen ----
+  { c: 'nordbygg', a: 'snaroy', d: 3, service: 'Vakuumgraving', car: -1, ref: 'P-5530', time: '07:00', note: 'Grøft for fiberkabel, ca. 40 m. Ønsker oppmøte tidlig.', req: 'venter' },
+  { c: 'ryen', a: 'ryen', d: 5, service: 'Rørinspeksjon (kamera)', car: -1, ref: 'Sak 47/26', time: '09:00', note: 'Oppfølging etter rotinntrenging. Vaktmester møter.', req: 'venter' },
+  { c: 'nordbygg', a: 'lysaker', d: 1, service: 'Tømming oljeutskiller', car: -1, ref: 'P-5521', time: '10:00', req: 'avvist', reqNote: 'Ingen ledig ADR-bil denne dagen. Vi kan ta den mandag – ring oss gjerne.' },
+
   // ---- Kommende: ingen sjåfør ----
   { c: 'gard', a: 'maridal', d: 0, service: 'Tining av frosne rør', car: -1, time: '13:00', note: 'Fjøs uten vann siden i natt. Ring før ankomst.', urgent: true },
   { c: 'eiendom', a: 'nydal', d: 1, service: 'Tankrengjøring', car: -1, ref: 'AE-339', note: 'Gammel fyringsoljetank, 3000 liter. Skal saneres.' },
@@ -110,7 +118,7 @@ const ROWS: Row[] = [
   { c: 'sorkedal', a: 'hytte', d: 0, service: 'Tømming septik', car: 1, drv: 5, ref: 'HYT-118', time: '13:30', note: 'Bom ved innkjøring, kode 2580. Nålen viser tanken bak hytta.' },
   { c: 'alna', a: 'alfaset', d: 0, service: 'Tømming oljeutskiller', car: 4, ref: 'PO-7741', time: '14:30' },
   { c: 'kommune', a: 'grorud', d: 1, service: 'Tømming sandfang', car: 3, ref: 'K-2026-331', time: '07:30', note: 'Ring vakttelefon ved ankomst. 6 sandfang langs Grorudveien.' },
-  { c: 'nordbygg', a: 'rigg', d: 1, service: 'Vakuumgraving', car: 0, ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
+  { c: 'nordbygg', a: 'rigg', d: 1, service: 'Vakuumgraving', car: 0, byClient: true, ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
   { c: 'kantine', a: 'holmenkoll', d: 2, service: 'Tømming fettutskiller', car: 1, ref: 'KK-2026-14', time: '10:00' },
   { c: 'ryen', a: 'ryen', d: 2, service: 'Høytrykkspyling', car: 2, drv: 5, ref: 'Sak 44/26', time: '08:00', note: 'Stakeluke i kjeller blokk C. Vaktmester møter.' },
   { c: 'transport', a: 'furulund', d: 3, service: 'Spillolje', car: 4, ref: 'FT-1093', time: '12:00' },
@@ -177,7 +185,35 @@ function buildSteps(r: Row, needsDepot: boolean): Partial<Record<StepKey, Step>>
   return steps;
 }
 
-export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string, string> } {
+// Kunderegister: [kunde-nøkkel, org.nr, e-post, adresse-nøkkel]. Første kunde (k1) er demo-innloggingen «client».
+const CLIENTS: [CustKey | 'frogner', string, string, AddrKey][] = [
+  ['nordbygg', '914 222 301', 'geir.moen@nordbygg.example', 'oledeviks'],
+  ['sorkedal', '997 401 552', 'styret@sorkedalen-hytter.example', 'hytte'],
+  ['alna', '918 330 412', 'verksted@alnabil.example', 'alfaset'],
+  ['kjokken', '921 004 516', 'drift@elvebredden.example', 'trondheimsv'],
+  ['kommune', '974 600 600', 'va-vakt@kommunalteknikk.example', 'haslev'],
+  ['gard', '985 714 220', 'liv@maridalen-gard.example', 'maridal'],
+  ['eiendom', '913 731 001', 'morten.bakke@akerselva-eiendom.example', 'sandaker'],
+  ['kantine', '922 822 140', 'post@kollenkantine.example', 'holmenkoll'],
+  ['ryen', '948 903 777', 'styret@ryen-brl.example', 'ryen'],
+  ['transport', '917 177 300', 'rune@furulund-transport.example', 'furulund'],
+  ['naering', '926 260 090', 'drift@lorenskog-naeringspark.example', 'solheim'],
+  ['asker', '931 344 500', 'kjetil@askermaskin.example', 'hagalokk'],
+  ['frogner', '997 512 044', 'styret@frogner-sameie.example', 'bygdoy'],
+];
+const EXTRA = { frogner: { customer: 'Frogner Sameie', contact: 'Vaktmester Leif Holt', phone: '900 00 455' } };
+
+function createClients(): Client[] {
+  return CLIENTS.map(([k, orgNr, email, a], i) => {
+    const c = k === 'frogner' ? EXTRA.frogner : CUST[k];
+    const [address, place, lat, lon] = A[a] as Addr;
+    return { id: `k${i + 1}`, name: c.customer, orgNr, contact: c.contact, phone: c.phone, email, address, place, lat, lon, note: k === 'kommune' ? 'Faktura merkes med saksnummer.' : '' };
+  });
+}
+
+export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string, string>; clients: Client[] } {
+  const clients = createClients();
+  const clientId = (name: string) => clients.find(c => c.name === name)?.id ?? '';
   const out: Record<string, string> = {};
   const reserve = config.vehicles[5];
   if (reserve) out[reserve.id] = 'EU-kontroll fredag';
@@ -203,6 +239,11 @@ export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string,
       driverName: r.done ? C_DRV(D_IDX(r, i))?.name ?? '' : '',
       note: r.note ?? '',
       urgent: !!r.urgent,
+      clientId: clientId(CUST[r.c].customer),
+      request: r.req ?? '',
+      requestNote: r.reqNote ?? '',
+      orderedBy: r.req || r.byClient ? 'kunde' : 'kontor',
+      orderedAt: `${dayOffset(Math.min(r.d, 0) - (r.req ? 0 : 2))} ${r.req ? '08:12' : '14:05'}`,
       massType: r.mass ? M(r.mass, i) : '',
       amount: r.amount ?? '',
       unit: r.unit && config.units.includes(r.unit) ? r.unit : config.units[0],
@@ -222,5 +263,5 @@ export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string,
       closedAt: r.done ? dayOffset(r.d) : '',
     };
   });
-  return { jobs, nextNo: no, out };
+  return { jobs, nextNo: no, out, clients };
 }

@@ -14,12 +14,15 @@ export function Driver({
   jobs,
   personId,
   setPersonId,
+  lockPerson,
   jobId,
   setJobId,
 }: {
   jobs: Job[];
   personId: string;
   setPersonId: (id: string) => void;
+  /** Innlogget sjåfør: kan ikke bytte person */
+  lockPerson?: boolean;
   jobId: string | null;
   setJobId: (id: string | null) => void;
 }) {
@@ -29,7 +32,7 @@ export function Driver({
       {j && j.status !== 'ferdig' ? (
         <DriverJob j={j} back={() => setJobId(null)} />
       ) : (
-        <DriverList jobs={jobs} personId={personId} setPersonId={setPersonId} open={setJobId} />
+        <DriverList jobs={jobs} personId={personId} setPersonId={setPersonId} lockPerson={lockPerson} open={setJobId} />
       )}
     </div>
   );
@@ -39,11 +42,13 @@ function DriverList({
   jobs,
   personId,
   setPersonId,
+  lockPerson,
   open,
 }: {
   jobs: Job[];
   personId: string;
   setPersonId: (id: string) => void;
+  lockPerson?: boolean;
   open: (id: string) => void;
 }) {
   const today = dayOffset(0);
@@ -55,8 +60,14 @@ function DriverList({
   return (
     <>
       <div className="pad drvhead">
+        {lockPerson ? (
+          <div className="hello">
+            <span className="muted">Innlogget som</span>
+            <h2>{me?.name}</h2>
+          </div>
+        ) : (
         <div className="field">
-          <label htmlFor="d-me">Jeg er</label>
+          <label htmlFor="d-me">Jeg er (demo: velg sjåfør)</label>
           <select id="d-me" value={personId} onChange={e => setPersonId(e.target.value)}>
             {config.drivers.map(d => (
               <option key={d.id} value={d.id}>
@@ -65,6 +76,7 @@ function DriverList({
             ))}
           </select>
         </div>
+        )}
         <div className="stats">
           <div>
             <b>{mine.filter(j => j.date <= today).length}</b>

@@ -36,6 +36,28 @@ annet område, bytter du ut adressene i `A`-tabellen der, i tillegg til `map.cen
 masser og deponier hentes fra konfigfilen. Finnes et navn ikke der lenger, velges et gyldig alternativ, slik at demoen ikke går i stykker.
 Datoene er relative til dagens dato og flyttes automatisk fram når demoen åpnes en senere dag.
 
+## Brukere og roller
+
+Demo-innlogginger (settes i `config.ts` under `users`):
+
+| Brukernavn | Passord | Rolle | Ser |
+|---|---|---|---|
+| `admin` | `admin` | Kontor | Alt: Kontor, Kunder, Bilpark, Sjåfør, Arkiv og faktura |
+| `driver` | `driver` | Sjåfør | Egne oppdrag (koblet til sjåfør via `driverId`) |
+| `client` | `client` | Kunde | Kundeportalen for sin kunde (koblet via `clientId`) |
+
+Innloggingen er bare for demo (alt kjører i nettleseren) og huskes til man logger ut.
+
+## Kunder og bestillinger
+
+- **Kunder** (admin): kunderegister med kontaktinfo og adresse. Herfra kan kontoret legge inn oppdrag for kunden.
+- **Kundeportalen**: kunden ser egne bestillinger og oppdrag med status (Venter på godkjenning, Avvist,
+  Bekreftet, Planlagt, Pågår og Utført), fremdrift og dokumentasjon. Kunden kan bestille nytt og trekke tilbake
+  bestillinger som ikke er godkjent.
+- **Godkjenning**: nye bestillinger vises øverst i Kontor (med tall på fanen). Kontoret kan godta (og sette på
+  bil og sjåfør med en gang), redigere eller avvise med begrunnelse, som kunden ser i portalen.
+- Kontoret kan fortsatt legge inn oppdrag selv, også for kunder som ikke er i registeret (f.eks. telefonbestilling).
+
 ## Statuser og plassering
 
 - **Kommende**: jobben er ikke tildelt bil. **Aktiv**: tildelt en sjåfør. **Ferdig**: lukket av sjåføren.
@@ -82,6 +104,9 @@ src/lib/photos.ts      bildekomprimering og genererte eksempelbilder
 src/lib/geo.ts         adressesøk og nærmeste adresse (Geonorge)
 src/lib/steps.ts       statuspunkter (rekkefølge, fremdrift, tider)
 src/lib/fleet.ts       bilstatus utledet av oppdragene
+src/lib/auth.ts        demo-innlogging og roller
+src/views/Clients.tsx  kunderegister (admin)
+src/views/ClientPortal.tsx  kundeportal
 src/views/             Kontor, Sjåfør, Arkiv
 src/components/        kart (Leaflet + Kartverket), jobbskjema, dialoger
 ```

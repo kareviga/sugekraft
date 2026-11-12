@@ -29,6 +29,18 @@ export interface MassType {
   noMass?: boolean;    // ingen mengde/deponi kreves (kun spyling/inspeksjon)
 }
 
+export type Role = 'admin' | 'driver' | 'client';
+
+/** Demo-innlogginger. driverId kobler til en sjåfør, clientId til en kunde i kunderegisteret (se data/seed.ts). */
+export interface User {
+  username: string;
+  password: string;
+  role: Role;
+  name: string;
+  driverId?: string;
+  clientId?: string;
+}
+
 export interface AppConfig {
   appName: string;
   company: {
@@ -60,6 +72,7 @@ export interface AppConfig {
   };
   vehicles: Vehicle[];
   drivers: Driver[];
+  users: User[];
   services: string[];
   massTypes: MassType[];
   units: string[];
@@ -118,6 +131,13 @@ export const config: AppConfig = {
     { id: 's6', name: 'Jonas Vik', phone: '900 00 106' },
   ],
 
+  // Enkle demo-innlogginger (ikke ekte sikkerhet – alt kjører i nettleseren).
+  users: [
+    { username: 'admin', password: 'admin', role: 'admin', name: 'Kontoret' },
+    { username: 'driver', password: 'driver', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
+    { username: 'client', password: 'client', role: 'client', name: 'Geir Moen', clientId: 'k1' },
+  ],
+
   services: [
     'Tømming septik',
     'Tømming tett tank',
@@ -159,5 +179,5 @@ export const config: AppConfig = {
   ],
 
   jobPrefix: 'J',
-  storageKey: 'sugekraft-demo-v5',
+  storageKey: 'sugekraft-demo-v6',
 };

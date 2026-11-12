@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { config } from '../config';
 import { onToast, type ToastAction } from '../lib/toast';
 import { photoSrc } from '../lib/photos';
@@ -34,7 +35,7 @@ export function Modal({
     first?.focus();
     return () => document.removeEventListener('keydown', k);
   }, [onClose]);
-  return (
+  return createPortal(
     <div className="ov" onMouseDown={e => e.target === e.currentTarget && onClose()}>
       <div className={`dlg${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" ref={ref}>
         <div className="dlghead">
@@ -46,7 +47,8 @@ export function Modal({
         <div className="dlgbody">{children}</div>
         {footer && <div className="dlgfoot">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -153,10 +155,11 @@ export function Lightbox({ src, onClose }: { src: string; onClose: () => void })
     document.addEventListener('keydown', k, true);
     return () => document.removeEventListener('keydown', k, true);
   }, [onClose]);
-  return (
+  return createPortal(
     <div className="ov lightbox" onClick={onClose} role="dialog" aria-label="Bilde">
       <img src={src} alt="Forstørret bilde" />
-    </div>
+    </div>,
+    document.body,
   );
 }
 

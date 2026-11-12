@@ -1,16 +1,35 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { config } from '../config';
-import { allJobs, saveOrder } from '../store';
+import { allJobs, clientByName, getClient, saveOrder, useClients } from '../store';
 import { meters, nearestAddress, searchAddress, type AddrHit } from '../lib/geo';
 import { dayOffset, fmtCoord } from '../lib/utils';
-import type { Job, JobOrder } from '../types';
+import type { Client, Job, JobOrder } from '../types';
 import { PinPicker, type Pos } from './PinPicker';
 import { Modal } from './ui';
 import { DriverOptions, VehicleOptions } from './VehicleOptions';
 
 type Form = Omit<JobOrder, 'lat' | 'lon' | 'pin'>;
 
-export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => void; onSaved: (j: Job) => void }) {
+/**
+ * Skjema for oppdrag.
+ * mode 'admin': kontoret legger inn/redigerer (kunde fritt eller fra registeret, bil og sjåfør).
+ * mode 'client': kunden bestiller i portalen (kunde låst, ingen bil/sjåfør, sendes til godkjenning).
+ */
+export function JobForm({
+  job,
+  client,
+  mode = 'admin',
+  onClose,
+  onSaved,
+}: {
+  job?: Job;
+  client?: Client;
+  mode?: 'admin' | 'client';
+  onClose: () => void;
+  onSaved: (j: Job) => void;
+}) {
+  const isClient = mode === 'client';
+  const registry = useClients();
   const [v, setV] = useState<Form>(() =>
     job
       ? {
@@ -27,13 +46,14 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
           driver: job.driver,
           note: job.note,
           urgent: job.urgent,
+          clientId: job.clientId,
         }
       : {
-          customer: '',
-          contact: '',
-          phone: '',
-          address: '',
-          place: '',
+          customer: client?.name ?? '',
+          contact: client?.contact ?? '',
+          phone: client?.phone ?? '',
+          address: client?.address ?? '',
+          place: client?.place ?? '',
           service: config.services[0],
           ref: '',
           date: dayOffset(1),
@@ -42,9 +62,12 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
           driver: '',
           note: '',
           urgent: false,
+          clientId: client?.id ?? '',
         },
   );
-  const [pos, setPos] = useState<Pos | null>(job ? { lat: job.lat, lon: job.lon } : null);
+  const [pos, setPos] = useState<Pos | null>(
+    job ? { lat: job.lat, lon: job.lon } : client?.lat != null && client.lon != null ? { lat: client.lat, lon: client.lon } : null,
+  );
   const [pin, setPin] = useState<'adresse' | 'kart'>(job?.pin ?? 'adresse');
   const [focusKey, setFocusKey] = useState(0);
   const [near, setNear] = useState<(AddrHit & { dist: number }) | null>(null);
@@ -61,12 +84,33 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
     });
     return { customers: m, places: [...p].sort((a, b) => a.localeCompare(b, 'nb')) };
   }, []);
+  const names = useMemo(() => [...new Set([...registry.map(c => c.name), ...customers.keys()])].sort((a, b) => a.localeCompare(b, 'nb')), [registry, customers]);
 
   const set = <K extends keyof Form>(k: K, val: Form[K]) => setV(o => ({ ...o, [k]: val }));
   const setCustomer = (name: string) => {
+    const reg = clientByName(name);
     const known = customers.get(name);
-    setV(o => (known && !job ? { ...o, customer: name, contact: o.contact || known.contact, phone: o.phone || known.phone } : { ...o, customer: name }));
+    if (reg) {
+      // kunde fra registeret: koble og fyll ut det som mangler
+      setV(o => ({
+        ...o,
+        customer: reg.name,
+        clientId: reg.id,
+        contact: o.contact || reg.contact,
+        phone: o.phone || reg.phone,
+        address: o.address || reg.address,
+        place: o.place || reg.place,
+      }));
+      if (!pos && reg.lat != null && reg.lon != null) {
+        setPos({ lat: reg.lat, lon: reg.lon });
+        setPin('adresse');
+        setFocusKey(k => k + 1);
+      }
+      return;
+    }
+    setV(o => (known && !job ? { ...o, customer: name, clientId: '', contact: o.contact || known.contact, phone: o.phone || known.phone } : { ...o, customer: name, clientId: '' }));
   };
+  const linked = getClient(v.clientId);
 
   const fromAddress = (h: AddrHit) => {
     setV(o => ({ ...o, address: h.text, place: h.place }));
@@ -112,13 +156,16 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
         return;
       }
     }
-    onSaved(saveOrder({ ...v, place, lat: p.lat, lon: p.lon, pin: how }, job?.id));
+    const order = { ...v, place, lat: p.lat, lon: p.lon, pin: how };
+    if (isClient) {
+      onSaved(saveOrder({ ...order, car: '', driver: '' }, job?.id, { request: 'venter', requestNote: '', orderedBy: 'kunde' }));
+    } else onSaved(saveOrder(order, job?.id));
   };
 
   return (
     <Modal
       wide
-      title={job ? `Rediger ${job.id}` : 'Ny jobb'}
+      title={isClient ? (job ? `Endre bestilling ${job.id}` : 'Ny bestilling') : job ? `Rediger ${job.id}` : 'Ny jobb'}
       onClose={onClose}
       footer={
         <>
@@ -126,7 +173,7 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
             Avbryt
           </button>
           <button className="btn" type="submit" form="jobform" disabled={saving}>
-            {saving ? 'Finner adresse …' : job ? 'Lagre endringer' : 'Opprett jobb'}
+            {saving ? 'Finner adresse …' : isClient ? (job ? 'Lagre bestilling' : 'Send bestilling') : job ? 'Lagre endringer' : 'Opprett jobb'}
           </button>
         </>
       }
@@ -134,15 +181,23 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
       <form id="jobform" className="form jobform" onSubmit={submit}>
         <div className="formcols">
           <div className="form">
-            <div className="field">
-              <label htmlFor="f-customer">Kunde</label>
-              <input id="f-customer" list="custs" required value={v.customer} onChange={e => setCustomer(e.target.value)} autoComplete="off" />
-              <datalist id="custs">
-                {[...customers.keys()].sort().map(c => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
+            {isClient ? (
+              <div className="custbox">
+                <span className="muted">Bestilles av</span>
+                <b>{v.customer}</b>
+              </div>
+            ) : (
+              <div className="field">
+                <label htmlFor="f-customer">Kunde</label>
+                <input id="f-customer" list="custs" required value={v.customer} onChange={e => setCustomer(e.target.value)} autoComplete="off" placeholder="Velg fra kunderegisteret eller skriv navn" />
+                <datalist id="custs">
+                  {names.map(c => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+                <small className="hint">{linked ? `✓ Registrert kunde${linked.orgNr ? ` · org.nr ${linked.orgNr}` : ''}` : v.customer ? 'Ikke i kunderegisteret (f.eks. telefonbestilling) – det er helt greit.' : ''}</small>
+              </div>
+            )}
             <div className="two">
               <div className="field">
                 <label htmlFor="f-contact">Kontaktperson</label>
@@ -163,20 +218,22 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="f-ref">Kundens referanse / PO</label>
+                <label htmlFor="f-ref">{isClient ? 'Deres referanse / PO' : 'Kundens referanse / PO'}</label>
                 <input id="f-ref" value={v.ref} onChange={e => set('ref', e.target.value)} />
               </div>
             </div>
             <div className="two">
               <div className="field">
-                <label htmlFor="f-date">Dato</label>
+                <label htmlFor="f-date">{isClient ? 'Ønsket dato' : 'Dato'}</label>
                 <input id="f-date" type="date" required value={v.date} onChange={e => set('date', e.target.value)} />
               </div>
               <div className="field">
-                <label htmlFor="f-time">Oppmøte</label>
+                <label htmlFor="f-time">{isClient ? 'Ønsket tidspunkt' : 'Oppmøte'}</label>
                 <input id="f-time" type="time" value={v.time} onChange={e => set('time', e.target.value)} />
               </div>
             </div>
+            {!isClient && (
+            <>
             <div className="two">
               <div className="field">
                 <label htmlFor="f-car">Bil</label>
@@ -199,12 +256,20 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
                 : 'Uten sjåfør ligger oppdraget som Kommende til en sjåfør settes på.'}
               {v.driver && !v.car ? ' Husk å velge bil.' : ''}
             </small>
+            </>
+            )}
             <div className="field">
-              <label htmlFor="f-note">Beskjed til sjåfør</label>
-              <textarea id="f-note" rows={2} value={v.note} onChange={e => set('note', e.target.value)} placeholder="Adkomst, nøkler, koder, kontakt på stedet …" />
+              <label htmlFor="f-note">{isClient ? 'Beskrivelse og beskjed' : 'Beskjed til sjåfør'}</label>
+              <textarea
+                id="f-note"
+                rows={isClient ? 4 : 2}
+                value={v.note}
+                onChange={e => set('note', e.target.value)}
+                placeholder={isClient ? 'Hva skal gjøres? Adkomst, nøkler/koder, kontaktperson på stedet …' : 'Adkomst, nøkler, koder, kontakt på stedet …'}
+              />
             </div>
             <label className="chk">
-              <input type="checkbox" checked={v.urgent} onChange={e => set('urgent', e.target.checked)} /> Hasteoppdrag
+              <input type="checkbox" checked={v.urgent} onChange={e => set('urgent', e.target.checked)} /> {isClient ? 'Det haster' : 'Hasteoppdrag'}
             </label>
           </div>
 
@@ -250,13 +315,14 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
             </div>
           </div>
         </div>
+        {isClient && <p className="note">Bestillingen sendes til {config.company.name}. Dere får beskjed her i portalen når den er godkjent.</p>}
       </form>
     </Modal>
   );
 }
 
 /** Adressefelt med forslag fra Kartverkets adresseregister. Fri tekst er også lov. */
-function AddressField({ value, onChange, onPick }: { value: string; onChange: (v: string) => void; onPick: (h: AddrHit) => void }) {
+export function AddressField({ value, onChange, onPick, label = 'Adresse eller beskrivelse' }: { value: string; onChange: (v: string) => void; onPick: (h: AddrHit) => void; label?: string }) {
   const [hits, setHits] = useState<AddrHit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -311,7 +377,7 @@ function AddressField({ value, onChange, onPick }: { value: string; onChange: (v
 
   return (
     <div className="field addr">
-      <label htmlFor="f-address">Adresse eller beskrivelse</label>
+      <label htmlFor="f-address">{label}</label>
       <input
         id="f-address"
         ref={input}

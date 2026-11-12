@@ -9,6 +9,7 @@ import { DriverOptions, VehicleOptions } from '../components/VehicleOptions';
 import { driverBusy } from '../lib/fleet';
 import { progress, underway } from '../lib/steps';
 import { StepTimeline } from '../components/Steps';
+import { RequestsPanel } from '../components/Requests';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
@@ -23,6 +24,7 @@ const DONE_RANGE: Record<string, [string, number]> = {
 
 export function Office({
   jobs,
+  requests,
   sel,
   setSel,
   openAsDriver,
@@ -30,6 +32,7 @@ export function Office({
   openFleet,
 }: {
   jobs: Job[];
+  requests: Job[];
   sel: string | null;
   setSel: (id: string | null) => void;
   openAsDriver: (j: Job) => void;
@@ -73,6 +76,13 @@ export function Office({
     <div className="kontor">
       <section className="col list" aria-label="Jobbliste">
         <div className="tools">
+          <RequestsPanel
+            requests={requests}
+            onAccepted={j => {
+              setShow(o => ({ ...o, [j.driver ? 'aktiv' : 'kommende']: true }));
+              pick(j.id, true);
+            }}
+          />
           <button className="btn" onClick={() => setForm({})}>
             + Ny jobb
           </button>

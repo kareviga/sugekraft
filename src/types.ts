@@ -49,6 +49,12 @@ export interface Job {
   jobPhotos: string[];
   decl: string;
   comment: string;
+  // bestilling
+  clientId: string;       // kunde i registeret ('' = ikke registrert, f.eks. telefonbestilling)
+  request: RequestState;  // 'venter' = bestilt i portalen, ikke godtatt ennå
+  requestNote: string;    // begrunnelse ved avvisning
+  orderedBy: 'kunde' | 'kontor';
+  orderedAt: string;      // 'YYYY-MM-DD HH:MM'
   // fakturering
   invoiced: boolean;
   invoicedAt: string;
@@ -57,7 +63,25 @@ export interface Job {
 
 export type JobOrder = Pick<
   Job,
-  'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'driver' | 'note' | 'urgent'
+  'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'driver' | 'note' | 'urgent' | 'clientId'
 >;
 
-export type View = 'kontor' | 'bilpark' | 'sjafor' | 'arkiv';
+export type View = 'kontor' | 'kunder' | 'bilpark' | 'sjafor' | 'arkiv';
+
+/** Kunde i kunderegisteret */
+export interface Client {
+  id: string;
+  name: string;
+  orgNr: string;
+  contact: string;
+  phone: string;
+  email: string;
+  address: string;
+  place: string;
+  lat: number | null;
+  lon: number | null;
+  note: string;
+}
+
+/** Bestilling fra kundeportalen: venter på godkjenning, eller avvist. '' = godtatt / lagt inn av kontoret. */
+export type RequestState = '' | 'venter' | 'avvist';
