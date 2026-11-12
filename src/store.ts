@@ -16,21 +16,19 @@ interface DB {
   jobs: Job[];
   nextNo: number;
   day: string;
-  /** Bemanning: bil-id → sjåfør-id. En sjåfør kan bare stå på én bil om gangen. */
-  crew: Record<string, string>;
   /** Biler ute av drift: bil-id → merknad */
   out: Record<string, string>;
 }
 
-/** Status følger tildelingen: uten bil = kommende, med bil = aktiv. Ferdig settes bare ved lukking. */
+/** Status følger tildelingen: uten sjåfør = kommende, med sjåfør = aktiv. Ferdig settes bare ved lukking. */
 const norm = (j: Job): Job => {
-  const status = j.status === 'ferdig' ? 'ferdig' : j.car ? 'aktiv' : 'kommende';
+  const status = j.status === 'ferdig' ? 'ferdig' : j.driver ? 'aktiv' : 'kommende';
   return status === j.status && j.pin ? j : { ...j, status, pin: j.pin ?? 'adresse' };
 };
 
 function fresh(): DB {
-  const { jobs, nextNo, crew, out } = createSeed();
-  return { v: 1, jobs: jobs.map(norm), nextNo, day: dayOffset(0), crew, out };
+  const { jobs, nextNo, out } = createSeed();
+  return { v: 1, jobs: jobs.map(norm), nextNo, day: dayOffset(0), out };
 }
 
 function rebase(db: DB): DB {
@@ -51,8 +49,7 @@ function load(): DB {
     if (raw) {
       const db = JSON.parse(raw) as DB;
       if (db && db.v === 1 && Array.isArray(db.jobs)) {
-        db.jobs = db.jobs.map(j => norm({ ...j, driverName: j.driverName ?? '' }));
-        db.crew = db.crew ?? {};
+        db.jobs = db.jobs.map(j => norm({ ...j, driver: j.driver ?? '', driverName: j.driverName ?? '' }));
         db.out = db.out ?? {};
         return rebase(db);
       }
@@ -94,23 +91,10 @@ const subscribe = (l: () => void) => {
 export function useJobs(): Job[] {
   return useSyncExternalStore(subscribe, () => db.jobs);
 }
-export function useCrew(): Record<string, string> {
-  return useSyncExternalStore(subscribe, () => db.crew);
-}
 export function useOut(): Record<string, string> {
   return useSyncExternalStore(subscribe, () => db.out);
 }
-/** Sjåføren som står på bilen nå */
-export const crewOf = (vehicleId: string) => db.crew[vehicleId] ?? '';
-/** Bilen sjåføren står på nå */
-export const vehicleOf = (driverId: string) => Object.keys(db.crew).find(k => db.crew[k] === driverId) ?? '';
 
-/** Sett hvem som kjører en bil. Sjåføren flyttes fra eventuell annen bil. driverId '' = ingen. */
-export function setCrew(vehicleId: string, driverId: string) {
-  const crew = Object.fromEntries(Object.entries(db.crew).filter(([v, d]) => v !== vehicleId && d !== driverId));
-  if (driverId && vehicleId) crew[vehicleId] = driverId;
-  commit({ ...db, crew }, true);
-}
 /** Sett bil ute av drift (med merknad) eller tilbake i drift (null). */
 export function setOut(vehicleId: string, note: string | null) {
   const out = { ...db.out };

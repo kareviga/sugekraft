@@ -2,40 +2,27 @@ import { useState } from 'react';
 import { config } from '../config';
 import { JobMap } from '../components/JobMap';
 import { Modal, Pill } from '../components/ui';
-import { setCrew, setOut, useCrew, useOut } from '../store';
+import { setOut, useOut } from '../store';
 import { VSTATE_LABEL, vehicleStatus, type VehicleStatus, type VState } from '../lib/fleet';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, driver, relDay } from '../lib/utils';
+import { cx, driver, relDay } from '../lib/utils';
 import type { Job } from '../types';
 
 /*
- * Bilpark: alle biler med sjåfør i dag, hva de holder på med og hva som står for tur.
- * Biler og sjåfører er adskilt – hvem som kjører hvilken bil settes her.
+ * Bilpark: bare bilene. Status og hvem som er i bilen utledes av oppdragene –
+ * bil og sjåfør velges i hvert oppdrag (Kontor). Her kan en bil settes ute av drift.
  */
 
 export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) => void }) {
-  const crew = useCrew();
   const out = useOut();
   const [sel, setSel] = useState<string | null>(null);
   const [outFor, setOutFor] = useState<string | null>(null);
-  const rows = config.vehicles.map(v => ({ v, s: vehicleStatus(v, jobs, crew, out) }));
+  const rows = config.vehicles.map(v => ({ v, s: vehicleStatus(v, jobs, out) }));
   const count = (k: VState) => rows.filter(r => r.s.state === k).length;
 
   // på kartet: jobben som pågår, ellers neste jobb
-  const mapJobs = rows.map(r => r.s.active ?? (r.s.state !== 'ute' ? r.s.next : undefined)).filter((j): j is Job => !!j);
-  const selJob = sel ? rows.find(r => r.v.id === sel)?.s : undefined;
-  const assigned = new Set(Object.values(crew));
-  const freeDrivers = config.drivers.filter(d => !assigned.has(d.id));
-
-  const assign = (vehicleId: string, driverId: string) => {
-    const prevVeh = Object.keys(crew).find(k => crew[k] === driverId);
-    setCrew(vehicleId, driverId);
-    const v = config.vehicles.find(x => x.id === vehicleId)!;
-    const d = driver(driverId);
-    if (!d) toast(`${v.name} står nå uten sjåfør.`);
-    else if (prevVeh && prevVeh !== vehicleId) toast(`${d.name} er flyttet fra ${config.vehicles.find(x => x.id === prevVeh)?.name} til ${v.name}.`);
-    else toast(`${d.name} kjører ${v.name}.`);
-  };
+  const mapJobs = rows.map(r => (r.s.state === 'ute' ? undefined : r.s.active ?? r.s.next)).filter((j): j is Job => !!j);
+  const selS = sel ? rows.find(r => r.v.id === sel)?.s : undefined;
 
   return (
     <div className="bilpark">
@@ -48,10 +35,6 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
             </span>
           </div>
         ))}
-        <div className="kpi">
-          <b>{freeDrivers.length}</b>
-          <span>Sjåfører uten bil</span>
-        </div>
       </div>
 
       <div className="bp-main">
@@ -69,22 +52,10 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
                 <span className={cx('vstate', s.state)}>{VSTATE_LABEL[s.state]}</span>
               </header>
 
-              <div className="vrow">
-                <label htmlFor={`crew-${v.id}`}>Sjåfør</label>
-                <select id={`crew-${v.id}`} value={s.driverId} onClick={e => e.stopPropagation()} onChange={e => assign(v.id, e.target.value)}>
-                  <option value="">Ingen sjåfør</option>
-                  {config.drivers.map(d => {
-                    const on = Object.keys(crew).find(k => crew[k] === d.id);
-                    const other = on && on !== v.id ? config.vehicles.find(x => x.id === on)?.name : '';
-                    return (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                        {other ? ` (står på ${other})` : ''}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
+              <dl className="vfacts">
+                <dt>I bilen nå</dt>
+                <dd>{s.nowDriver ? <b>{s.nowDriver}</b> : <span className="muted">Ingen</span>}</dd>
+              </dl>
 
               <Doing s={s} openJob={openJob} />
 
@@ -93,9 +64,9 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
                   {s.today.map(j => (
                     <li key={j.id} className={j.status}>
                       <button className="link" onClick={() => openJob(j.id)}>
-                        <span className="vt">{j.start && j.status !== 'ferdig' ? 'Nå' : j.time || '–'}</span>
+                        <span className="vt">{j.start ? j.start : j.time || '–'}</span>
                         {j.customer}
-                        <span className="muted"> · {j.service}</span>
+                        <span className="muted"> · {driver(j.driver)?.name.split(' ')[0] ?? 'ingen sjåfør'}</span>
                       </button>
                       <Pill status={j.status} />
                     </li>
@@ -138,34 +109,14 @@ export function Fleet({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) =>
           <div className="bp-map card">
             <JobMap
               jobs={mapJobs}
-              selectedId={selJob ? (selJob.active ?? selJob.next)?.id : null}
+              selectedId={selS ? (selS.active ?? selS.next)?.id : null}
               onSelect={id => setSel(mapJobs.find(j => j.id === id)?.car ?? null)}
               fitKey={`bp${mapJobs.length}`}
               tags
             />
           </div>
-          <p className="note">Kartet viser hvor bilene er nå (jobben som pågår) eller skal neste gang.</p>
-          <div className="card bp-drivers">
-            <h3>Sjåfører</h3>
-            <ul>
-              {config.drivers.map(d => {
-                const vid = Object.keys(crew).find(k => crew[k] === d.id);
-                const v = config.vehicles.find(x => x.id === vid);
-                return (
-                  <li key={d.id}>
-                    <span>
-                      <b>{d.name}</b>
-                      <small className="muted">
-                        {' '}
-                        <a href={`tel:${d.phone.replace(/\s/g, '')}`}>{d.phone}</a>
-                      </small>
-                    </span>
-                    {v ? <span className="carchip">{v.name}</span> : <span className="pill warn">Ingen bil</span>}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          <p className="note">Kartet viser hvor bilene er nå (jobben som pågår) eller skal neste gang. Tallet er bilnummeret.</p>
+          <p className="note">Bil og sjåfør velges i hvert oppdrag under Kontor. Bilparken oppdateres av seg selv når oppdragene startes og lukkes.</p>
         </aside>
       </div>
 
@@ -200,6 +151,7 @@ function Doing({ s, openJob }: { s: VehicleStatus; openJob: (id: string) => void
         <small>
           {relDay(s.next.date).toLowerCase()}
           {s.next.time ? ` kl. ${s.next.time}` : ''}
+          {s.next.driver ? ` · ${driver(s.next.driver)?.name}` : ' · ingen sjåfør ennå'}
         </small>
       </p>
     );
@@ -235,20 +187,18 @@ function OutDialog({ vehicleId, onClose }: { vehicleId: string; onClose: () => v
         <label htmlFor="out-note">Årsak (valgfritt)</label>
         <input id="out-note" value={note} onChange={e => setNote(e.target.value)} placeholder="F.eks. verksted, EU-kontroll, skade" />
       </div>
-      <p className="note">Jobbene som er tildelt bilen blir liggende. Flytt dem til en annen bil i Kontor om nødvendig.</p>
+      <p className="note">Oppdragene som har denne bilen, blir liggende. Bytt bil på dem i Kontor om nødvendig.</p>
     </Modal>
   );
 }
 
 /** Kort oversikt brukt i Kontor når ingen jobb er valgt. */
 export function FleetCompact({ jobs, onPick, openFleet }: { jobs: Job[]; onPick: (id: string) => void; openFleet: () => void }) {
-  const crew = useCrew();
   const out = useOut();
-  const today = dayOffset(0);
   return (
     <>
       <div className="spread">
-        <h2>Bilparken i dag</h2>
+        <h2>Bilparken nå</h2>
         <button className="link" onClick={openFleet}>
           Åpne bilpark ›
         </button>
@@ -256,13 +206,14 @@ export function FleetCompact({ jobs, onPick, openFleet }: { jobs: Job[]; onPick:
       <p className="note">Velg en jobb i listen eller kartet for å se detaljer.</p>
       <ul className="fleet">
         {config.vehicles.map(v => {
-          const s = vehicleStatus(v, jobs, crew, out);
+          const s = vehicleStatus(v, jobs, out);
           return (
             <li key={v.id}>
               <span className={cx('fleet-tag', s.state)}>{v.tag}</span>
               <div>
                 <b>
-                  {v.name} · {s.driverName || <span className="warntext">ingen sjåfør</span>}
+                  {v.name}
+                  {s.nowDriver ? ` · ${s.nowDriver}` : ''}
                 </b>
                 {s.state === 'ute' ? (
                   <small className="warntext">Ute av drift{s.outNote ? `: ${s.outNote}` : ''}</small>
@@ -270,7 +221,7 @@ export function FleetCompact({ jobs, onPick, openFleet }: { jobs: Job[]; onPick:
                   <button className="link" onClick={() => onPick(s.active!.id)}>
                     På oppdrag: {s.active.customer}
                   </button>
-                ) : s.next && s.next.date <= today ? (
+                ) : s.next && s.state === 'planlagt' ? (
                   <button className="link" onClick={() => onPick(s.next!.id)}>
                     Neste: {s.next.customer}
                     {s.next.time ? ` kl. ${s.next.time}` : ''}

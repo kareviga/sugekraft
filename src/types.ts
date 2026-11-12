@@ -1,4 +1,4 @@
-/** kommende = ikke tildelt bil, aktiv = tildelt sjåfør, ferdig = lukket. Settes automatisk i store.ts. */
+/** kommende = ingen sjåfør tildelt, aktiv = sjåfør tildelt, ferdig = lukket. Settes automatisk i store.ts. */
 export type Status = 'kommende' | 'aktiv' | 'ferdig';
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -24,8 +24,9 @@ export interface Job {
   ref: string;
   date: string;      // YYYY-MM-DD
   time: string;      // planlagt oppmøte HH:MM (valgfritt)
-  car: string;       // vehicle id, '' = ikke tildelt
-  driverName: string; // hvem som utførte jobben (settes når sjåføren fyller ut)
+  car: string;       // bil-id, '' = ingen bil valgt
+  driver: string;    // sjåfør-id, '' = ingen sjåfør (Kommende)
+  driverName: string; // navnet til sjåføren som lukket jobben (historikk, står på PDF)
   note: string;
   urgent: boolean;
   // utførelse (sjåfør)
@@ -48,7 +49,7 @@ export interface Job {
 
 export type JobOrder = Pick<
   Job,
-  'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'note' | 'urgent'
+  'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'driver' | 'note' | 'urgent'
 >;
 
 export type View = 'kontor' | 'bilpark' | 'sjafor' | 'arkiv';

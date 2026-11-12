@@ -23,7 +23,7 @@ mappe på et webhotell). Den må serveres over http(s). Å åpne `index.html` di
    - `colors`: hovedfarge, topplinje, uthevingsfarge og statusfarger
    - `map`: kartsenter, zoom og kartstil. Adressesøket viser treff nærmest kartsenteret først.
    - `vehicles`: biler med type og registreringsnummer
-   - `drivers`: sjåfører med telefon. Biler og sjåfører er adskilt, og hvem som kjører hvilken bil settes i Bilpark.
+   - `drivers`: sjåfører med telefon. Bil og sjåfør velges hver for seg i hvert oppdrag.
    - `services`: oppdragstyper
    - `massTypes`: massetyper. `hazardous: true` krever deklarasjonsnummer, `noMass: true` krever ikke mengde eller deponi.
    - `depots`: deponier og mottak
@@ -45,14 +45,16 @@ Datoene er relative til dagens dato og flyttes automatisk fram når demoen åpne
   nærmeste registrerte adresse.
 - Sjåføren får «Naviger til stedet» med veibeskrivelse til nålens koordinater, i Google Maps eller Apple Kart.
   iPhone/iPad bruker Apple Kart som standard, og valget huskes på enheten.
-- I Kontor kan valgt jobb flyttes ved å dra nålen i kartet, med «Angre» i meldingen.
+- Plasseringen endres under «Rediger» på jobben (klikk eller dra nålen i skjemaets kart).
 
 ## Biler og sjåfører
 
-- **Bilpark** viser alle biler med dagens sjåfør, hva bilen gjør nå (på oppdrag, har jobber, ledig, ute av drift)
-  og dagens jobber. Her settes sjåfør på bil, og biler kan settes ute av drift.
-- Jobber tildeles en **bil**. Sjåføren som fyller ut jobben, lagres på jobben og står på PDF-en.
-- I sjåførvisningen velger sjåføren «Jeg er» og «Bil i dag». Den som sto på bilen fra før, blir tatt av.
+- Biler (`vehicles`) og sjåfører (`drivers`) er adskilte lister i konfigfilen.
+- I hvert oppdrag velges **bil** og **sjåfør** hver for seg. Uten sjåfør er oppdraget **Kommende**, med
+  sjåfør er det **Aktivt**. Samme bil kan kjøres av forskjellige sjåfører på forskjellige oppdrag.
+- **Bilpark** viser bare bilene: type, reg.nr., status (på oppdrag, har jobber i dag, ledig, ute av drift),
+  hvem som er i bilen nå og dagens oppdrag. Alt utledes av oppdragene. Det eneste som settes der, er «ute av drift».
+- Sjåføren velger «Jeg er» og ser oppdragene sine med hvilken bil som skal brukes.
 
 ## Struktur
 

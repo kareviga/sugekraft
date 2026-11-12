@@ -16,7 +16,7 @@ export interface Vehicle {
   regNr: string;
 }
 
-/** Sjåfører er adskilt fra bilene. Hvem som kjører hvilken bil settes i Bilpark (eller av sjåføren selv). */
+/** Sjåfører er adskilt fra bilene. I hvert oppdrag velges bil og sjåfør hver for seg. */
 export interface Driver {
   id: string;
   name: string;
@@ -159,5 +159,5 @@ export const config: AppConfig = {
   ],
 
   jobPrefix: 'J',
-  storageKey: 'sugekraft-demo-v3',
+  storageKey: 'sugekraft-demo-v4',
 };

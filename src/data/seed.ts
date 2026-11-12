@@ -8,7 +8,8 @@ import { dayOffset } from '../lib/utils';
  * Biler, oppdragstyper, masser og deponier slås opp i config – finnes et navn
  * ikke der, brukes et gyldig alternativ, slik at demoen tåler endringer.
  *
- * Status settes automatisk: uten bil = Kommende, med bil = Aktiv, lukket = Ferdig.
+ * Status settes automatisk: uten sjåfør = Kommende, med sjåfør = Aktiv, lukket = Ferdig.
+ * Bil og sjåfør velges hver for seg – samme bil kjøres av ulike sjåfører.
  */
 
 const pick = <T,>(arr: T[], want: T | undefined, i: number): T =>
@@ -76,7 +77,8 @@ interface Row {
   a: AddrKey;
   d: number; // dag relativt til i dag
   service: string;
-  car: number; // indeks i config.vehicles, -1 = ikke tildelt (Kommende)
+  car: number; // indeks i config.vehicles, -1 = ingen bil
+  drv?: number; // indeks i config.drivers; standard = samme som bil, -1 = ingen sjåfør (Kommende)
   ref?: string;
   time?: string;
   note?: string;
@@ -96,19 +98,19 @@ interface Row {
 }
 
 const ROWS: Row[] = [
-  // ---- Kommende: ikke tildelt bil ----
+  // ---- Kommende: ingen sjåfør ----
   { c: 'gard', a: 'maridal', d: 0, service: 'Tining av frosne rør', car: -1, time: '13:00', note: 'Fjøs uten vann siden i natt. Ring før ankomst.', urgent: true },
   { c: 'eiendom', a: 'nydal', d: 1, service: 'Tankrengjøring', car: -1, ref: 'AE-339', note: 'Gammel fyringsoljetank, 3000 liter. Skal saneres.' },
-  { c: 'kommune', a: 'kum', d: 2, service: 'Høytrykkspyling', car: -1, ref: 'K-2026-336', time: '08:00', note: 'Ingen adresse – se nål i kartet. Kjør inn fra parkeringen ved Haugerud.' },
+  { c: 'kommune', a: 'kum', d: 2, service: 'Høytrykkspyling', car: 2, drv: -1, ref: 'K-2026-336', time: '08:00', note: 'Ingen adresse – se nål i kartet. Kjør inn fra parkeringen ved Haugerud.' },
   { c: 'asker', a: 'nesbru', d: 4, service: 'Tømming oljeutskiller', car: -1, ref: 'AM-5521' },
 
-  // ---- Aktiv: tildelt, planlagt ----
-  { c: 'sorkedal', a: 'hytte', d: 0, service: 'Tømming septik', car: 1, ref: 'HYT-118', time: '13:30', note: 'Bom ved innkjøring, kode 2580. Nålen viser tanken bak hytta.' },
+  // ---- Aktiv: sjåfør tildelt, planlagt ----
+  { c: 'sorkedal', a: 'hytte', d: 0, service: 'Tømming septik', car: 1, drv: 5, ref: 'HYT-118', time: '13:30', note: 'Bom ved innkjøring, kode 2580. Nålen viser tanken bak hytta.' },
   { c: 'alna', a: 'alfaset', d: 0, service: 'Tømming oljeutskiller', car: 4, ref: 'PO-7741', time: '14:30' },
   { c: 'kommune', a: 'grorud', d: 1, service: 'Tømming sandfang', car: 3, ref: 'K-2026-331', time: '07:30', note: 'Ring vakttelefon ved ankomst. 6 sandfang langs Grorudveien.' },
   { c: 'nordbygg', a: 'rigg', d: 1, service: 'Vakuumgraving', car: 0, ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
   { c: 'kantine', a: 'holmenkoll', d: 2, service: 'Tømming fettutskiller', car: 1, ref: 'KK-2026-14', time: '10:00' },
-  { c: 'ryen', a: 'ryen', d: 2, service: 'Høytrykkspyling', car: 2, ref: 'Sak 44/26', time: '08:00', note: 'Stakeluke i kjeller blokk C. Vaktmester møter.' },
+  { c: 'ryen', a: 'ryen', d: 2, service: 'Høytrykkspyling', car: 2, drv: 5, ref: 'Sak 44/26', time: '08:00', note: 'Stakeluke i kjeller blokk C. Vaktmester møter.' },
   { c: 'transport', a: 'furulund', d: 3, service: 'Spillolje', car: 4, ref: 'FT-1093', time: '12:00' },
 
   // ---- Aktiv: pågår i dag ----
@@ -140,17 +142,11 @@ const ROWS: Row[] = [
   { done: true, c: 'asker', a: 'hagalokk', d: -27, service: 'Spillolje', car: 4, ref: 'AM-5470', mass: 'Spillolje', amount: '600', unit: 'liter', depot: 3, decl: '3120077', start: '14:00', end: '14:45', ticket: '48097', photos: [12], ticketPhoto: true, invoiced: true },
 ];
 
-/** Bemanning i dag: bil-indeks → sjåfør-indeks. Bil 6 står uten sjåfør, Jonas er vikar. */
-const CREW: [number, number][] = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]];
-/** Hvem som kjørte de ferdige jobbene: normalt fast sjåfør, men noen ganger vikaren. */
-const histDriver = (car: number, i: number) => config.drivers[(i % 7 === 3 ? 5 : car) % config.drivers.length]?.name ?? '';
+/** Sjåfør for en rad: eksplisitt, ellers fast sjåfør for bilen. Noen ferdige jobber er kjørt av vikaren. */
+const D_IDX = (r: Row, i: number) => (r.drv !== undefined ? r.drv : r.car < 0 ? -1 : r.done && i % 7 === 3 ? 5 : r.car);
+const C_DRV = (n: number) => (n < 0 || !config.drivers.length ? undefined : config.drivers[n % config.drivers.length]);
 
-export function createSeed(): { jobs: Job[]; nextNo: number; crew: Record<string, string>; out: Record<string, string> } {
-  const crew: Record<string, string> = {};
-  CREW.forEach(([v, d]) => {
-    const veh = config.vehicles[v], drv = config.drivers[d];
-    if (veh && drv) crew[veh.id] = drv.id;
-  });
+export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string, string> } {
   const out: Record<string, string> = {};
   const reserve = config.vehicles[5];
   if (reserve) out[reserve.id] = 'EU-kontroll fredag';
@@ -160,7 +156,7 @@ export function createSeed(): { jobs: Job[]; nextNo: number; crew: Record<string
     const car = C(r.car);
     return {
       id: `${config.jobPrefix}-${no++}`,
-      status: r.done ? 'ferdig' : car ? 'aktiv' : 'kommende',
+      status: r.done ? 'ferdig' : C_DRV(D_IDX(r, i)) ? 'aktiv' : 'kommende',
       ...CUST[r.c],
       address,
       place,
@@ -172,7 +168,8 @@ export function createSeed(): { jobs: Job[]; nextNo: number; crew: Record<string
       date: dayOffset(r.d),
       time: r.time ?? r.start ?? '',
       car,
-      driverName: r.done || r.start ? histDriver(r.car, i) : '',
+      driver: C_DRV(D_IDX(r, i))?.id ?? '',
+      driverName: r.done ? C_DRV(D_IDX(r, i))?.name ?? '' : '',
       note: r.note ?? '',
       urgent: !!r.urgent,
       massType: r.mass ? M(r.mass, i) : '',
@@ -191,5 +188,5 @@ export function createSeed(): { jobs: Job[]; nextNo: number; crew: Record<string
       closedAt: r.done ? dayOffset(r.d) : '',
     };
   });
-  return { jobs, nextNo: no, crew, out };
+  return { jobs, nextNo: no, out };
 }

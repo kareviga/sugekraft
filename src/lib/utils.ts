@@ -47,6 +47,9 @@ export const vehicleLong = (id: string) => {
   return v ? `${v.name} – ${v.type}` : 'Ikke tildelt';
 };
 export const driver = (id: string | undefined) => (id ? config.drivers.find(d => d.id === id) : undefined);
+/** Sjåførnavn for en jobb: den som lukket den (ferdig), ellers den som er tildelt. */
+export const jobDriverName = (j: Pick<Job, 'status' | 'driver' | 'driverName'>) =>
+  (j.status === 'ferdig' && j.driverName) || driver(j.driver)?.name || '';
 
 export function hours(j: Pick<Job, 'start' | 'end'>) {
   if (!j.start || !j.end) return 0;

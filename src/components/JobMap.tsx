@@ -23,8 +23,6 @@ export function JobMap({
   maxFitZoom = 12,
   compact,
   tags,
-  dragId,
-  onMove,
 }: {
   jobs: Job[];
   selectedId?: string | null;
@@ -35,9 +33,6 @@ export function JobMap({
   compact?: boolean;
   /** Vis bilnummer i nålen (brukes i Bilpark, der nålene er biler) */
   tags?: boolean;
-  /** Jobben som kan dras til ny plassering */
-  dragId?: string | null;
-  onMove?: (id: string, lat: number, lon: number) => void;
 }) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -45,8 +40,6 @@ export function JobMap({
   const pins = useRef<L.LayerGroup | null>(null);
   const onSel = useRef(onSelect);
   onSel.current = onSelect;
-  const onMv = useRef(onMove);
-  onMv.current = onMove;
   const [style, setStyle] = useState<Style>(rememberedStyle);
   const [offline, setOffline] = useState(false);
 
@@ -93,33 +86,26 @@ export function JobMap({
     g.clearLayers();
     jobs.forEach(j => {
       const sel = j.id === selectedId;
-      const drag = !!dragId && j.id === dragId;
-      const z = tags ? (sel ? 30 : 26) : sel ? 22 : 16;
+      const z = tags ? (sel ? 32 : 28) : sel ? 28 : 22;
       const tag = tags ? vehicle(j.car)?.tag ?? '' : '';
       const m = L.marker([j.lat, j.lon], {
         title: `${j.id} ${j.customer} – ${STATUS_LABEL[j.status]}`,
         alt: `${j.id} ${j.customer}`,
         keyboard: true,
-        draggable: drag,
         zIndexOffset: sel ? 1000 : j.status === 'aktiv' ? 500 : 0,
         icon: L.divIcon({
           className: '',
           iconSize: [z, z],
           iconAnchor: [z / 2, z / 2],
-          html: `<div class="lpin ${j.status}${sel ? ' sel' : ''}${drag ? ' drag' : ''}${j.urgent && j.status !== 'ferdig' ? ' urgent' : ''}">${tag ? `<span>${tag}</span>` : ''}</div>`,
+          html: `<div class="lpin ${j.status}${sel ? ' sel' : ''}${j.urgent && j.status !== 'ferdig' ? ' urgent' : ''}">${tag ? `<span>${tag}</span>` : ''}</div>`,
         }),
       });
       m.on('click', () => onSel.current(j.id));
-      if (drag)
-        m.on('dragend', () => {
-          const p = m.getLatLng();
-          onMv.current?.(j.id, p.lat, p.lng);
-        });
       if (sel && !compact) m.bindTooltip(escapeHtml(j.customer), { permanent: true, direction: 'right', offset: [z / 2 + 4, 0], className: 'ltip' });
       else if (!compact) m.bindTooltip(escapeHtml(j.customer), { direction: 'top', offset: [0, -z / 2], className: 'ltip' });
       g.addLayer(m);
     });
-  }, [jobs, selectedId, compact, dragId, tags]);
+  }, [jobs, selectedId, compact, tags]);
 
   const fit = () => {
     const m = map.current;

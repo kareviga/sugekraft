@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { config } from './config';
 import { Confirm, Logo, Toasts } from './components/ui';
-import { crewOf, resetDemo, setCrew, useJobs } from './store';
+import { resetDemo, useJobs } from './store';
 import { toast } from './lib/toast';
 import { Archive, type ArchivePreset } from './views/Archive';
 import { Driver } from './views/Driver';
@@ -24,7 +24,7 @@ export function App() {
   const jobs = useJobs();
   const [view, setView] = useState<View>(fromHash);
   const [officeSel, setOfficeSel] = useState<string | null>(null);
-  const [driverPerson, setDriverPerson] = useState(() => crewOf(config.vehicles[0]?.id ?? '') || config.drivers[0]?.id || '');
+  const [driverPerson, setDriverPerson] = useState(config.drivers[0]?.id ?? '');
   const [driverJob, setDriverJob] = useState<string | null>(null);
   const [preset, setPreset] = useState<ArchivePreset | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -76,17 +76,7 @@ export function App() {
             setSel={setOfficeSel}
             openFleet={() => go('bilpark')}
             openAsDriver={j => {
-              let p = crewOf(j.car);
-              if (!p) {
-                // bilen har ingen sjåfør: sett opp en ledig sjåfør så demoen kan fortsette
-                const busy = new Set(config.vehicles.map(v => crewOf(v.id)).filter(Boolean));
-                p = config.drivers.find(d => !busy.has(d.id))?.id ?? config.drivers[0]?.id ?? '';
-                if (p) {
-                  setCrew(j.car, p);
-                  toast(`${config.drivers.find(d => d.id === p)?.name} er satt opp på bilen.`);
-                }
-              }
-              setDriverPerson(p);
+              setDriverPerson(j.driver);
               setDriverJob(j.id);
               go('sjafor');
             }}

@@ -3,11 +3,12 @@ import { config } from '../config';
 import { JobMap } from '../components/JobMap';
 import { JobForm } from '../components/JobForm';
 import { Checklist, Confirm, Lightbox, Mark, Pill, Thumbs } from '../components/ui';
-import { crewOf, deleteJob, updateJob, useCrew } from '../store';
+import { deleteJob, updateJob, useJobs, useOut } from '../store';
 import { FleetCompact } from './Fleet';
-import { VehicleOptions } from '../components/VehicleOptions';
+import { DriverOptions, VehicleOptions } from '../components/VehicleOptions';
+import { driverBusy } from '../lib/fleet';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, daysBetween, driver, fmtAmount, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
+import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
 
 const ORDER: Record<Status, number> = { aktiv: 0, kommende: 1, ferdig: 2 };
@@ -33,7 +34,7 @@ export function Office({
   openInArchive: (j: Job) => void;
   openFleet: () => void;
 }) {
-  const crew = useCrew();
+  const [drvF, setDrvF] = useState('');
   const [show, setShow] = useState<Record<Status, boolean>>({ kommende: true, aktiv: true, ferdig: true });
   const [doneRange, setDoneRange] = useState('7');
   const [carF, setCarF] = useState('');
@@ -45,20 +46,21 @@ export function Office({
 
   const today = dayOffset(0);
   const inScope = (j: Job) => j.status !== 'ferdig' || daysBetween(j.date, today) <= DONE_RANGE[doneRange][1];
-  const scoped = jobs.filter(j => inScope(j) && (!carF || (carF === '-' ? !j.car : j.car === carF)));
+  const scoped = jobs.filter(j => inScope(j) && (!carF || (carF === '-' ? !j.car : j.car === carF)) && (!drvF || (drvF === '-' ? !j.driver : j.driver === drvF)));
   const ql = q.trim().toLowerCase();
   const list = scoped
     .filter(j => show[j.status])
-    .filter(j => !ql || [j.id, j.customer, j.address, j.place, j.service, j.ref].join(' ').toLowerCase().includes(ql))
+    .filter(j => !ql || [j.id, j.customer, j.address, j.place, j.service, j.ref, jobDriverName(j)].join(' ').toLowerCase().includes(ql))
     .sort(
       (a, b) =>
         ORDER[a.status] - ORDER[b.status] ||
         (a.status === 'ferdig' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date) || (a.time || '99').localeCompare(b.time || '99')),
     );
   const count = (s: Status) => scoped.filter(j => j.status === s).length;
-  const unassigned = jobs.filter(j => j.status === 'kommende').length;
+  const noCar = jobs.filter(j => j.status !== 'ferdig' && !j.car).length;
+  const noDriver = jobs.filter(j => j.status === 'kommende').length;
   const s = jobs.find(j => j.id === sel);
-  const fitKey = useMemo(() => `${Object.values(show).join()}|${doneRange}|${carF}`, [show, doneRange, carF]);
+  const fitKey = useMemo(() => `${Object.values(show).join()}|${doneRange}|${carF}|${drvF}`, [show, doneRange, carF, drvF]);
 
   const pick = (id: string, flyTo: boolean) => {
     setSel(id);
@@ -89,19 +91,27 @@ export function Office({
               {config.vehicles.map(v => (
                 <option key={v.id} value={v.id}>
                   {v.name}
-                  {crew[v.id] ? ` – ${driver(crew[v.id])?.name.split(' ')[0]}` : ''}
                 </option>
               ))}
-              <option value="-">Ikke tildelt ({unassigned})</option>
+              <option value="-">Uten bil ({noCar})</option>
             </select>
-            <select className="sel-in" aria-label="Periode for ferdige jobber" value={doneRange} onChange={e => setDoneRange(e.target.value)}>
-              {Object.entries(DONE_RANGE).map(([k, [l]]) => (
-                <option key={k} value={k}>
-                  Ferdige: {l.toLowerCase()}
+            <select className="sel-in" aria-label="Filtrer på sjåfør" value={drvF} onChange={e => setDrvF(e.target.value)}>
+              <option value="">Alle sjåfører</option>
+              {config.drivers.map(d => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
                 </option>
               ))}
+              <option value="-">Uten sjåfør ({noDriver})</option>
             </select>
           </div>
+          <select className="sel-in" aria-label="Periode for ferdige jobber" value={doneRange} onChange={e => setDoneRange(e.target.value)}>
+            {Object.entries(DONE_RANGE).map(([k, [l]]) => (
+              <option key={k} value={k}>
+                Ferdige jobber: {l.toLowerCase()}
+              </option>
+            ))}
+          </select>
           <input className="sel-in" type="search" placeholder="Søk kunde, adresse, jobbnr …" value={q} onChange={e => setQ(e.target.value)} aria-label="Søk i jobber" />
         </div>
         {list.length ? (
@@ -125,7 +135,8 @@ export function Office({
                     {relDay(j.date)}
                     {j.time && j.status !== 'ferdig' && !j.start ? ` kl. ${j.time}` : ''}
                   </span>
-                  {v ? <span className="carchip">{v.name}</span> : <span className="pill warn">Ikke tildelt</span>}
+                  {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">Uten bil</span>}
+                  {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">Uten sjåfør</span>}
                   {m > 0 && <span className="pill warn">Mangler {m}</span>}
                   {j.status === 'ferdig' && (j.invoiced ? <span className="pill ok">Fakturert</span> : null)}
                 </small>
@@ -144,14 +155,6 @@ export function Office({
           onSelect={id => pick(id, false)}
           fitKey={fitKey}
           flyKey={fly}
-          dragId={s && s.status !== 'ferdig' ? s.id : null}
-          onMove={(id, lat, lon) => {
-            const j = jobs.find(x => x.id === id);
-            if (!j) return;
-            const before = { lat: j.lat, lon: j.lon, pin: j.pin };
-            updateJob(id, { lat, lon, pin: 'kart' }, true);
-            toast(`Nålen for ${id} er flyttet.`, { label: 'Angre', run: () => updateJob(id, before, true) });
-          }}
         />
         <div className="legend" aria-hidden="true">
           {(Object.keys(STATUS_LABEL) as Status[]).map(k => (
@@ -159,7 +162,6 @@ export function Office({
               <Mark status={k} /> {STATUS_LABEL[k]}
             </span>
           ))}
-          {s && s.status !== 'ferdig' && <span className="lg-note">Dra valgt nål for å flytte den</span>}
         </div>
       </section>
 
@@ -191,7 +193,7 @@ export function Office({
             setForm(null);
             setShow(o => ({ ...o, [j.status]: true }));
             pick(j.id, true);
-            toast(`${j.id} er lagret${j.car ? ' og tildelt ' + vehicleName(j.car) : ''}.`);
+            toast(`${j.id} er lagret${j.driver ? ` – ${driver(j.driver)?.name}${j.car ? ` med ${vehicleName(j.car)}` : ''}. Oppdraget er aktivt.` : ' som kommende (ingen sjåfør ennå).'}`);
           }}
         />
       )}
@@ -241,26 +243,16 @@ function Detail({
         <Pill status={j.status} />
       </div>
       {j.urgent && j.status !== 'ferdig' && <p className="alert">Hasteoppdrag</p>}
-      <div className="field">
-        <label htmlFor="d-car">Tildelt bil</label>
-        <select
-          id="d-car"
-          value={j.car}
-          disabled={j.status === 'ferdig'}
-          onChange={e => {
-            updateJob(j.id, { car: e.target.value }, true);
-            const d = driver(crewOf(e.target.value));
-            toast(
-              e.target.value
-                ? `${j.id} er tildelt ${vehicleLong(e.target.value)}${d ? ` (${d.name})` : ' – bilen har ingen sjåfør i dag'} og er nå aktiv.`
-                : `Tildelingen er fjernet. ${j.id} er kommende igjen.`,
-            );
-          }}
-        >
-          <option value="">Ikke tildelt</option>
-          <VehicleOptions />
-        </select>
-      </div>
+      {j.status === 'ferdig' ? (
+        <dl className="kv">
+          <dt>Bil</dt>
+          <dd>{vehicleLong(j.car)}</dd>
+          <dt>Sjåfør</dt>
+          <dd>{jobDriverName(j) || '–'}</dd>
+        </dl>
+      ) : (
+        <Assign j={j} />
+      )}
       <dl className="kv">
         <dt>{j.pin === 'kart' ? 'Sted' : 'Adresse'}</dt>
         <dd>
@@ -269,14 +261,12 @@ function Detail({
           <br />
           <small className="muted">
             {j.pin === 'kart' ? `Nål plassert manuelt (${fmtCoord(j)})` : 'Fra adresseregisteret'}
-            {j.status !== 'ferdig' ? ' · dra nålen i kartet for å flytte' : ''} ·{' '}
+            {j.status !== 'ferdig' ? ' · flytt nålen under Rediger' : ''} ·{' '}
             <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
               Google Maps
             </a>
           </small>
         </dd>
-        <dt>Sjåfør</dt>
-        <dd>{j.status === 'ferdig' ? j.driverName || '–' : driver(crewOf(j.car))?.name ?? (j.car ? <span className="warntext">Bilen har ingen sjåfør</span> : '–')}</dd>
         <dt>Dato</dt>
         <dd>
           {nice(j.date)}
@@ -318,7 +308,7 @@ function Detail({
           <button className="btn alt" onClick={onEdit}>
             Rediger
           </button>
-          <button className="btn alt" onClick={onDriver} disabled={!j.car} title={j.car ? '' : 'Tildel en bil først'}>
+          <button className="btn alt" onClick={onDriver} disabled={!j.driver} title={j.driver ? '' : 'Sett på en sjåfør først'}>
             Åpne som sjåfør
           </button>
           {!j.start && (
@@ -333,5 +323,53 @@ function Detail({
         </button>
       )}
     </>
+  );
+}
+
+/** Velg bil og sjåfør for et oppdrag – hver for seg. Sjåfør gjør oppdraget aktivt. */
+function Assign({ j }: { j: Job }) {
+  const jobs = useJobs();
+  const out = useOut();
+  const busy = driverBusy(j.driver, jobs, j.id);
+  const carOut = j.car && out[j.car] !== undefined;
+  return (
+    <div className="assign">
+      <div className="field">
+        <label htmlFor="d-car">Bil</label>
+        <select
+          id="d-car"
+          value={j.car}
+          onChange={e => {
+            updateJob(j.id, { car: e.target.value }, true);
+            toast(e.target.value ? `${j.id}: ${vehicleLong(e.target.value)} er valgt.` : `${j.id}: bilen er fjernet.`);
+          }}
+        >
+          <option value="">Ingen bil valgt</option>
+          <VehicleOptions exceptJob={j.id} />
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="d-drv">Sjåfør</label>
+        <select
+          id="d-drv"
+          value={j.driver}
+          onChange={e => {
+            const d = driver(e.target.value);
+            updateJob(j.id, { driver: e.target.value }, true);
+            toast(d ? `${d.name} er satt på ${j.id}. Oppdraget er aktivt.` : `Sjåføren er fjernet. ${j.id} er kommende igjen.`);
+          }}
+        >
+          <option value="">Ingen sjåfør – Kommende</option>
+          <DriverOptions exceptJob={j.id} />
+        </select>
+      </div>
+      {!j.car && j.driver && <p className="alert small">Velg bil før sjåføren kjører ut.</p>}
+      {carOut && <p className="alert small">{vehicleName(j.car)} er ute av drift: {out[j.car] || 'ingen årsak oppgitt'}.</p>}
+      {busy && j.status === 'aktiv' && !j.start && (
+        <p className="note">
+          {driver(j.driver)?.name} er på oppdrag hos {busy.customer} nå.
+        </p>
+      )}
+    </div>
   );
 }

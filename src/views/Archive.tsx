@@ -3,7 +3,7 @@ import { config } from '../config';
 import { Confirm, Lightbox, Modal, Thumbs } from '../components/ui';
 import { updateJob, updateJobs } from '../store';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, fmtAmount, hours, nice, num, totals, vehicle } from '../lib/utils';
+import { cx, dayOffset, fmtAmount, hours, jobDriverName, nice, num, totals, vehicle } from '../lib/utils';
 import type { Job } from '../types';
 
 export interface ArchivePreset {
@@ -357,7 +357,7 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
     ['Adresse', `${j.address}, ${j.place}`],
     ['Dato', nice(j.date)],
     ['Tid', j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
-    ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '–'} / ${j.driverName || '–'}`],
+    ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '–'} / ${jobDriverName(j) || '–'}`],
     ['Kjøreseddel', j.ticketNo || '–'],
     ['Masse', j.massType || '–'],
     ['Mengde', fmtAmount(j)],

@@ -6,7 +6,7 @@ import { dayOffset, fmtCoord } from '../lib/utils';
 import type { Job, JobOrder } from '../types';
 import { PinPicker, type Pos } from './PinPicker';
 import { Modal } from './ui';
-import { VehicleOptions } from './VehicleOptions';
+import { DriverOptions, VehicleOptions } from './VehicleOptions';
 
 type Form = Omit<JobOrder, 'lat' | 'lon' | 'pin'>;
 
@@ -24,6 +24,7 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
           date: job.date,
           time: job.time,
           car: job.car,
+          driver: job.driver,
           note: job.note,
           urgent: job.urgent,
         }
@@ -38,6 +39,7 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
           date: dayOffset(1),
           time: '08:00',
           car: '',
+          driver: '',
           note: '',
           urgent: false,
         },
@@ -175,14 +177,28 @@ export function JobForm({ job, onClose, onSaved }: { job?: Job; onClose: () => v
                 <input id="f-time" type="time" value={v.time} onChange={e => set('time', e.target.value)} />
               </div>
             </div>
-            <div className="field">
-              <label htmlFor="f-car">Bil / sjåfør</label>
-              <select id="f-car" value={v.car} onChange={e => set('car', e.target.value)}>
-                <option value="">Ikke tildelt ennå</option>
-                <VehicleOptions />
-              </select>
-              <small className="hint">{v.car ? 'Jobben blir Aktiv og vises hos sjåføren.' : 'Uten bil ligger jobben som Kommende til den tildeles.'}</small>
+            <div className="two">
+              <div className="field">
+                <label htmlFor="f-car">Bil</label>
+                <select id="f-car" value={v.car} onChange={e => set('car', e.target.value)}>
+                  <option value="">Ingen bil valgt</option>
+                  <VehicleOptions exceptJob={job?.id} />
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="f-drv">Sjåfør</label>
+                <select id="f-drv" value={v.driver} onChange={e => set('driver', e.target.value)}>
+                  <option value="">Ingen sjåfør ennå</option>
+                  <DriverOptions exceptJob={job?.id} />
+                </select>
+              </div>
             </div>
+            <small className="hint">
+              {v.driver
+                ? 'Med sjåfør blir oppdraget Aktivt og vises hos sjåføren.'
+                : 'Uten sjåfør ligger oppdraget som Kommende til en sjåfør settes på.'}
+              {v.driver && !v.car ? ' Husk å velge bil.' : ''}
+            </small>
             <div className="field">
               <label htmlFor="f-note">Beskjed til sjåfør</label>
               <textarea id="f-note" rows={2} value={v.note} onChange={e => set('note', e.target.value)} placeholder="Adkomst, nøkler, koder, kontakt på stedet …" />

@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import { config } from '../config';
 import type { Job } from '../types';
 import { photoSrc, rasterize } from './photos';
-import { dayOffset, download, fmtAmount, hexToRgb, hours, nice, num, totals, vehicle } from './utils';
+import { dayOffset, download, fmtAmount, hexToRgb, hours, jobDriverName, nice, num, totals, vehicle } from './utils';
 
 /*
  * Fakturagrunnlag som PDF:
@@ -184,7 +184,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       ['Kundens ref.', j.ref],
       ['Dato', nice(j.date)],
       ['Tid', j.start && j.end ? `${j.start} - ${j.end} (${num(hours(j))} t)` : '-'],
-      ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '-'} / ${j.driverName || '-'}`],
+      ['Bil / sjåfør', `${v ? `${v.name} (${v.regNr})` : '-'} / ${jobDriverName(j) || '-'}`],
       ['Kjøreseddel', j.ticketNo],
       ['Masse', j.massType],
       ['Mengde', fmtAmount(j)],

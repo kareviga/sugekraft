@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from 'react';
 import { config } from '../config';
 import { JobMap } from '../components/JobMap';
 import { Checklist, Confirm, Lightbox, Pill, Thumbs } from '../components/ui';
-import { setCrew, updateJob, useCrew } from '../store';
+import { updateJob } from '../store';
 import { shrink } from '../lib/photos';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, driver, fmtCoord, hours, isHaz, isNoMass, mapsUrl, missing, navUrl, num, nowHHMM, preferredMapApp, relDay, setPreferredMapApp, vehicle, type MapApp } from '../lib/utils';
@@ -21,8 +21,6 @@ export function Driver({
   jobId: string | null;
   setJobId: (id: string | null) => void;
 }) {
-  const crew = useCrew();
-  const carId = Object.keys(crew).find(k => crew[k] === personId) ?? '';
   const j = jobs.find(x => x.id === jobId);
   const me = driver(personId)?.name ?? '';
   return (
@@ -30,7 +28,7 @@ export function Driver({
       {j && j.status !== 'ferdig' ? (
         <DriverJob j={j} me={me} back={() => setJobId(null)} />
       ) : (
-        <DriverList jobs={jobs} personId={personId} setPersonId={setPersonId} carId={carId} crew={crew} open={setJobId} />
+        <DriverList jobs={jobs} personId={personId} setPersonId={setPersonId} open={setJobId} />
       )}
     </div>
   );
@@ -40,63 +38,31 @@ function DriverList({
   jobs,
   personId,
   setPersonId,
-  carId,
-  crew,
   open,
 }: {
   jobs: Job[];
   personId: string;
   setPersonId: (id: string) => void;
-  carId: string;
-  crew: Record<string, string>;
   open: (id: string) => void;
 }) {
-  const v = vehicle(carId);
   const today = dayOffset(0);
   const mine = jobs
-    .filter(j => j.car === carId && j.status !== 'ferdig')
+    .filter(j => j.driver === personId && j.status === 'aktiv')
     .sort((a, b) => (a.start ? -1 : 0) - (b.start ? -1 : 0) || a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
-  const doneToday = jobs.filter(j => j.car === carId && j.status === 'ferdig' && j.closedAt === today).length;
+  const me = driver(personId);
+  const doneToday = jobs.filter(j => j.driver === personId && j.status === 'ferdig' && j.closedAt === today).length;
   return (
     <>
       <div className="pad drvhead">
-        <div className="two keep">
-          <div className="field">
-            <label htmlFor="d-me">Jeg er</label>
-            <select id="d-me" value={personId} onChange={e => setPersonId(e.target.value)}>
-              {config.drivers.map(d => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="d-sel">Bil i dag</label>
-            <select
-              id="d-sel"
-              value={carId}
-              onChange={e => {
-                const vid = e.target.value;
-                const other = driver(crew[vid]);
-                setCrew(vid, vid ? personId : '');
-                if (!vid) {
-                  if (carId) setCrew(carId, '');
-                  toast('Du står ikke lenger på noen bil.');
-                } else toast(`Du kjører ${vehicle(vid)?.name}.${other && other.id !== personId ? ` ${other.name} er tatt av bilen.` : ''}`);
-              }}
-            >
-              <option value="">Ingen bil</option>
-              {config.vehicles.map(x => {
-                const o = driver(crew[x.id]);
-                return (
-                  <option key={x.id} value={x.id}>
-                    {x.name} ({x.regNr}){o && o.id !== personId ? ` – ${o.name.split(' ')[0]}` : ''}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+        <div className="field">
+          <label htmlFor="d-me">Jeg er</label>
+          <select id="d-me" value={personId} onChange={e => setPersonId(e.target.value)}>
+            {config.drivers.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="stats">
           <div>
@@ -114,7 +80,7 @@ function DriverList({
         </div>
       </div>
       <div className="dmap">
-        <JobMap jobs={mine} onSelect={open} fitKey={`d${carId}`} />
+        <JobMap jobs={mine} onSelect={open} fitKey={`d${personId}`} />
       </div>
       <div className="pad">
         <h2>Mine jobber</h2>
@@ -135,21 +101,23 @@ function DriverList({
                   {j.time && !j.start ? ` kl. ${j.time}` : ''}
                 </small>
                 <small>
-                  {j.address}, {j.place}
+                  {j.address}
+                  {j.place ? `, ${j.place}` : ''}
                 </small>
+                <small className="jcar">{vehicle(j.car) ? `🚚 ${vehicle(j.car)!.name} – ${vehicle(j.car)!.type} (${vehicle(j.car)!.regNr})` : '⚠ Ingen bil valgt – kontakt kontoret'}</small>
                 {j.start && m > 0 && <small className="warntext">{m} punkter mangler før lukking</small>}
               </button>
             );
           })
         ) : (
-          <p className="empty">{v ? `Ingen jobber på ${v.name} nå.` : 'Velg hvilken bil du kjører i dag for å se jobbene dine.'}</p>
+          <p className="empty">Ingen oppdrag på {me?.name ?? 'deg'} nå.</p>
         )}
       </div>
     </>
   );
 }
 
-function PhotoField({ j, k, label, me }: { j: Job; k: 'ticketPhotos' | 'jobPhotos'; label: string; me: string }) {
+function PhotoField({ j, k, label }: { j: Job; k: 'ticketPhotos' | 'jobPhotos'; label: string }) {
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState<string | null>(null);
   const add = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -160,7 +128,7 @@ function PhotoField({ j, k, label, me }: { j: Job; k: 'ticketPhotos' | 'jobPhoto
     try {
       const added: string[] = [];
       for (const f of files) added.push(await shrink(f));
-      updateJob(j.id, { [k]: [...j[k], ...added], ...(me && j.driverName !== me ? { driverName: me } : {}) }, true);
+      updateJob(j.id, { [k]: [...j[k], ...added] }, true);
     } catch {
       toast('Bildet kunne ikke leses. Velg et JPG- eller PNG-bilde.');
     } finally {
@@ -184,7 +152,7 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
   const [confirmClose, setConfirmClose] = useState(false);
   const [app, setApp] = useState<MapApp>(preferredMapApp);
   // den som fyller ut jobben registreres som sjåfør
-  const set = (patch: Partial<Job>) => updateJob(j.id, me && j.driverName !== me ? { ...patch, driverName: me } : patch);
+  const set = (patch: Partial<Job>) => updateJob(j.id, patch);
   const chooseApp = (a: MapApp) => {
     setApp(a);
     setPreferredMapApp(a);
@@ -207,6 +175,7 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
           {j.id} · {j.service} · {relDay(j.date)}
           {j.time ? ` kl. ${j.time}` : ''}
         </small>
+        <small className="jcar">{v ? `🚚 ${v.name} – ${v.type} (${v.regNr})` : '⚠ Ingen bil valgt – kontakt kontoret'}</small>
       </div>
       {j.urgent && <p className="alert">Hasteoppdrag</p>}
       <div className="locbox">
@@ -274,12 +243,12 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
     <div className="pad">
       {head}
       <hr />
-      <PhotoField j={j} k="ticketPhotos" label="Bilde av kjøreseddel" me={me} />
+      <PhotoField j={j} k="ticketPhotos" label="Bilde av kjøreseddel" />
       <div className="field">
         <label htmlFor="j-ticket">Kjøreseddelnummer</label>
         <input id="j-ticket" inputMode="numeric" value={j.ticketNo} onChange={e => set({ ticketNo: e.target.value })} />
       </div>
-      <PhotoField j={j} k="jobPhotos" label="Bilder av jobben" me={me} />
+      <PhotoField j={j} k="jobPhotos" label="Bilder av jobben" />
       <div className="field">
         <label htmlFor="j-mass">Type masse</label>
         <select id="j-mass" value={j.massType} onChange={e => set({ massType: e.target.value })}>
@@ -364,7 +333,7 @@ function DriverJob({ j, me, back }: { j: Job; me: string; back: () => void }) {
           onClose={() => setConfirmClose(false)}
           onOk={() => {
             if (missing(j).length) return;
-            updateJob(j.id, { status: 'ferdig', closedAt: dayOffset(0), driverName: j.driverName || me }, true);
+            updateJob(j.id, { status: 'ferdig', closedAt: dayOffset(0), driverName: driver(j.driver)?.name || me }, true);
             back();
             toast(`${j.id} er lukket og ligger i arkivet.`);
           }}
