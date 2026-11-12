@@ -1,7 +1,6 @@
-export type Status = 'kommende' | 'aktiv' | 'ferdig';
+export type Status = 'aktiv' | 'ferdig';
 
 export const STATUS_LABEL: Record<Status, string> = {
-  kommende: 'Kommende',
   aktiv: 'Aktiv',
   ferdig: 'Ferdig',
 };

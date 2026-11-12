@@ -41,7 +41,6 @@ export interface AppConfig {
     header: string;    // topplinje
     highlight: string; // aktiv fane, fokusramme
     paper: string;     // bakgrunn
-    kommende: string;
     aktiv: string;
     ferdig: string;
     warn: string;
@@ -83,7 +82,6 @@ export const config: AppConfig = {
     header: '#16252b',
     highlight: '#f0a92c',
     paper: '#eaefec',
-    kommende: '#2a62b8',
     aktiv: '#c95f06',
     ferdig: '#2b8048',
     warn: '#b93426',

@@ -30,7 +30,7 @@ function DriverList({ jobs, carId, setCarId, open }: { jobs: Job[]; carId: strin
   const today = dayOffset(0);
   const mine = jobs
     .filter(j => j.car === carId && j.status !== 'ferdig')
-    .sort((a, b) => (a.status === 'aktiv' ? -1 : 0) - (b.status === 'aktiv' ? -1 : 0) || a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+    .sort((a, b) => (a.start ? -1 : 0) - (b.start ? -1 : 0) || a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
   const doneToday = jobs.filter(j => j.car === carId && j.status === 'ferdig' && j.closedAt === today).length;
   return (
     <>
@@ -79,12 +79,12 @@ function DriverList({ jobs, carId, setCarId, open }: { jobs: Job[]; carId: strin
                 </span>
                 <small>
                   {j.service} · {relDay(j.date)}
-                  {j.time && j.status === 'kommende' ? ` kl. ${j.time}` : ''}
+                  {j.time && !j.start ? ` kl. ${j.time}` : ''}
                 </small>
                 <small>
                   {j.address}, {j.place}
                 </small>
-                {j.status === 'aktiv' && m > 0 && <small className="warntext">{m} punkter mangler før lukking</small>}
+                {j.start && m > 0 && <small className="warntext">{m} punkter mangler før lukking</small>}
               </button>
             );
           })
@@ -179,22 +179,6 @@ function DriverJob({ j, back }: { j: Job; back: () => void }) {
       </a>
     </>
   );
-
-  if (j.status === 'kommende')
-    return (
-      <div className="pad">
-        {head}
-        <button
-          className="btn big"
-          onClick={() => {
-            updateJob(j.id, { status: 'aktiv', start: j.start || nowHHMM(), date: dayOffset(0) }, true);
-            toast('Jobben er startet. Starttid er fylt inn.');
-          }}
-        >
-          Start jobb
-        </button>
-      </div>
-    );
 
   return (
     <div className="pad">

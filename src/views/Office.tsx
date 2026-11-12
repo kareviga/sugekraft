@@ -8,7 +8,7 @@ import { toast } from '../lib/toast';
 import { cx, dayOffset, daysBetween, fmtAmount, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
 
-const ORDER: Record<Status, number> = { aktiv: 0, kommende: 1, ferdig: 2 };
+const ORDER: Record<Status, number> = { aktiv: 0, ferdig: 1 };
 const DONE_RANGE: Record<string, [string, number]> = {
   '1': ['I dag', 0],
   '7': ['Siste 7 dager', 7],
@@ -29,7 +29,7 @@ export function Office({
   openAsDriver: (j: Job) => void;
   openInArchive: (j: Job) => void;
 }) {
-  const [show, setShow] = useState<Record<Status, boolean>>({ kommende: true, aktiv: true, ferdig: true });
+  const [show, setShow] = useState<Record<Status, boolean>>({ aktiv: true, ferdig: true });
   const [doneRange, setDoneRange] = useState('7');
   const [carF, setCarF] = useState('');
   const [q, setQ] = useState('');
@@ -51,7 +51,7 @@ export function Office({
         (a.status === 'ferdig' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date) || (a.time || '99').localeCompare(b.time || '99')),
     );
   const count = (s: Status) => scoped.filter(j => j.status === s).length;
-  const unassigned = jobs.filter(j => j.status === 'kommende' && !j.car).length;
+  const unassigned = jobs.filter(j => j.status === 'aktiv' && !j.car).length;
   const s = jobs.find(j => j.id === sel);
   const fitKey = useMemo(() => `${Object.values(show).join()}|${doneRange}|${carF}`, [show, doneRange, carF]);
 
@@ -117,7 +117,7 @@ export function Office({
                 <small className="meta">
                   <span>
                     {relDay(j.date)}
-                    {j.time && j.status === 'kommende' ? ` kl. ${j.time}` : ''}
+                    {j.time && j.status === 'aktiv' && !j.start ? ` kl. ${j.time}` : ''}
                   </span>
                   {v ? <span className="carchip">{v.name}</span> : <span className="pill warn">Ikke tildelt</span>}
                   {m > 0 && <span className="pill warn">Mangler {m}</span>}
@@ -262,7 +262,7 @@ function Detail({
             <dd>{j.note}</dd>
           </>
         )}
-        {j.status !== 'kommende' && (
+        {j.start && (
           <>
             <dt>Masse</dt>
             <dd>{j.massType || '–'}</dd>
@@ -273,11 +273,7 @@ function Detail({
           </>
         )}
       </dl>
-      {j.status === 'kommende' ? (
-        <p className="note">Dokumentasjonen fylles ut av sjåføren når jobben startes.</p>
-      ) : (
-        <Checklist job={j} />
-      )}
+      <Checklist job={j} />
       <Thumbs job={j} refs={[...j.ticketPhotos, ...j.jobPhotos]} onOpen={onZoom} />
       {j.status !== 'ferdig' ? (
         <div className="btnrow">
@@ -287,7 +283,7 @@ function Detail({
           <button className="btn alt" onClick={onDriver} disabled={!j.car} title={j.car ? '' : 'Tildel en bil først'}>
             Åpne som sjåfør
           </button>
-          {j.status === 'kommende' && (
+          {j.status === 'aktiv' && !j.start && (
             <button className="btn alt danger" onClick={onDelete}>
               Slett
             </button>
@@ -312,12 +308,12 @@ function Fleet({ jobs, onPick }: { jobs: Job[]; onPick: (id: string) => void }) 
       <ul className="fleet">
         {config.vehicles.map(v => {
           const mine = jobs.filter(j => j.car === v.id && j.date === today);
-          const active = mine.find(j => j.status === 'aktiv');
+          const active = mine.find(j => j.status === 'aktiv' && j.start);
           const done = mine.filter(j => j.status === 'ferdig').length;
-          const next = mine.filter(j => j.status === 'kommende').sort((a, b) => (a.time || '').localeCompare(b.time || ''))[0];
+          const next = mine.filter(j => j.status === 'aktiv' && !j.start).sort((a, b) => (a.time || '').localeCompare(b.time || ''))[0];
           return (
             <li key={v.id}>
-              <span className={cx('fleet-tag', active ? 'aktiv' : next ? 'kommende' : 'idle')}>{v.tag}</span>
+              <span className={cx('fleet-tag', active ? 'aktiv' : next ? 'neste' : 'idle')}>{v.tag}</span>
               <div>
                 <b>
                   {v.name} · {v.driver}

@@ -59,18 +59,18 @@ interface Row {
 }
 
 const ROWS: Row[] = [
-  // ---- kommende ----
-  { s: 'kommende', c: 'fjellro', d: 0, place: 'Sjoa', service: 'Tømming septik', car: 1, address: 'Fjellrovegen 14', ref: 'HYT-118', time: '13:00', note: 'Bom ved innkjøring. Kode 2580.' },
-  { s: 'kommende', c: 'dalen', d: 0, place: 'Vinstra', service: 'Tømming oljeutskiller', car: 4, address: 'Industrivegen 3', ref: 'PO-7741', time: '14:30' },
-  { s: 'kommende', c: 'kommune', d: 1, place: 'Dombås', service: 'Tømming sandfang', car: 3, address: 'Pumpestasjon Nord, Stasjonsvegen', ref: 'K-2026-331', time: '07:30', note: 'Ring vakttelefon ved ankomst. 6 sandfang i Storgata.' },
-  { s: 'kommende', c: 'nordi', d: 1, place: 'Lom', service: 'Tining av frosne rør', car: -1, address: 'Nordigardsvegen 40', time: '09:00', note: 'Kunden ønsker oppmøte før kl. 10. Fjøs uten vann.', urgent: true },
-  { s: 'kommende', c: 'nordbygg', d: 1, place: 'Ringebu', service: 'Vakuumgraving', car: 0, address: 'Byggefelt Solsida, tomt 12', ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
-  { s: 'kommende', c: 'bjorkli', d: 2, place: 'Kvam', service: 'Tømming fettutskiller', car: 1, address: 'Bjørklivegen 210', ref: 'BF-2026-14', time: '10:00' },
-  { s: 'kommende', c: 'solsida', d: 2, place: 'Otta', service: 'Høytrykkspyling', car: 2, address: 'Solsida 2–18', ref: 'Sak 44/26', time: '08:00', note: 'Stakeluke i kjeller blokk C. Vaktmester møter.' },
-  { s: 'kommende', c: 'midtdal', d: 3, place: 'Otta', service: 'Spillolje', car: 4, address: 'Verkstedvegen 7', ref: 'MT-1093', time: '12:00' },
-  { s: 'kommende', c: 'lagen', d: 5, place: 'Lillehammer', service: 'Tankrengjøring', car: -1, address: 'Kirkegata 51', ref: 'LE-339', note: 'Gammel fyringsoljetank, 3000 liter. Skal saneres.' },
+  // ---- aktive, planlagt (ikke startet) ----
+  { s: 'aktiv', c: 'fjellro', d: 0, place: 'Sjoa', service: 'Tømming septik', car: 1, address: 'Fjellrovegen 14', ref: 'HYT-118', time: '13:00', note: 'Bom ved innkjøring. Kode 2580.' },
+  { s: 'aktiv', c: 'dalen', d: 0, place: 'Vinstra', service: 'Tømming oljeutskiller', car: 4, address: 'Industrivegen 3', ref: 'PO-7741', time: '14:30' },
+  { s: 'aktiv', c: 'kommune', d: 1, place: 'Dombås', service: 'Tømming sandfang', car: 3, address: 'Pumpestasjon Nord, Stasjonsvegen', ref: 'K-2026-331', time: '07:30', note: 'Ring vakttelefon ved ankomst. 6 sandfang i Storgata.' },
+  { s: 'aktiv', c: 'nordi', d: 1, place: 'Lom', service: 'Tining av frosne rør', car: -1, address: 'Nordigardsvegen 40', time: '09:00', note: 'Kunden ønsker oppmøte før kl. 10. Fjøs uten vann.', urgent: true },
+  { s: 'aktiv', c: 'nordbygg', d: 1, place: 'Ringebu', service: 'Vakuumgraving', car: 0, address: 'Byggefelt Solsida, tomt 12', ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
+  { s: 'aktiv', c: 'bjorkli', d: 2, place: 'Kvam', service: 'Tømming fettutskiller', car: 1, address: 'Bjørklivegen 210', ref: 'BF-2026-14', time: '10:00' },
+  { s: 'aktiv', c: 'solsida', d: 2, place: 'Otta', service: 'Høytrykkspyling', car: 2, address: 'Solsida 2–18', ref: 'Sak 44/26', time: '08:00', note: 'Stakeluke i kjeller blokk C. Vaktmester møter.' },
+  { s: 'aktiv', c: 'midtdal', d: 3, place: 'Otta', service: 'Spillolje', car: 4, address: 'Verkstedvegen 7', ref: 'MT-1093', time: '12:00' },
+  { s: 'aktiv', c: 'lagen', d: 5, place: 'Lillehammer', service: 'Tankrengjøring', car: -1, address: 'Kirkegata 51', ref: 'LE-339', note: 'Gammel fyringsoljetank, 3000 liter. Skal saneres.' },
 
-  // ---- aktive (i dag) ----
+  // ---- aktive, pågår (i dag) ----
   { s: 'aktiv', c: 'nordbygg', d: 0, place: 'Otta', service: 'Vakuumgraving', car: 0, address: 'Tomt B7, Stasjonsvegen', ref: 'P-5498', mass: 'Gravemasser', amount: '12', unit: 'm³', start: '07:30', photos: [1] },
   { s: 'aktiv', c: 'vegkroa', d: 0, place: 'Kvam', service: 'Tømming fettutskiller', car: 1, address: 'E6-vegen 201', ref: 'VK-90', start: '08:15' },
   { s: 'aktiv', c: 'kommune', d: 0, place: 'Lillehammer', service: 'Høytrykkspyling', car: 2, address: 'Kum 44, Elvegata', ref: 'K-2026-327', mass: 'Ingen masse (kun spyling/inspeksjon)', start: '09:00', photos: [2] },
@@ -112,7 +112,7 @@ export function createSeed(): { jobs: Job[]; nextNo: number } {
       service: S(r.service, i),
       ref: r.ref ?? '',
       date: dayOffset(r.d),
-      time: r.time ?? (r.s === 'kommende' ? '' : r.start ?? ''),
+      time: r.time ?? r.start ?? '',
       car: C(r.car),
       note: r.note ?? '',
       urgent: !!r.urgent,

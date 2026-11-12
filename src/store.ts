@@ -40,7 +40,11 @@ function load(): DB {
     const raw = localStorage.getItem(config.storageKey);
     if (raw) {
       const db = JSON.parse(raw) as DB;
-      if (db && db.v === 1 && Array.isArray(db.jobs)) return rebase(db);
+      if (db && db.v === 1 && Array.isArray(db.jobs)) {
+        // eldre lagring kan ha status «kommende» – den finnes ikke lenger
+        db.jobs = db.jobs.map(j => ((j.status as string) === 'kommende' ? { ...j, status: 'aktiv' } : j));
+        return rebase(db);
+      }
     }
   } catch {
     /* korrupt eller utilgjengelig lagring – start på nytt */
@@ -103,7 +107,7 @@ export function saveOrder(order: JobOrder, id?: string): Job {
   const [lat, lon] = placePos(order.place, db.nextNo);
   const j: Job = {
     id: `${config.jobPrefix}-${db.nextNo}`,
-    status: 'kommende',
+    status: 'aktiv',
     ...order,
     lat,
     lon,
