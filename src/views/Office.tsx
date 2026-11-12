@@ -5,10 +5,10 @@ import { JobForm } from '../components/JobForm';
 import { Checklist, Confirm, Lightbox, Mark, Pill, Thumbs } from '../components/ui';
 import { deleteJob, updateJob } from '../store';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, daysBetween, fmtAmount, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
+import { cx, dayOffset, daysBetween, fmtAmount, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
 
-const ORDER: Record<Status, number> = { aktiv: 0, ferdig: 1 };
+const ORDER: Record<Status, number> = { aktiv: 0, kommende: 1, ferdig: 2 };
 const DONE_RANGE: Record<string, [string, number]> = {
   '1': ['I dag', 0],
   '7': ['Siste 7 dager', 7],
@@ -29,7 +29,7 @@ export function Office({
   openAsDriver: (j: Job) => void;
   openInArchive: (j: Job) => void;
 }) {
-  const [show, setShow] = useState<Record<Status, boolean>>({ aktiv: true, ferdig: true });
+  const [show, setShow] = useState<Record<Status, boolean>>({ kommende: true, aktiv: true, ferdig: true });
   const [doneRange, setDoneRange] = useState('7');
   const [carF, setCarF] = useState('');
   const [q, setQ] = useState('');
@@ -51,7 +51,7 @@ export function Office({
         (a.status === 'ferdig' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date) || (a.time || '99').localeCompare(b.time || '99')),
     );
   const count = (s: Status) => scoped.filter(j => j.status === s).length;
-  const unassigned = jobs.filter(j => j.status === 'aktiv' && !j.car).length;
+  const unassigned = jobs.filter(j => j.status === 'kommende').length;
   const s = jobs.find(j => j.id === sel);
   const fitKey = useMemo(() => `${Object.values(show).join()}|${doneRange}|${carF}`, [show, doneRange, carF]);
 
@@ -100,7 +100,7 @@ export function Office({
         </div>
         {list.length ? (
           list.map(j => {
-            const m = j.status === 'aktiv' ? missing(j).length : 0;
+            const m = j.status === 'aktiv' && j.start ? missing(j).length : 0;
             const v = vehicle(j.car);
             return (
               <button key={j.id} className={cx('row', j.status, j.id === sel && 'sel')} onClick={() => pick(j.id, true)}>
@@ -117,7 +117,7 @@ export function Office({
                 <small className="meta">
                   <span>
                     {relDay(j.date)}
-                    {j.time && j.status === 'aktiv' && !j.start ? ` kl. ${j.time}` : ''}
+                    {j.time && j.status !== 'ferdig' && !j.start ? ` kl. ${j.time}` : ''}
                   </span>
                   {v ? <span className="carchip">{v.name}</span> : <span className="pill warn">Ikke tildelt</span>}
                   {m > 0 && <span className="pill warn">Mangler {m}</span>}
@@ -229,7 +229,7 @@ function Detail({
           disabled={j.status === 'ferdig'}
           onChange={e => {
             updateJob(j.id, { car: e.target.value }, true);
-            toast(e.target.value ? `${j.id} er tildelt ${vehicleLong(e.target.value)}.` : 'Tildelingen er fjernet.');
+            toast(e.target.value ? `${j.id} er tildelt ${vehicleLong(e.target.value)} og er nå aktiv.` : `Tildelingen er fjernet. ${j.id} er kommende igjen.`);
           }}
         >
           <option value="">Ikke tildelt</option>
@@ -241,9 +241,17 @@ function Detail({
         </select>
       </div>
       <dl className="kv">
-        <dt>Adresse</dt>
+        <dt>{j.pin === 'kart' ? 'Sted' : 'Adresse'}</dt>
         <dd>
-          {j.address}, {j.place}
+          {j.address}
+          {j.place ? `, ${j.place}` : ''}
+          <br />
+          <small className="muted">
+            {j.pin === 'kart' ? `Nål plassert manuelt (${fmtCoord(j)})` : 'Fra adresseregisteret'} ·{' '}
+            <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
+              Google Maps
+            </a>
+          </small>
         </dd>
         <dt>Dato</dt>
         <dd>
@@ -273,7 +281,13 @@ function Detail({
           </>
         )}
       </dl>
-      <Checklist job={j} />
+      {j.status === 'kommende' ? (
+        <p className="infobox">Jobben er ikke tildelt. Velg bil over for å sende den til sjåføren – da blir den aktiv.</p>
+      ) : j.start || j.status === 'ferdig' ? (
+        <Checklist job={j} />
+      ) : (
+        <p className="note">Sjåføren har ikke begynt på jobben ennå.</p>
+      )}
       <Thumbs job={j} refs={[...j.ticketPhotos, ...j.jobPhotos]} onOpen={onZoom} />
       {j.status !== 'ferdig' ? (
         <div className="btnrow">
@@ -283,7 +297,7 @@ function Detail({
           <button className="btn alt" onClick={onDriver} disabled={!j.car} title={j.car ? '' : 'Tildel en bil først'}>
             Åpne som sjåfør
           </button>
-          {j.status === 'aktiv' && !j.start && (
+          {!j.start && (
             <button className="btn alt danger" onClick={onDelete}>
               Slett
             </button>

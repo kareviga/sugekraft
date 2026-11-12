@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { config } from './config';
 import { createSeed } from './data/seed';
 import { toast } from './lib/toast';
-import { dayOffset, daysBetween, placePos, shiftDate } from './lib/utils';
+import { dayOffset, daysBetween, shiftDate } from './lib/utils';
 import type { Job, JobOrder } from './types';
 
 /*
@@ -18,9 +18,15 @@ interface DB {
   day: string;
 }
 
+/** Status følger tildelingen: uten bil = kommende, med bil = aktiv. Ferdig settes bare ved lukking. */
+const norm = (j: Job): Job => {
+  const status = j.status === 'ferdig' ? 'ferdig' : j.car ? 'aktiv' : 'kommende';
+  return status === j.status && j.pin ? j : { ...j, status, pin: j.pin ?? 'adresse' };
+};
+
 function fresh(): DB {
   const { jobs, nextNo } = createSeed();
-  return { v: 1, jobs, nextNo, day: dayOffset(0) };
+  return { v: 1, jobs: jobs.map(norm), nextNo, day: dayOffset(0) };
 }
 
 function rebase(db: DB): DB {
@@ -41,8 +47,7 @@ function load(): DB {
     if (raw) {
       const db = JSON.parse(raw) as DB;
       if (db && db.v === 1 && Array.isArray(db.jobs)) {
-        // eldre lagring kan ha status «kommende» – den finnes ikke lenger
-        db.jobs = db.jobs.map(j => ((j.status as string) === 'kommende' ? { ...j, status: 'aktiv' } : j));
+        db.jobs = db.jobs.map(norm);
         return rebase(db);
       }
     }
@@ -64,7 +69,7 @@ function persistNow() {
   }
 }
 function commit(next: DB, immediate = false) {
-  db = next;
+  db = { ...next, jobs: next.jobs.map(norm) };
   listeners.forEach(l => l());
   clearTimeout(saveTimer);
   if (immediate) persistNow();
@@ -98,19 +103,14 @@ export function updateJobs(ids: string[], patch: Partial<Job>) {
 export function saveOrder(order: JobOrder, id?: string): Job {
   const old = getJob(id);
   if (old) {
-    const moved = old.place !== order.place;
-    const pos = moved ? placePos(order.place, db.jobs.indexOf(old) + 7) : [old.lat, old.lon];
-    const j = { ...old, ...order, lat: pos[0], lon: pos[1] };
+    const j = norm({ ...old, ...order });
     commit({ ...db, jobs: db.jobs.map(x => (x.id === old.id ? j : x)) }, true);
     return j;
   }
-  const [lat, lon] = placePos(order.place, db.nextNo);
-  const j: Job = {
+  const j: Job = norm({
     id: `${config.jobPrefix}-${db.nextNo}`,
-    status: 'aktiv',
+    status: 'kommende',
     ...order,
-    lat,
-    lon,
     massType: '',
     amount: '',
     unit: config.units[0],
@@ -125,7 +125,7 @@ export function saveOrder(order: JobOrder, id?: string): Job {
     invoiced: false,
     invoicedAt: '',
     closedAt: '',
-  };
+  });
   commit({ ...db, jobs: [...db.jobs, j], nextNo: db.nextNo + 1 }, true);
   return j;
 }

@@ -78,11 +78,12 @@ export function requirements(j: Job): [string, boolean][] {
 }
 export const missing = (j: Job) => requirements(j).filter(r => !r[1]).map(r => r[0]);
 
-/** Plasser en jobb litt tilfeldig (men stabilt) rundt stedets sentrum. */
-export function placePos(place: string, seed: number): [number, number] {
-  const p = config.map.places[place] ?? config.map.center;
-  return [p[0] + (((seed * 37) % 11) - 5) * 0.0055, p[1] + (((seed * 53) % 13) - 6) * 0.012];
-}
+/** Veibeskrivelse i Google Maps (åpner appen på mobil). Bruker koordinatene, så også manuelt plasserte nåler blir riktige. */
+export const navUrl = (j: Pick<Job, 'lat' | 'lon'>) =>
+  `https://www.google.com/maps/dir/?api=1&destination=${j.lat.toFixed(6)},${j.lon.toFixed(6)}&travelmode=driving`;
+/** Vis punktet i Google Maps */
+export const mapsUrl = (j: Pick<Job, 'lat' | 'lon'>) => `https://www.google.com/maps/search/?api=1&query=${j.lat.toFixed(6)},${j.lon.toFixed(6)}`;
+export const fmtCoord = (j: Pick<Job, 'lat' | 'lon'>) => `${j.lat.toFixed(5)}, ${j.lon.toFixed(5)}`;
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 

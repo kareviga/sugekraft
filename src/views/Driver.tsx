@@ -5,7 +5,7 @@ import { Checklist, Confirm, Lightbox, Pill, Thumbs } from '../components/ui';
 import { updateJob } from '../store';
 import { shrink } from '../lib/photos';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, hours, isHaz, isNoMass, missing, num, nowHHMM, relDay, vehicle } from '../lib/utils';
+import { cx, dayOffset, fmtCoord, hours, isHaz, isNoMass, mapsUrl, missing, navUrl, num, nowHHMM, relDay, vehicle } from '../lib/utils';
 import type { Job } from '../types';
 
 export function Driver({
@@ -130,7 +130,6 @@ function PhotoField({ j, k, label }: { j: Job; k: 'ticketPhotos' | 'jobPhotos'; 
 function DriverJob({ j, back }: { j: Job; back: () => void }) {
   const [confirmClose, setConfirmClose] = useState(false);
   const set = (patch: Partial<Job>) => updateJob(j.id, patch);
-  const nav = `https://www.google.com/maps/dir/?api=1&destination=${j.lat},${j.lon}`;
   const miss = missing(j);
   const v = vehicle(j.car);
 
@@ -150,11 +149,37 @@ function DriverJob({ j, back }: { j: Job; back: () => void }) {
         </small>
       </div>
       {j.urgent && <p className="alert">Hasteoppdrag</p>}
+      <div className="locbox">
+        <div className="locmap">
+          <JobMap jobs={[j]} selectedId={j.id} onSelect={() => undefined} fitKey={`loc${j.id}${j.lat}${j.lon}`} maxFitZoom={15} compact />
+        </div>
+        <div className="locinfo">
+          <b>{j.address}</b>
+          {j.place && <span>{j.place}</span>}
+          {j.pin === 'kart' && <small className="warntext">Ingen adresse – kjør etter nålen i kartet.</small>}
+        </div>
+        <a className="btn big navbtn" href={navUrl(j)} target="_blank" rel="noopener noreferrer">
+          ➤ Naviger til stedet
+        </a>
+        <div className="locrow">
+          <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
+            Vis i Google Maps
+          </a>
+          <button
+            type="button"
+            className="link"
+            onClick={() =>
+              navigator.clipboard
+                ?.writeText(fmtCoord(j))
+                .then(() => toast('Koordinatene er kopiert.'))
+                .catch(() => toast(fmtCoord(j)))
+            }
+          >
+            Kopier koordinater ({fmtCoord(j)})
+          </button>
+        </div>
+      </div>
       <dl className="kv">
-        <dt>Adresse</dt>
-        <dd>
-          {j.address}, {j.place}
-        </dd>
         <dt>Kontakt</dt>
         <dd>
           {j.contact} {j.phone && <a href={`tel:${j.phone.replace(/\s/g, '')}`}>{j.phone}</a>}
@@ -174,9 +199,6 @@ function DriverJob({ j, back }: { j: Job; back: () => void }) {
           </>
         )}
       </dl>
-      <a className="btn alt" href={nav} target="_blank" rel="noopener noreferrer">
-        Naviger hit
-      </a>
     </>
   );
 

@@ -1,6 +1,8 @@
-export type Status = 'aktiv' | 'ferdig';
+/** kommende = ikke tildelt bil, aktiv = tildelt sjåfør, ferdig = lukket. Settes automatisk i store.ts. */
+export type Status = 'kommende' | 'aktiv' | 'ferdig';
 
 export const STATUS_LABEL: Record<Status, string> = {
+  kommende: 'Kommende',
   aktiv: 'Aktiv',
   ferdig: 'Ferdig',
 };
@@ -16,6 +18,8 @@ export interface Job {
   place: string;
   lat: number;
   lon: number;
+  /** Hvordan nålen er plassert: fra adresseregisteret eller manuelt i kartet */
+  pin: 'adresse' | 'kart';
   service: string;
   ref: string;
   date: string;      // YYYY-MM-DD
@@ -43,7 +47,7 @@ export interface Job {
 
 export type JobOrder = Pick<
   Job,
-  'customer' | 'contact' | 'phone' | 'address' | 'place' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'note' | 'urgent'
+  'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'note' | 'urgent'
 >;
 
 export type View = 'kontor' | 'sjafor' | 'arkiv';

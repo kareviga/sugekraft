@@ -20,12 +20,16 @@ export function JobMap({
   onSelect,
   fitKey,
   flyKey,
+  maxFitZoom = 12,
+  compact,
 }: {
   jobs: Job[];
   selectedId?: string | null;
   onSelect: (id: string) => void;
   fitKey: string;
   flyKey?: number;
+  maxFitZoom?: number;
+  compact?: boolean;
 }) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -94,16 +98,16 @@ export function JobMap({
         }),
       });
       m.on('click', () => onSel.current(j.id));
-      if (sel) m.bindTooltip(escapeHtml(j.customer), { permanent: true, direction: 'right', offset: [19, 0], className: 'ltip' });
+      if (sel && !compact) m.bindTooltip(escapeHtml(j.customer), { permanent: true, direction: 'right', offset: [19, 0], className: 'ltip' });
       g.addLayer(m);
     });
-  }, [jobs, selectedId]);
+  }, [jobs, selectedId, compact]);
 
   const fit = () => {
     const m = map.current;
     if (!m) return;
     if (!jobs.length) return m.setView(config.map.center, config.map.zoom);
-    m.fitBounds(L.latLngBounds(jobs.map(j => [j.lat, j.lon] as [number, number])), { padding: [46, 46], maxZoom: 12, animate: false });
+    m.fitBounds(L.latLngBounds(jobs.map(j => [j.lat, j.lon] as [number, number])), { padding: [46, 46], maxZoom: maxFitZoom, animate: false });
   };
 
   // zoom til alle når utvalget endres
@@ -124,6 +128,7 @@ export function JobMap({
   return (
     <div className="mapbox">
       <div ref={el} className="lmap" role="region" aria-label="Kart over jobber" />
+      {!compact && (
       <div className="lbar">
         <button aria-pressed={style === 'topo'} onClick={() => setStyle('topo')}>
           Farger
@@ -133,6 +138,7 @@ export function JobMap({
         </button>
         <button onClick={fit}>Vis alle</button>
       </div>
+      )}
       {offline && <div className="mapnote">Bakgrunnskartet fra Kartverket kunne ikke lastes. Sjekk nettforbindelsen.</div>}
     </div>
   );
