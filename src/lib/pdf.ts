@@ -42,10 +42,9 @@ export async function buildReportPdf(list: Job[]): Promise<{ doc: jsPDF; filenam
     d.setFont('helvetica', 'normal');
     d.setFontSize(8);
     d.setTextColor(...MUTED);
-    d.text(t(`Org.nr ${config.company.orgNr}`), tx, 18.5);
-    d.text(t(config.company.address), R, 12, { align: 'right' });
-    d.text(t(`${config.company.phone} · ${config.company.email}`), R, 16, { align: 'right' });
-    d.text(t(config.company.web), R, 20, { align: 'right' });
+    if (config.company.orgNr) d.text(t(`Org.nr ${config.company.orgNr}`), tx, 18.5);
+    const contact = [config.company.address, [config.company.phone, config.company.email].filter(Boolean).join(' · '), config.company.web].filter(Boolean);
+    contact.forEach((line, i) => d.text(t(line), R, 12 + i * 4, { align: 'right' }));
     d.setDrawColor(215, 222, 220);
     d.setLineWidth(0.3);
     d.line(L, 24, R, 24);

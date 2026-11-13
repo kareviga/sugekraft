@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { config } from '../config';
-import { login, ROLE_LABEL } from '../lib/auth';
+import { login, loginDemo, ROLE_LABEL } from '../lib/auth';
 import { hasBackend } from '../lib/supabase';
 import { isLive, setMode } from '../lib/mode';
 import { Icon } from './Icon';
@@ -54,6 +54,50 @@ export function Login() {
           </small>
         </section>
 
+        {!isLive() ? (
+          <div className="loginform">
+            <div className="spread">
+              <div className="lf-mobilebrand">
+                <Logo size={36} />
+                <b>{config.company.name}</b>
+              </div>
+              <LangSwitch light />
+            </div>
+            <div>
+              <h2>{tr('Prøv appen')}</h2>
+              <p className="muted">{tr('Velg hvem du vil være. Du kan bytte rolle når som helst.')}</p>
+            </div>
+            <div className="rolecards">
+              {(
+                [
+                  ['admin', 'map', tr('Planlegg jobber, godta bestillinger og fordel bil og sjåfør.')],
+                  ['driver', 'truck', tr('Se dagens jobber, naviger og før status og bilder.')],
+                  ['client', 'users', tr('Bestill en jobb og følg den fra bestilling til ferdig.')],
+                ] as const
+              ).map(([role, icon, text]) => (
+                <button key={role} type="button" className="rolecard" onClick={() => loginDemo(role)}>
+                  <span className="rc-ic">
+                    <Icon name={icon} size={24} />
+                  </span>
+                  <span className="rc-txt">
+                    <b>{tr('Prøv som {r}', { r: tr(ROLE_LABEL[role]).toLowerCase() })}</b>
+                    <small>{text}</small>
+                  </span>
+                  <Icon name="chevron" size={18} />
+                </button>
+              ))}
+            </div>
+            <p className="note">{tr('Ingen innlogging trengs. Alt du gjør, lagres bare i din nettleser.')}</p>
+            {hasBackend && (
+              <div className="modesw">
+                <span className="demo">{tr('Demo-modus (uten nett)')}</span>
+                <button type="button" className="link" onClick={() => setMode('live')}>
+                  {tr('Bytt til ekte data')}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
         <form className="loginform" onSubmit={submit}>
           <div className="spread">
             <div className="lf-mobilebrand">
@@ -108,6 +152,7 @@ export function Login() {
             )}
           </details>
         </form>
+        )}
       </div>
     </div>
   );

@@ -531,4 +531,18 @@ export const en: Record<string, string> = {
   'Demo-tilgang': 'Demo access',
   'Trykk på en rolle for å fylle ut brukernavnet:': 'Tap a role to fill in the username:',
   'Alt er fylt ut.': 'Everything is filled in.',
+  // demo-lenke
+  'Bytt rolle': 'Switch role',
+  'Vis som': 'View as',
+  'Endringene dine lagres bare i denne nettleseren.': 'Your changes are only stored in this browser.',
+  'Tips: bestill som kunde, godta som kontor og fullfør som sjåfør.': 'Tip: order as customer, accept as office and complete as driver.',
+  'Start på nytt': 'Start over',
+  'Avslutt': 'Exit',
+  'Prøv appen': 'Try the app',
+  'Velg hvem du vil være. Du kan bytte rolle når som helst.': 'Choose who you want to be. You can switch role at any time.',
+  'Planlegg jobber, godta bestillinger og fordel bil og sjåfør.': 'Plan jobs, accept orders and assign vehicle and driver.',
+  'Se dagens jobber, naviger og før status og bilder.': "See today's jobs, navigate and log status and photos.",
+  'Bestill en jobb og følg den fra bestilling til ferdig.': 'Order a job and follow it from order to completion.',
+  'Prøv som {r}': 'Try as {r}',
+  'Ingen innlogging trengs. Alt du gjør, lagres bare i din nettleser.': 'No login needed. Everything you do is stored only in your browser.',
 };

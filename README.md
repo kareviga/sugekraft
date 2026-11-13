@@ -3,6 +3,28 @@
 Webapp for sugebilfirmaer: kontor, sjåfør, kundeportal og PDF-rapporter av utførte jobber.
 Ren frontend (Vite + React + TypeScript). Data lagres i nettleserens localStorage.
 
+## Offentlig demo-lenke (til firmaer som vil teste)
+
+Samme lenke kan deles med alle. Hver besøkende får sin egen sandkasse i nettleseren: ingen passord,
+ingen felles data og ingen server.
+
+- Innloggingssiden viser **«Prøv som kontor / sjåfør / kunde»**, med ett klikk og uten passord.
+- **«Vis som»** i toppmenyen bytter rolle uten å miste dataene, så man kan bestille som kunde, godta
+  som kontor og fullføre som sjåfør.
+- **Demolinjen** forklarer at alt lagres lokalt, og har «Start på nytt» og «Avslutt».
+- **Tilpasset firmanavn:** `https://<din-demo>.netlify.app/?firma=Hansen%20Sug%20AS` viser mottakerens
+  navn i appen og på PDF-rapporten. Navnet huskes til `?firma=` brukes tomt.
+
+### Publisere på Netlify (gratis)
+
+1. Logg inn på [app.netlify.com](https://app.netlify.com) med GitHub.
+2. *Add new site → Import an existing project → GitHub* og velg repoet `sugekraft`.
+3. Innstillingene leses fra `netlify.toml`. Trykk **Deploy**.
+   **Ikke** legg inn `VITE_SUPABASE_*`-variabler. Demo-lenken skal aldri ha tilgang til ekte data.
+4. Endre navnet under *Site configuration → Change site name* (f.eks. `sugekraft-demo`).
+
+Netlify bygger automatisk på nytt hver gang det pushes til `main`.
+
 ## Backend (Supabase) og moduser
 
 Appen har to moduser, og du velger på innloggingssiden:

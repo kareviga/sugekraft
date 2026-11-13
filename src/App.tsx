@@ -4,7 +4,7 @@ import { Login } from './components/Login';
 import { LangSwitch } from './components/LangSwitch';
 import { Confirm, Logo, Toasts } from './components/ui';
 import { resetDemo, useJobs } from './store';
-import { logout, ROLE_LABEL, useAuthReady, useSession } from './lib/auth';
+import { loginDemo, logout, ROLE_LABEL, useAuthReady, useSession } from './lib/auth';
 import { isLive } from './lib/mode';
 import { toast } from './lib/toast';
 import { Archive, type ArchivePreset } from './views/Archive';
@@ -104,22 +104,46 @@ function Shell() {
           </nav>
         )}
         <div className="demo">
-          {!isLive() && <span className="demotag">Demo</span>}
           <LangSwitch />
-          <span className="who">
-            <b>{user.name}</b>
-            <small>{tr(ROLE_LABEL[user.role])}</small>
-          </span>
-          {isAdmin && !isLive() && (
-            <button className="resetbtn" onClick={() => setConfirmReset(true)} title={tr('Nullstill demoen')}>
-              {tr('Nullstill demo')}
-            </button>
+          {isLive() ? (
+            <>
+              <span className="who">
+                <b>{user.name}</b>
+                <small>{tr(ROLE_LABEL[user.role])}</small>
+              </span>
+              <button className="resetbtn" onClick={() => void logout()}>
+                {tr('Logg ut')}
+              </button>
+            </>
+          ) : (
+            <div className="roleswitch" role="group" aria-label={tr('Bytt rolle')}>
+              <span className="rs-label">{tr('Vis som')}</span>
+              {(['admin', 'driver', 'client'] as const).map(r => (
+                <button key={r} type="button" aria-pressed={user.role === r} onClick={() => user.role !== r && loginDemo(r)}>
+                  {tr(ROLE_LABEL[r])}
+                </button>
+              ))}
+            </div>
           )}
-          <button className="resetbtn" onClick={() => void logout()}>
-            {tr('Logg ut')}
-          </button>
         </div>
       </header>
+
+      {!isLive() && (
+        <div className="demobar">
+          <span>
+            <b>Demo</b> · {tr('Endringene dine lagres bare i denne nettleseren.')}{' '}
+            <span className="db-tip">{tr('Tips: bestill som kunde, godta som kontor og fullfør som sjåfør.')}</span>
+          </span>
+          <span className="db-actions">
+            <button className="link" onClick={() => setConfirmReset(true)}>
+              {tr('Start på nytt')}
+            </button>
+            <button className="link" onClick={() => void logout()}>
+              {tr('Avslutt')}
+            </button>
+          </span>
+        </div>
+      )}
 
       <main key={resetKey} className={`v-${user.role === 'admin' ? view : user.role}`}>
         {user.role === 'client' && <ClientPortal jobs={all} clientId={user.clientId ?? ''} />}

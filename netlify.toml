@@ -1,0 +1,9 @@
+# Netlify: offentlig demo-lenke.
+# Bygges UTEN Supabase-nøkler (ikke legg inn VITE_SUPABASE_* i Netlify), så appen alltid
+# kjører i demo-modus og aldri kan røre ekte data.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

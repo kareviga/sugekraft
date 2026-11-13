@@ -98,6 +98,21 @@ export async function login(username: string, password: string): Promise<LoginRe
   }
 }
 
+/** Demo: logg inn som en rolle uten passord (offentlig demo-lenke). */
+export function loginDemo(role: User['role']): User | null {
+  if (isLive()) return null;
+  const u = config.users.find(x => x.role === role);
+  if (!u) return null;
+  current = u;
+  try {
+    localStorage.setItem(KEY, u.username);
+  } catch {
+    /* ignorer */
+  }
+  emit();
+  return u;
+}
+
 export async function logout() {
   if (isLive()) {
     clearLive();

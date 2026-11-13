@@ -45,7 +45,7 @@ function ticketImg(j: Job): string {
   x.fillText(config.company.name.toUpperCase(), 50, 70);
   x.font = '18px Arial';
   x.fillStyle = '#555';
-  x.fillText(`Org.nr ${config.company.orgNr} · ${config.company.phone}`, 50, 98);
+  x.fillText([config.company.orgNr && `Org.nr ${config.company.orgNr}`, config.company.phone].filter(Boolean).join(' · '), 50, 98);
   x.fillStyle = '#222';
   x.font = 'bold 44px Arial';
   x.fillText(tr('KJØRESEDDEL'), 50, 165);

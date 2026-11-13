@@ -113,9 +113,11 @@ export function ClientPortal({ jobs, clientId }: { jobs: Job[]; clientId: string
         )}
       </section>
 
-      <p className="note portalfoot">
-        {tr('Spørsmål? Ring {c} på {p} eller send e-post til {e}.', { c: config.company.name, p: config.company.phone, e: config.company.email })}
-      </p>
+      {(config.company.phone || config.company.email) && (
+        <p className="note portalfoot">
+          {tr('Spørsmål? Ring {c} på {p} eller send e-post til {e}.', { c: config.company.name, p: config.company.phone, e: config.company.email })}
+        </p>
+      )}
 
       {form && (
         <JobForm
