@@ -553,6 +553,12 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
   .demobar { padding: 6px 12px; font-size: 12.5px; }
 }
 
+.lpin.request { box-shadow: 0 0 0 3px var(--highlight), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.row.req { background: color-mix(in srgb, var(--highlight) 8%, #fff); }
+.row.req.sel { background: color-mix(in srgb, var(--highlight) 16%, #fff); }
+.reqbox { border: 1px solid color-mix(in srgb, var(--highlight) 60%, #fff); background: color-mix(in srgb, var(--highlight) 10%, #fff); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.reqbox p { margin: 0; }
+
 /* ---------- dialoger ---------- */
 .ov { position: fixed; inset: 0; background: rgba(15, 25, 30, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px 24px; overflow: auto; z-index: 2000; }
 .dlg { background: #fff; border-radius: 14px; width: 100%; max-width: 580px; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }

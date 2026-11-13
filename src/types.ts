@@ -2,7 +2,7 @@
 export type Status = 'kommende' | 'aktiv' | 'ferdig';
 
 export const STATUS_LABEL: Record<Status, string> = {
-  kommende: 'Kommende',
+  kommende: 'Ny bestilling',
   aktiv: 'Aktiv',
   ferdig: 'Ferdig',
 };

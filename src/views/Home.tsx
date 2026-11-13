@@ -37,6 +37,7 @@ export function Home({
   const today = dayOffset(0);
 
   const noDriver = jobs.filter(j => j.status === 'kommende');
+  const newOrders = noDriver.length + requests.length;
   const running = jobs.filter(underway);
   const outCount = Object.keys(out).length;
   const todays = jobs
@@ -49,8 +50,14 @@ export function Home({
   const dateText = new Date().toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const attention: { n: number; title: string; text: string; icon: string; tone: string; onClick: () => void }[] = [
-    { n: requests.length, title: tr('Nye bestillinger'), text: tr('Fra kunder – godta eller avvis'), icon: 'inbox', tone: 'wait', onClick: () => openOffice('requests') },
-    { n: noDriver.length, title: tr('Mangler sjåfør'), text: tr('Jobber som ikke er sendt ut'), icon: 'user', tone: 'kommende', onClick: () => openOffice('kommende') },
+    {
+      n: newOrders,
+      title: tr('Nye bestillinger'),
+      text: requests.length ? tr('{n} fra kunder må godkjennes', { n: requests.length }) : tr('Venter på sjåfør'),
+      icon: 'inbox',
+      tone: 'wait',
+      onClick: () => openOffice('kommende'),
+    },
     { n: outCount, title: tr('Biler ute av drift'), text: tr('Verksted, kontroll e.l.'), icon: 'wrench', tone: 'warn', onClick: () => go('bilpark') },
   ];
   const needs = attention.filter(a => a.n > 0);

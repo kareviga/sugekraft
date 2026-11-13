@@ -268,7 +268,7 @@ export function JobForm({
             <small className="hint">
               {v.driver
                 ? tr('Med sjåfør blir oppdraget Aktivt og vises hos sjåføren.')
-                : tr('Uten sjåfør ligger oppdraget som Kommende til en sjåfør settes på.')}
+                : tr('Uten sjåfør ligger oppdraget som «Ny bestilling» til en sjåfør settes på.')}
               {v.driver && !v.car ? tr(' Husk å velge bil.') : ''}
             </small>
             </>

@@ -98,7 +98,7 @@ export function JobMap({
           className: '',
           iconSize: [z, z],
           iconAnchor: [z / 2, z / 2],
-          html: `<div class="lpin ${j.status}${sel ? ' sel' : ''}${j.urgent && j.status !== 'ferdig' ? ' urgent' : ''}">${tag ? `<span>${tag}</span>` : ''}</div>`,
+          html: `<div class="lpin ${j.status}${sel ? ' sel' : ''}${j.urgent && j.status !== 'ferdig' ? ' urgent' : ''}${j.request === 'venter' ? ' request' : ''}">${tag ? `<span>${tag}</span>` : ''}</div>`,
         }),
       });
       m.on('click', () => onSel.current(j.id));

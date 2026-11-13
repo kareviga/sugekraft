@@ -545,4 +545,14 @@ export const en: Record<string, string> = {
   'Bestill en jobb og følg den fra bestilling til ferdig.': 'Order a job and follow it from order to completion.',
   'Prøv som {r}': 'Try as {r}',
   'Ingen innlogging trengs. Alt du gjør, lagres bare i din nettleser.': 'No login needed. Everything you do is stored only in your browser.',
+  // ny bestilling
+  'Fra kunde – må godkjennes': 'From customer – needs approval',
+  'Bestilt av kunden i portalen': 'Ordered by the customer in the portal',
+  'Godta …': 'Accept …',
+  '{id} er godtatt og venter på sjåfør.': '{id} accepted and is waiting for a driver.',
+  'Sjåføren er fjernet. {id} er en ny bestilling igjen.': 'Driver removed. {id} is a new order again.',
+  '{id} er lagret som ny bestilling (ingen sjåfør ennå).': '{id} saved as a new order (no driver yet).',
+  'Uten sjåfør ligger oppdraget som «Ny bestilling» til en sjåfør settes på.': 'Without a driver the job stays a “New order” until a driver is assigned.',
+  '{n} fra kunder må godkjennes': '{n} from customers need approval',
+  'Venter på sjåfør': 'Waiting for a driver',
 };

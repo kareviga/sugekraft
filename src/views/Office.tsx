@@ -9,7 +9,7 @@ import { DriverOptions, VehicleOptions } from '../components/VehicleOptions';
 import { driverBusy } from '../lib/fleet';
 import { progress, underway } from '../lib/steps';
 import { StepTimeline } from '../components/Steps';
-import { RequestsPanel } from '../components/Requests';
+import { RequestDialog } from '../components/Requests';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, mapsUrl, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
@@ -25,7 +25,7 @@ const DONE_RANGE: Record<string, [string, number]> = {
 
 export function Office({
   focus,
-  jobs,
+  jobs: baseJobs,
   requests,
   sel,
   setSel,
@@ -43,10 +43,12 @@ export function Office({
   openInArchive: (j: Job) => void;
   openFleet: () => void;
 }) {
+  // bestillinger fra kundeportalen vises som «Ny bestilling» sammen med jobbene
+  const jobs = useMemo(() => [...baseJobs, ...requests], [baseJobs, requests]);
   const [drvF, setDrvF] = useState('');
   const [show, setShow] = useState<Record<Status, boolean>>(
-    focus === 'kommende' || focus === 'aktiv'
-      ? { kommende: focus === 'kommende', aktiv: focus === 'aktiv', ferdig: false }
+    focus === 'kommende' || focus === 'requests' || focus === 'aktiv'
+      ? { kommende: focus !== 'aktiv', aktiv: focus === 'aktiv', ferdig: false }
       : { kommende: true, aktiv: true, ferdig: true },
   );
   const [doneRange, setDoneRange] = useState('7');
@@ -67,6 +69,7 @@ export function Office({
     .sort(
       (a, b) =>
         ORDER[a.status] - ORDER[b.status] ||
+        (b.request === 'venter' ? 1 : 0) - (a.request === 'venter' ? 1 : 0) ||
         (a.status === 'ferdig' ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date) || (a.time || '99').localeCompare(b.time || '99')),
     );
   const count = (s: Status) => scoped.filter(j => j.status === s).length;
@@ -84,13 +87,6 @@ export function Office({
     <div className="kontor">
       <section className="col list" aria-label={tr('Jobbliste')}>
         <div className="tools">
-          <RequestsPanel
-            requests={requests}
-            onAccepted={j => {
-              setShow(o => ({ ...o, [j.driver ? 'aktiv' : 'kommende']: true }));
-              pick(j.id, true);
-            }}
-          />
           <button className="btn" onClick={() => setForm({})}>
             {tr('+ Ny jobb')}
           </button>
@@ -141,7 +137,7 @@ export function Office({
           list.map(j => {
             const v = vehicle(j.car);
             return (
-              <button key={j.id} className={cx('row', j.status, j.id === sel && 'sel')} onClick={() => pick(j.id, true)}>
+              <button key={j.id} className={cx('row', j.status, j.request === 'venter' && 'req', j.id === sel && 'sel')} onClick={() => pick(j.id, true)}>
                 <span className="top">
                   <span>
                     {j.urgent && j.status !== 'ferdig' && <span className="hast">{tr('HAST')}</span>}
@@ -157,8 +153,14 @@ export function Office({
                     {relDay(j.date)}
                     {j.time && j.status !== 'ferdig' && !underway(j) ? ` ${tr('kl.')} ${j.time}` : ''}
                   </span>
-                  {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten bil')}</span>}
-                  {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten sjåfør')}</span>}
+                  {j.request === 'venter' ? (
+                    <span className="pill wait">{tr('Fra kunde – må godkjennes')}</span>
+                  ) : (
+                    <>
+                      {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten bil')}</span>}
+                      {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten sjåfør')}</span>}
+                    </>
+                  )}
                   {underway(j) && <span className="pill prog">{progress(j)}</span>}
                 </small>
               </button>
@@ -214,7 +216,7 @@ export function Office({
             setForm(null);
             setShow(o => ({ ...o, [j.status]: true }));
             pick(j.id, true);
-            toast(j.driver ? tr('{id} er lagret – {d}. Oppdraget er aktivt.', { id: j.no, d: `${driver(j.driver)?.name}${j.car ? ` / ${vehicleName(j.car)}` : ''}` }) : tr('{id} er lagret som kommende (ingen sjåfør ennå).', { id: j.no }));
+            toast(j.driver ? tr('{id} er lagret – {d}. Oppdraget er aktivt.', { id: j.no, d: `${driver(j.driver)?.name}${j.car ? ` / ${vehicleName(j.car)}` : ''}` }) : tr('{id} er lagret som ny bestilling (ingen sjåfør ennå).', { id: j.no }));
           }}
         />
       )}
@@ -264,7 +266,9 @@ function Detail({
         <Pill status={j.status} />
       </div>
       {j.urgent && j.status !== 'ferdig' && <p className="alert">{tr('Hasteoppdrag')}</p>}
-      {j.status === 'ferdig' ? (
+      {j.request === 'venter' ? (
+        <RequestBox j={j} />
+      ) : j.status === 'ferdig' ? (
         <dl className="kv">
           <dt>{tr('Bil')}</dt>
           <dd>{vehicleLong(j.car)}</dd>
@@ -315,7 +319,7 @@ function Detail({
           </>
         )}
       </dl>
-      {j.status === 'kommende' ? (
+      {j.request === 'venter' ? null : j.status === 'kommende' ? (
         <p className="infobox">{tr('Jobben har ingen sjåfør. Velg sjåfør over for å sende den ut – da blir den aktiv.')}</p>
       ) : underway(j) || j.status === 'ferdig' ? (
         <>
@@ -327,7 +331,7 @@ function Detail({
         <p className="note">{tr('Sjåføren har ikke begynt på jobben ennå.')}</p>
       )}
       <Thumbs job={j} refs={[...j.ticketPhotos, ...j.jobPhotos]} onOpen={onZoom} />
-      {j.status !== 'ferdig' ? (
+      {j.request === 'venter' ? null : j.status !== 'ferdig' ? (
         <div className="btnrow">
           <button className="btn alt" onClick={onEdit}>
             {tr('Rediger')}
@@ -380,10 +384,10 @@ function Assign({ j }: { j: Job }) {
           onChange={e => {
             const d = driver(e.target.value);
             updateJob(j.id, { driver: e.target.value }, true);
-            toast(d ? tr('{d} er satt på {id}. Oppdraget er aktivt.', { d: d.name, id: j.no }) : tr('Sjåføren er fjernet. {id} er kommende igjen.', { id: j.no }));
+            toast(d ? tr('{d} er satt på {id}. Oppdraget er aktivt.', { d: d.name, id: j.no }) : tr('Sjåføren er fjernet. {id} er en ny bestilling igjen.', { id: j.no }));
           }}
         >
-          <option value="">{tr('Ingen sjåfør – Kommende')}</option>
+          <option value="">{tr('Ingen sjåfør ennå')}</option>
           <DriverOptions exceptJob={j.id} />
         </select>
       </div>
@@ -394,6 +398,31 @@ function Assign({ j }: { j: Job }) {
           {tr('{d} er på oppdrag hos {c} nå.', { d: driver(j.driver)?.name ?? '', c: busy.customer })}
         </p>
       )}
+    </div>
+  );
+}
+
+/** Bestilling fra kundeportalen: godta (velg bil og sjåfør) eller avvis. */
+function RequestBox({ j }: { j: Job }) {
+  const [dlg, setDlg] = useState<'accept' | 'decline' | null>(null);
+  return (
+    <div className="reqbox">
+      <p>
+        <b>{tr('Bestilt av kunden i portalen')}</b>
+        <br />
+        <small className="muted">
+          {tr('Mottatt')} {nice(j.orderedAt.slice(0, 10))} {tr('kl.')} {j.orderedAt.slice(11)}
+        </small>
+      </p>
+      <div className="btnrow">
+        <button className="btn finish" onClick={() => setDlg('accept')}>
+          {tr('Godta …')}
+        </button>
+        <button className="btn alt danger" onClick={() => setDlg('decline')}>
+          {tr('Avvis')}
+        </button>
+      </div>
+      {dlg && <RequestDialog r={j} decline={dlg === 'decline'} onClose={() => setDlg(null)} onAccepted={() => setDlg(null)} />}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { acceptRequest, declineRequest, getClient } from '../store';
 import { toast } from '../lib/toast';
-import { driver, nice, relDay } from '../lib/utils';
+import { driver, nice } from '../lib/utils';
 import type { Job } from '../types';
 import { JobForm } from './JobForm';
 import { JobMap } from './JobMap';
@@ -10,58 +10,13 @@ import { DriverOptions, VehicleOptions } from './VehicleOptions';
 import { tr, trd } from '../i18n';
 
 /*
- * Nye bestillinger fra kundeportalen. Kontoret godtar (og kan sette bil/sjåfør med en gang) eller avviser.
+ * Bestilling fra kundeportalen: kontoret godtar (og kan sette bil/sjåfør med en gang) eller avviser.
  */
 
-export function RequestsPanel({ requests, onAccepted }: { requests: Job[]; onAccepted: (j: Job) => void }) {
-  const [open, setOpen] = useState(true);
-  const [view, setView] = useState<string | null>(null);
-  if (!requests.length) return null;
-  const sorted = [...requests].sort((a, b) => a.orderedAt.localeCompare(b.orderedAt));
-  const cur = requests.find(r => r.id === view);
-  return (
-    <div className="reqpanel">
-      <button className="reqhead" onClick={() => setOpen(o => !o)} aria-expanded={open}>
-        <span className="reqbadge">{requests.length}</span>
-        <b>{requests.length === 1 ? tr('Ny bestilling fra kunde') : tr('Nye bestillinger fra kunder')}</b>
-        <span className="muted">{open ? '▾' : '▸'}</span>
-      </button>
-      {open && (
-        <ul>
-          {sorted.map(r => (
-            <li key={r.id}>
-              <button onClick={() => setView(r.id)}>
-                <span className="spread">
-                  <b>{r.customer}</b>
-                  <small className="muted">{r.orderedAt.slice(11)}</small>
-                </span>
-                <small>
-                  {trd(r.service)} · {tr('ønsket')} {relDay(r.date).toLowerCase()}
-                  {r.time ? ` ${tr('kl.')} ${r.time}` : ''}
-                </small>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {cur && (
-        <RequestDialog
-          r={cur}
-          onClose={() => setView(null)}
-          onAccepted={j => {
-            setView(null);
-            onAccepted(j);
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void; onAccepted: (j: Job) => void }) {
+export function RequestDialog({ r, onClose, onAccepted, decline = false }: { r: Job; onClose: () => void; onAccepted: (j: Job) => void; decline?: boolean }) {
   const [car, setCar] = useState('');
   const [drv, setDrv] = useState('');
-  const [declining, setDeclining] = useState(false);
+  const [declining, setDeclining] = useState(decline);
   const [reason, setReason] = useState('');
   const [edit, setEdit] = useState(false);
   const client = getClient(r.clientId);
@@ -104,7 +59,7 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
               onClick={() => {
                 acceptRequest(r.id, { car, driver: drv });
                 const d = driver(drv);
-                toast(d ? tr('{id} er godtatt og satt på {d}.', { id: r.no, d: d.name }) : tr('{id} er godtatt og ligger som kommende.', { id: r.no }));
+                toast(d ? tr('{id} er godtatt og satt på {d}.', { id: r.no, d: d.name }) : tr('{id} er godtatt og venter på sjåfør.', { id: r.no }));
                 onAccepted({ ...r, car, driver: drv });
               }}
             >
@@ -177,7 +132,7 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
             <div className="field">
               <label htmlFor="r-drv">{tr('Sjåfør')}</label>
               <select id="r-drv" value={drv} onChange={e => setDrv(e.target.value)}>
-                <option value="">{tr('Velg senere (Kommende)')}</option>
+                <option value="">{tr('Velg senere')}</option>
                 <DriverOptions />
               </select>
             </div>

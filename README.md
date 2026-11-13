@@ -108,8 +108,9 @@ Språkvelgeren **NO | EN** står i toppmenyen og på innloggingssiden, og valget
 - **Kundeportalen**: kunden ser egne bestillinger og oppdrag med status (Venter på godkjenning, Avvist,
   Bekreftet, Planlagt, Pågår og Utført), fremdrift og dokumentasjon. Kunden kan bestille nytt og trekke tilbake
   bestillinger som ikke er godkjent.
-- **Godkjenning**: nye bestillinger vises øverst i Kontor (med tall på fanen). Kontoret kan godta (og sette på
-  bil og sjåfør med en gang), redigere eller avvise med begrunnelse, som kunden ser i portalen.
+- **Godkjenning**: bestillinger fra kunder vises som «Ny bestilling» i liste og kart under Jobber (med tall på
+  fanen). Kontoret kan godta (og sette på bil og sjåfør med en gang) eller avvise med begrunnelse, som kunden
+  ser i portalen.
 - Kontoret kan fortsatt legge inn oppdrag selv, også for kunder som ikke er i registeret (f.eks. telefonbestilling).
 
 ## Rapporter
@@ -125,8 +126,9 @@ maks 1600 px og ca. 350 kB (lesbar tekst). PDF-er komprimeres også.
 
 ## Statuser og plassering
 
-- **Kommende**: jobben er ikke tildelt bil. **Aktiv**: tildelt en sjåfør. **Ferdig**: lukket av sjåføren.
-  Statusen følger tildelingen automatisk.
+- **Ny bestilling**: ikke sendt ut ennå, enten en bestilling fra kundeportalen (merket «Fra kunde – må
+  godkjennes») eller en jobb uten sjåfør. **Aktiv**: tildelt en sjåfør. **Ferdig**: lukket av sjåføren.
+  Statusen følger tildelingen automatisk, og bestillinger fra kunder vises i både liste og kart.
 - Adressefeltet søker i Kartverkets adresseregister (Geonorge, gratis og uten nøkkel). Velger du et treff,
   settes nålen på adressen. Uten adresse klikker du i kartet i skjemaet eller drar nålen, og appen foreslår
   nærmeste registrerte adresse.
@@ -137,8 +139,8 @@ maks 1600 px og ca. 350 kB (lesbar tekst). PDF-er komprimeres også.
 ## Biler og sjåfører
 
 - Biler (`vehicles`) og sjåfører (`drivers`) er adskilte lister i konfigfilen.
-- I hvert oppdrag velges **bil** og **sjåfør** hver for seg. Uten sjåfør er oppdraget **Kommende**, med
-  sjåfør er det **Aktivt**. Samme bil kan kjøres av forskjellige sjåfører på forskjellige oppdrag.
+- I hvert oppdrag velges **bil** og **sjåfør** hver for seg. Uten sjåfør er oppdraget en **Ny bestilling**,
+  med sjåfør er det **Aktivt**. Samme bil kan kjøres av forskjellige sjåfører på forskjellige oppdrag.
 - **Bilpark** viser bare bilene: type, reg.nr., status (på oppdrag, har jobber i dag, ledig, ute av drift),
   hvem som er i bilen nå og dagens oppdrag. Alt utledes av oppdragene. Det eneste som settes der, er «ute av drift».
 - Sjåføren velger «Jeg er» og ser oppdragene sine med hvilken bil som skal brukes.
