@@ -42,15 +42,18 @@ async function as(user, fn) {
 const count = async (sql, p = []) => Number((await db.query(sql, p)).rows[0].n);
 const fails = async (sql, p = []) => { try { await db.query(sql, p); return false; } catch { return true; } };
 
+const TOTAL = Number((await db.query(`select count(*) n from jobs`)).rows[0].n);
+const NEXT = Number((await db.query(`select next_job_no n from companies where id = 'c0000000-0000-4000-8000-000000000001'`)).rows[0].n);
+
 console.log('\nADMIN');
 await as(users.kontorbruker, async () => {
-  ok(await count(`select count(*) n from jobs`) === 10, 'ser alle 10 jobber');
+  ok(await count(`select count(*) n from jobs`) === TOTAL, `ser alle ${TOTAL} jobber`);
   ok(await count(`select count(*) n from clients`) === 13, 'ser alle 13 kunder');
   ok(await count(`select count(*) n from vehicles`) === 6, 'ser 6 biler');
   ok(await count(`select count(*) n from profiles`) === 3, 'ser alle profiler i firmaet');
   const r = await db.query(`insert into jobs (customer, lat, lon, service, date) values ('Test', 59.9, 10.7, 'Høytrykkspyling', current_date) returning job_no, status, company_id`);
-  ok(r.rows[0].job_no === 2041 && r.rows[0].status === 'kommende', `ny jobb får nr ${r.rows[0].job_no} og status ${r.rows[0].status}`);
-  const id = (await db.query(`select id from jobs where job_no = 2041`)).rows[0].id;
+  ok(r.rows[0].job_no === NEXT && r.rows[0].status === 'kommende', `ny jobb får nr ${r.rows[0].job_no} og status ${r.rows[0].status}`);
+  const id = (await db.query(`select id from jobs where job_no = $1`, [NEXT])).rows[0].id;
   await db.query(`update jobs set driver_id = 'd0000000-0000-4000-8000-000000000002' where id = $1`, [id]);
   ok((await db.query(`select status from jobs where id = $1`, [id])).rows[0].status === 'aktiv', 'sjåfør satt -> aktiv');
   await db.query(`update jobs set driver_id = null where id = $1`, [id]);

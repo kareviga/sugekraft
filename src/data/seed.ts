@@ -103,25 +103,15 @@ interface Row {
 }
 
 const ROWS: Row[] = [
-  // ---- Bestillinger fra kundeportalen ----
+  // ---- Ny bestilling (fra kundeportalen) ----
   { c: 'nordbygg', a: 'snaroy', d: 3, service: 'Vakuumgraving', car: -1, ref: 'P-5530', time: '07:00', note: 'Grøft for fiberkabel, ca. 40 m. Ønsker oppmøte tidlig.', req: 'venter' },
-
-  // ---- Kommende: ingen sjåfør ----
-  { c: 'gard', a: 'maridal', d: 0, service: 'Tining av frosne rør', car: -1, time: '13:00', note: 'Fjøs uten vann siden i natt. Ring før ankomst.', urgent: true },
-  { c: 'kommune', a: 'kum', d: 2, service: 'Høytrykkspyling', car: 2, drv: -1, ref: 'K-2026-336', time: '08:00', note: 'Ingen adresse – se nål i kartet. Kjør inn fra parkeringen ved Haugerud.' },
-
-  // ---- Aktiv: sjåfør tildelt, planlagt ----
-  { c: 'sorkedal', a: 'hytte', d: 0, service: 'Tømming septik', car: 1, drv: 5, ref: 'HYT-118', time: '13:30', note: 'Bom ved innkjøring, kode 2580. Nålen viser tanken bak hytta.' },
-  { c: 'nordbygg', a: 'rigg', d: 1, service: 'Vakuumgraving', car: 0, byClient: true, ref: 'P-5502', time: '07:00', note: 'Kabelpåvisning er gjort. Grav forsiktig langs blå merking.' },
 
   // ---- Aktiv: pågår i dag ----
   { c: 'nordbygg', a: 'stromsv', d: 0, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '12', start: '07:30', photos: [1] },
-  { c: 'eiendom', a: 'sandaker', d: 0, service: 'Tømming tett tank', car: 3, ref: 'AE-337', mass: 'Avløpsvann (tett tank)', amount: '8', start: '10:05', end: '11:20', stage: 'kjortFra', ticket: '48231', ticketPhoto: true, photos: [3] },
 
   // ---- Ferdig ----
   { done: true, c: 'nordbygg', a: 'stromsv', d: -1, service: 'Vakuumgraving', car: 0, ref: 'P-5498', mass: 'Gravemasser', amount: '18', depot: 2, start: '07:00', end: '14:30', ticket: '48213', photos: [3, 4], ticketPhoto: true, comment: 'Trang adkomst, brukte 30 m ekstra slange.', sc: { ankommet: 'Port stengt, ventet på anleggsleder.', deponi: 'Kø på mottaket, ca. 20 min.' } },
   { done: true, c: 'nordbygg', a: 'lysaker', d: -4, service: 'Tømming oljeutskiller', car: 4, ref: 'P-5470', mass: 'Oljeholdig slam (oljeutskiller)', amount: '3.5', depot: 3, decl: '3127740', start: '08:00', end: '10:45', ticket: '48199', photos: [6], ticketPhoto: true },
-  { done: true, c: 'kommune', a: 'tveten', d: -4, service: 'Tømming sandfang', car: 3, ref: 'K-2026-318', mass: 'Innhold sandfang', amount: '11', depot: 2, start: '07:30', end: '15:00', ticket: '48201', photos: [10, 11], ticketPhoto: true, comment: '14 sandfang tømt. Sandfang ved nr. 12 har knekt rist.' },
 ];
 
 /** Sjåfør for en rad: eksplisitt, ellers fast sjåfør for bilen. Noen ferdige jobber er kjørt av vikaren. */

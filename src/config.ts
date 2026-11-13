@@ -236,5 +236,5 @@ export const config: AppConfig = {
       'Slamsuger (reserve)': 'Vacuum tanker (spare)',
     },
   },
-  storageKey: 'sugekraft-demo-v7',
+  storageKey: 'sugekraft-demo-v8',
 };
