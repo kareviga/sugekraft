@@ -1,4 +1,4 @@
-# Sugekraft – demo
+﻿# Sugekraft – demo
 
 Webapp for sugebilfirmaer: kontor, sjåfør, kundeportal og PDF-rapporter av utførte jobber.
 Ren frontend (Vite + React + TypeScript). Data lagres i nettleserens localStorage.
@@ -127,7 +127,7 @@ Sjåføren huker av punktene i rekkefølge, med klokkeslett (forhåndsutfylt med
 
 1. Startet kjøring – bilen regnes som «på oppdrag» i Bilpark
 2. Ankommet sted
-3. Startet arbeid – starten på arbeidstiden i fakturagrunnlaget
+3. Startet arbeid – starten på arbeidstiden i rapporten
 4. Fullført arbeid – slutten på arbeidstiden
 5. Kjørt fra sted
 6. Ankommet deponi – bare når massene skal deponeres. Deponi velges fra listen.
