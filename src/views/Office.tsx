@@ -24,6 +24,7 @@ const DONE_RANGE: Record<string, [string, number]> = {
 };
 
 export function Office({
+  focus,
   jobs,
   requests,
   sel,
@@ -32,6 +33,8 @@ export function Office({
   openInArchive,
   openFleet,
 }: {
+  /** Åpnet fra forsiden: vis bare kommende/aktive */
+  focus?: 'kommende' | 'aktiv' | 'requests' | null;
   jobs: Job[];
   requests: Job[];
   sel: string | null;
@@ -41,7 +44,11 @@ export function Office({
   openFleet: () => void;
 }) {
   const [drvF, setDrvF] = useState('');
-  const [show, setShow] = useState<Record<Status, boolean>>({ kommende: true, aktiv: true, ferdig: true });
+  const [show, setShow] = useState<Record<Status, boolean>>(
+    focus === 'kommende' || focus === 'aktiv'
+      ? { kommende: focus === 'kommende', aktiv: focus === 'aktiv', ferdig: false }
+      : { kommende: true, aktiv: true, ferdig: true },
+  );
   const [doneRange, setDoneRange] = useState('7');
   const [carF, setCarF] = useState('');
   const [q, setQ] = useState('');

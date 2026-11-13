@@ -68,7 +68,7 @@ export type JobOrder = Pick<
   'customer' | 'contact' | 'phone' | 'address' | 'place' | 'lat' | 'lon' | 'pin' | 'service' | 'ref' | 'date' | 'time' | 'car' | 'driver' | 'note' | 'urgent' | 'clientId'
 >;
 
-export type View = 'kontor' | 'kunder' | 'bilpark' | 'sjafor' | 'arkiv';
+export type View = 'hjem' | 'kontor' | 'kunder' | 'bilpark' | 'sjafor' | 'arkiv';
 
 /** Kunde i kunderegisteret */
 export interface Client {

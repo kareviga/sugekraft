@@ -203,16 +203,40 @@ export function photoSrc(ref: string, j: Job): string {
 }
 
 /** Skaler ned et bilde fra kamera/fil slik at det får plass i localStorage. */
-export function shrink(file: File, max = 1280, q = 0.72): Promise<string> {
+/** Komprimeringsprofiler. Kjøresedler får høyere oppløsning så teksten er lesbar. */
+export const PHOTO_PROFILE = {
+  job: { max: 1280, maxBytes: 220_000 },
+  ticket: { max: 1600, maxBytes: 350_000 },
+} as const;
+
+const dataUrlBytes = (d: string) => Math.round(((d.length - d.indexOf(',') - 1) * 3) / 4);
+
+/**
+ * Skaler ned og komprimer et bilde fra kamera/fil til JPEG under en fast størrelse.
+ * Senker først kvaliteten trinnvis, deretter oppløsningen, til bildet er under grensen.
+ * Typisk resultat: 120–300 kB i stedet for 3–8 MB fra mobilkameraet.
+ */
+export function shrink(file: File, profile: { max: number; maxBytes: number } = PHOTO_PROFILE.job): Promise<string> {
   return new Promise((res, rej) => {
     const u = URL.createObjectURL(file);
     const i = new Image();
     i.onload = () => {
-      const r = Math.min(1, max / Math.max(i.width, i.height));
-      const [c, x] = canvas(Math.round(i.width * r), Math.round(i.height * r));
-      x.drawImage(i, 0, 0, c.width, c.height);
       URL.revokeObjectURL(u);
-      res(c.toDataURL('image/jpeg', q));
+      let max = profile.max;
+      let best = '';
+      for (let round = 0; round < 4; round++) {
+        const r = Math.min(1, max / Math.max(i.width, i.height));
+        const [c, x] = canvas(Math.max(1, Math.round(i.width * r)), Math.max(1, Math.round(i.height * r)));
+        x.fillStyle = '#fff'; // gjennomsiktige PNG-er får hvit bakgrunn
+        x.fillRect(0, 0, c.width, c.height);
+        x.drawImage(i, 0, 0, c.width, c.height);
+        for (const q of [0.72, 0.62, 0.52, 0.44]) {
+          best = c.toDataURL('image/jpeg', q);
+          if (dataUrlBytes(best) <= profile.maxBytes) return res(best);
+        }
+        max = Math.round(max * 0.8);
+      }
+      res(best);
     };
     i.onerror = () => {
       URL.revokeObjectURL(u);

@@ -3,7 +3,7 @@ import { config } from '../config';
 import { JobMap } from '../components/JobMap';
 import { Checklist, Lightbox, Pill, Thumbs } from '../components/ui';
 import { updateJob } from '../store';
-import { shrink } from '../lib/photos';
+import { PHOTO_PROFILE, shrink } from '../lib/photos';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, driver, fmtCoord, hours, isHaz, isNoMass, mapsUrl, missing, navUrl, num, preferredMapApp, relDay, setPreferredMapApp, vehicle, type MapApp } from '../lib/utils';
 import { nextStep, progress, underway } from '../lib/steps';
@@ -144,7 +144,7 @@ function PhotoField({ j, k, label }: { j: Job; k: 'ticketPhotos' | 'jobPhotos'; 
     setBusy(true);
     try {
       const added: string[] = [];
-      for (const f of files) added.push(await shrink(f));
+      for (const f of files) added.push(await shrink(f, k === 'ticketPhotos' ? PHOTO_PROFILE.ticket : PHOTO_PROFILE.job));
       updateJob(j.id, { [k]: [...j[k], ...added] }, true);
     } catch {
       toast(tr('Bildet kunne ikke leses. Velg et JPG- eller PNG-bilde.'));

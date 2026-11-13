@@ -60,7 +60,8 @@ export interface AppConfig {
   logo: string;
   colors: {
     primary: string;   // knapper, lenker, PDF-aksent
-    header: string;    // topplinje
+    header: string;    // topplinje (bakgrunn)
+    headerText: string; // tekst i topplinjen
     highlight: string; // aktiv fane, fokusramme
     paper: string;     // bakgrunn
     kommende: string;
@@ -104,14 +105,15 @@ export const config: AppConfig = {
   logo: 'logo.svg',
 
   colors: {
-    primary: '#0d5f6b',
-    header: '#16252b',
-    highlight: '#f0a92c',
-    paper: '#eaefec',
-    kommende: '#2a62b8',
-    aktiv: '#c95f06',
-    ferdig: '#2b8048',
-    warn: '#b93426',
+    primary: '#4f46e5',
+    header: '#ffffff',
+    headerText: '#1e2433',
+    highlight: '#f59e0b',
+    paper: '#f4f5fa',
+    kommende: '#0369a1',
+    aktiv: '#c2410c',
+    ferdig: '#15803d',
+    warn: '#dc2626',
   },
 
   map: {

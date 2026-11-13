@@ -19,7 +19,7 @@ const t = (s: unknown) => String(s ?? '').replace(/[–—]/g, '-').replace(/[�
 
 export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filename: string }> {
   const jobs = [...list].sort((a, b) => a.date.localeCompare(b.date) || a.no.localeCompare(b.no));
-  const d = new jsPDF({ unit: 'mm', format: 'a4' });
+  const d = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
   const L = 14, W = 182, R = L + W;
   const brand = hexToRgb(config.colors.primary);
   const logo = await rasterize(config.logo, 200);

@@ -13,24 +13,26 @@ import { Clients } from './views/Clients';
 import { Driver } from './views/Driver';
 import { Fleet } from './views/Fleet';
 import { Office } from './views/Office';
+import { Home, type OfficeFocus } from './views/Home';
 import type { View } from './types';
 import { tr, useLang } from './i18n';
 
 /** Fanene hver rolle har tilgang til */
 const VIEWS: Record<Role, [View, string][]> = {
   admin: [
-    ['kontor', 'Kontor'],
+    ['hjem', 'Hjem'],
+    ['kontor', 'Jobber'],
     ['kunder', 'Kunder'],
     ['bilpark', 'Bilpark'],
     ['sjafor', 'Sjåfør'],
-    ['arkiv', 'Arkiv og faktura'],
+    ['arkiv', 'Faktura'],
   ],
   driver: [],
   client: [],
 };
 const fromHash = (role: Role): View => {
   const v = location.hash.replace(/^#\/?/, '');
-  return VIEWS[role].some(([k]) => k === v) ? (v as View) : 'kontor';
+  return VIEWS[role].some(([k]) => k === v) ? (v as View) : 'hjem';
 };
 
 export function App() {
@@ -55,6 +57,7 @@ function Shell() {
 
   const [view, setView] = useState<View>(() => fromHash(user.role));
   const [officeSel, setOfficeSel] = useState<string | null>(null);
+  const [officeFocus, setOfficeFocus] = useState<{ f: OfficeFocus; n: number }>({ f: null, n: 0 });
   const [driverPerson, setDriverPerson] = useState(user.driverId ?? config.drivers[0]?.id ?? '');
   const [driverJob, setDriverJob] = useState<string | null>(null);
   const [preset, setPreset] = useState<ArchivePreset | null>(null);
@@ -135,8 +138,24 @@ function Shell() {
           />
         )}
 
+        {isAdmin && view === 'hjem' && (
+          <Home
+            jobs={jobs}
+            requests={requests}
+            name={user.name}
+            go={go}
+            openJob={openInOffice}
+            openOffice={f => {
+              setOfficeSel(null);
+              setOfficeFocus(o => ({ f, n: o.n + 1 }));
+              go('kontor');
+            }}
+          />
+        )}
         {isAdmin && view === 'kontor' && (
           <Office
+            key={officeFocus.n}
+            focus={officeFocus.f}
             jobs={jobs}
             requests={requests}
             sel={officeSel}
