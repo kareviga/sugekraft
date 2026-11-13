@@ -109,7 +109,7 @@ export const en: Record<string, string> = {
   'Logg inn': 'Log in',
   'Brukernavn': 'Username',
   'Passord': 'Password',
-  'Demo-brukere – trykk for å fylle ut:': 'Demo users – tap to fill in:',
+  'Demo-brukere – trykk for å fylle ut brukernavn:': 'Demo users – tap to fill in the username:',
 
   // jobbskjema
   'Jobben mangler plassering. Velg en adresse fra listen, eller klikk i kartet der jobben er.': 'The job has no location. Choose an address from the list, or click the map where the job is.',

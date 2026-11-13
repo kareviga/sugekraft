@@ -31,10 +31,13 @@ export interface MassType {
 
 export type Role = 'admin' | 'driver' | 'client';
 
-/** Demo-innlogginger. driverId kobler til en sjåfør, clientId til en kunde i kunderegisteret (se data/seed.ts). */
+/**
+ * Demo-innlogginger. driverId kobler til en sjåfør, clientId til en kunde i kunderegisteret (se data/seed.ts).
+ * Passord lagres bare som SHA-256-hash. Lag ny hash med:  node scripts/hash-password.mjs "passord"
+ */
 export interface User {
   username: string;
-  password: string;
+  passwordHash: string;
   role: Role;
   name: string;
   driverId?: string;
@@ -133,11 +136,11 @@ export const config: AppConfig = {
     { id: 's6', name: 'Jonas Vik', phone: '900 00 106' },
   ],
 
-  // Enkle demo-innlogginger (ikke ekte sikkerhet – alt kjører i nettleseren).
+  // Demo-innlogginger. Passordene står ikke i koden, bare hashen (ikke ekte sikkerhet – alt kjører i nettleseren).
   users: [
-    { username: 'kontorbruker', password: 'sugekraft123', role: 'admin', name: 'Kontoret' },
-    { username: 'sjåførbruker', password: 'sugekraft123', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
-    { username: 'kundebruker', password: 'sugekraft123', role: 'client', name: 'Geir Moen', clientId: 'k1' },
+    { username: 'kontorbruker', passwordHash: 'c75114bab7b2183a9997576532490c86477bb32fee745f16ffe22a1ac17a1e3e', role: 'admin', name: 'Kontoret' },
+    { username: 'sjåførbruker', passwordHash: '243339a3f7687a38c572e554e70370f6f07882ecb0a198f8834f2ccaf7fd6eff', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
+    { username: 'kundebruker', passwordHash: '20a46a7bd5a56161264158f42eb66503ef2cf8544d0cdb3cb7e1fdd8da139c8e', role: 'client', name: 'Geir Moen', clientId: 'k1' },
   ],
 
   services: [

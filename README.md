@@ -40,11 +40,17 @@ Datoene er relative til dagens dato og flyttes automatisk fram når demoen åpne
 
 Demo-innlogginger (settes i `config.ts` under `users`):
 
-| Brukernavn | Passord | Rolle | Ser |
-|---|---|---|---|
-| `kontorbruker` | `sugekraft123` | Kontor | Alt: Kontor, Kunder, Bilpark, Sjåfør, Arkiv og faktura |
-| `sjåførbruker` | `sugekraft123` | Sjåfør | Egne oppdrag (koblet til sjåfør via `driverId`) |
-| `kundebruker` | `sugekraft123` | Kunde | Kundeportalen for sin kunde (koblet via `clientId`) |
+| Brukernavn | Rolle | Ser |
+|---|---|---|
+| `kontorbruker` | Kontor | Alt: Kontor, Kunder, Bilpark, Sjåfør, Arkiv og faktura |
+| `sjåførbruker` | Sjåfør | Egne oppdrag (koblet til sjåfør via `driverId`) |
+| `kundebruker` | Kunde | Kundeportalen for sin kunde (koblet via `clientId`) |
+
+Passordene står ikke i repoet. `config.ts` har bare en SHA-256-hash (`passwordHash`). Slik bytter du passord:
+
+```bash
+node scripts/hash-password.mjs "NyttPassord"   # lim inn hashen i config.ts
+```
 
 Innloggingen er bare for demo (alt kjører i nettleseren) og huskes til man logger ut.
 `sjåførbruker` kan også skrives `sjaforbruker`.

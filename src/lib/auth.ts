@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { config, type User } from '../config';
+import { sha256 } from './sha256';
 
 /*
  * Enkel demo-innlogging. Brukerne ligger i config.ts. Økten huskes i localStorage
@@ -22,7 +23,8 @@ let current = read();
 export function login(username: string, password: string): User | null {
   // æ/ø/å kan skrives som ae/o/a (f.eks. «sjaforbruker»)
   const norm = (v: string) => v.trim().toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/å/g, 'a');
-  const u = config.users.find(x => norm(x.username) === norm(username) && x.password === password);
+  const hash = sha256(password);
+  const u = config.users.find(x => norm(x.username) === norm(username) && x.passwordHash === hash);
   if (!u) return null;
   current = u;
   try {

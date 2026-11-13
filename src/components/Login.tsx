@@ -44,7 +44,7 @@ export function Login() {
           {tr('Logg inn')}
         </button>
         <div className="demousers">
-          <span className="muted">{tr('Demo-brukere – trykk for å fylle ut:')}</span>
+          <span className="muted">{tr('Demo-brukere – trykk for å fylle ut brukernavn:')}</span>
           <div>
             {config.users.map(x => (
               <button
@@ -52,14 +52,12 @@ export function Login() {
                 type="button"
                 onClick={() => {
                   setU(x.username);
-                  setP(x.password);
                   setErr('');
+                  document.getElementById('l-pass')?.focus();
                 }}
               >
                 <b>{tr(ROLE_LABEL[x.role])}</b>
-                <small>
-                  {x.username} / {x.password}
-                </small>
+                <small>{x.username}</small>
               </button>
             ))}
           </div>
