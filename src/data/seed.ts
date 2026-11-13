@@ -183,12 +183,9 @@ function createClients(): Client[] {
   });
 }
 
-export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string, string>; clients: Client[] } {
+export function createSeed(): { jobs: Job[]; nextNo: number; clients: Client[] } {
   const clients = createClients();
   const clientId = (name: string) => clients.find(c => c.name === name)?.id ?? '';
-  const out: Record<string, string> = {};
-  const reserve = config.vehicles[5];
-  if (reserve) out[reserve.id] = 'EU-kontroll fredag';
   let no = 2031;
   const jobs = ROWS.map((r, i): Job => {
     const [address, place, lat, lon, how] = A[r.a] as Addr;
@@ -236,5 +233,5 @@ export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string,
       closedAt: r.done ? dayOffset(r.d) : '',
     };
   });
-  return { jobs, nextNo: no, out, clients };
+  return { jobs, nextNo: no, clients };
 }

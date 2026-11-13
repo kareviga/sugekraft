@@ -4,7 +4,7 @@
  * Tilgangsreglene i databasen (RLS) avgjør hva hver bruker får se og endre.
  */
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { config, type AppConfig } from '../config';
+import { config, type AppConfig, type Vehicle } from '../config';
 import type { Client, Job } from '../types';
 import { setPhotoUrl } from './photoCache';
 import { supabase } from './supabase';
@@ -161,9 +161,11 @@ export async function fetchProfile(): Promise<Profile | null> {
 export interface LiveData {
   jobs: Job[];
   clients: Client[];
-  out: Record<string, string>;
+  vehicles: Vehicle[];
   profiles: Profile[];
 }
+
+const rowToVehicle = (v: Row): Vehicle => ({ id: v.id, name: v.name, tag: v.tag, type: v.type, regNr: v.reg_nr, active: v.active });
 
 /** Bruk firmaoppsettet fra databasen i stedet for config.ts */
 function applySettings(name: string, s: Row) {
@@ -204,12 +206,8 @@ export async function fetchAll(role: Profile['role']): Promise<LiveData> {
   if (company.data) applySettings(company.data.name, company.data.settings ?? {});
 
   const c = config as AppConfig;
-  c.vehicles = (vehicles.data ?? []).map((v: Row) => ({ id: v.id, name: v.name, tag: v.tag, type: v.type, regNr: v.reg_nr }));
+  c.vehicles = (vehicles.data ?? []).map(rowToVehicle);
   c.drivers = (drivers.data ?? []).map((d: Row) => ({ id: d.id, name: d.name, phone: d.phone }));
-  const out: Record<string, string> = {};
-  (vehicles.data ?? []).forEach((v: Row) => {
-    if (v.out_note !== null) out[v.id] = v.out_note;
-  });
 
   photoRows.clear();
   (photos.data ?? []).forEach((p: Row) => {
@@ -222,7 +220,7 @@ export async function fetchAll(role: Profile['role']): Promise<LiveData> {
   return {
     jobs: (jobs.data ?? []).map(rowToJob),
     clients: (clients.data ?? []).map(rowToClient),
-    out,
+    vehicles: c.vehicles,
     profiles: (profiles.data ?? []) as Profile[],
   };
 }
@@ -301,8 +299,10 @@ export async function deleteClientRow(id: string) {
   const { error } = await sb().from('clients').delete().eq('id', id);
   fail(error);
 }
-export async function setVehicleOut(id: string, note: string | null) {
-  const { error } = await sb().from('vehicles').update({ out_note: note }).eq('id', id);
+export async function saveVehicleRow(v: Vehicle, isNew: boolean, sort = 0) {
+  const row = { name: v.name, tag: v.tag, type: v.type, reg_nr: v.regNr, active: v.active !== false };
+  const q = isNew ? sb().from('vehicles').insert({ id: v.id, sort, ...row }) : sb().from('vehicles').update(row).eq('id', v.id);
+  const { error } = await q;
   fail(error);
 }
 
@@ -316,7 +316,7 @@ export function subscribe(h: {
   job: (j: Job) => void;
   jobDeleted: (id: string) => void;
   photosChanged: (jobId: string) => void;
-  vehicle: (id: string, outNote: string | null) => void;
+  vehicle: (v: Vehicle) => void;
 }) {
   unsubscribe();
   const db = sb();
@@ -334,9 +334,8 @@ export function subscribe(h: {
       await signPhotos((data ?? []).map((r: Row) => r.path));
       h.photosChanged(jobId);
     })
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'vehicles' }, p => {
-      const r = p.new as Row;
-      h.vehicle(r.id, r.out_note);
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'vehicles' }, p => {
+      if (p.eventType !== 'DELETE') h.vehicle(rowToVehicle(p.new as Row));
     })
     .subscribe();
 }

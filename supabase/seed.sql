@@ -8,7 +8,7 @@ insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, 
 insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('b0000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000001', 'Bil 3', '3', 'Spylebil', 'EB 39915', null, 2);
 insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('b0000000-0000-4000-8000-000000000004', 'c0000000-0000-4000-8000-000000000001', 'Bil 4', '4', 'Kombibil', 'EB 42051', null, 3);
 insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('b0000000-0000-4000-8000-000000000005', 'c0000000-0000-4000-8000-000000000001', 'Bil 5', '5', 'ADR-tankbil', 'EB 40762', null, 4);
-insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('b0000000-0000-4000-8000-000000000006', 'c0000000-0000-4000-8000-000000000001', 'Bil 6', '6', 'Slamsuger (reserve)', 'EB 37720', 'EU-kontroll fredag', 5);
+insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('b0000000-0000-4000-8000-000000000006', 'c0000000-0000-4000-8000-000000000001', 'Bil 6', '6', 'Slamsuger (reserve)', 'EB 37720', null, 5);
 insert into public.drivers (id, company_id, name, phone) values ('d0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001', 'Ola Haugen', '900 00 101');
 insert into public.drivers (id, company_id, name, phone) values ('d0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000001', 'Kari Bøe', '900 00 102');
 insert into public.drivers (id, company_id, name, phone) values ('d0000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000001', 'Per Sletten', '900 00 103');

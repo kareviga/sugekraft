@@ -14,6 +14,8 @@ export interface Vehicle {
   tag: string;       // kort merke på kartnålen (1–2 tegn)
   type: string;      // f.eks. «Supersuger»
   regNr: string;
+  /** false = tatt ut av bilparken (beholdes i historikken) */
+  active?: boolean;
 }
 
 /** Sjåfører er adskilt fra bilene. I hvert oppdrag velges bil og sjåfør hver for seg. */

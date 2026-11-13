@@ -254,7 +254,7 @@ export function JobForm({
                 <label htmlFor="f-car">{tr('Bil')}</label>
                 <select id="f-car" value={v.car} onChange={e => set('car', e.target.value)}>
                   <option value="">{tr('Ingen bil valgt')}</option>
-                  <VehicleOptions exceptJob={job?.id} />
+                  <VehicleOptions exceptJob={job?.id} current={v.car} />
                 </select>
               </div>
               <div className="field">

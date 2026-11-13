@@ -52,5 +52,5 @@ insert into invites (email, company_id, role, full_name)
   values ('sjef@nyttfirma.no', (select id from companies where slug = 'nyttfirma'), 'admin', 'Sjefen');
 ```
 
-Opprett så brukeren i *Authentication*. Kunder og oppdrag legger admin inn i appen. Biler, sjåfører
-og flere brukere legges foreløpig inn i *Table Editor* / *Authentication* (administrasjon i appen kommer).
+Opprett så brukeren i *Authentication*. Kunder og oppdrag legger admin inn i appen. Biler legger admin
+inn under Bilpark. Sjåfører og flere brukere legges foreløpig inn i *Table Editor* / *Authentication*.

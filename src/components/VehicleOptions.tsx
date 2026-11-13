@@ -1,24 +1,26 @@
 import { config } from '../config';
-import { useJobs, useOut } from '../store';
+import { useJobs, useVehicles } from '../store';
 import { driverBusy } from '../lib/fleet';
 import { underway } from '../lib/steps';
 import { tr, trd } from '../i18n';
 
-/** <option>-er for biler. Viser om bilen er ute av drift eller på oppdrag nå. */
-export function VehicleOptions({ exceptJob }: { exceptJob?: string }) {
-  const out = useOut();
+/** <option>-er for biler i bilparken. Viser om bilen er på oppdrag nå. «current» tas med selv om bilen er tatt ut. */
+export function VehicleOptions({ exceptJob, current }: { exceptJob?: string; current?: string }) {
+  const vehicles = useVehicles();
   const jobs = useJobs();
   return (
     <>
-      {config.vehicles.map(c => {
-        const busy = jobs.find(j => j.car === c.id && underway(j) && j.id !== exceptJob);
-        return (
-          <option key={c.id} value={c.id}>
-            {c.name} – {trd(c.type)}
-            {out[c.id] !== undefined ? tr(' (ute av drift)') : busy ? ` (${tr('på oppdrag nå')})` : ''}
-          </option>
-        );
-      })}
+      {vehicles
+        .filter(c => c.active !== false || c.id === current)
+        .map(c => {
+          const busy = jobs.find(j => j.car === c.id && underway(j) && j.id !== exceptJob);
+          return (
+            <option key={c.id} value={c.id}>
+              {c.name} – {trd(c.type)}
+              {busy ? ` (${tr('på oppdrag nå')})` : ''}
+            </option>
+          );
+        })}
     </>
   );
 }

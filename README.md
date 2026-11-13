@@ -141,8 +141,9 @@ maks 1600 px og ca. 350 kB (lesbar tekst). PDF-er komprimeres også.
 - Biler (`vehicles`) og sjåfører (`drivers`) er adskilte lister i konfigfilen.
 - I hvert oppdrag velges **bil** og **sjåfør** hver for seg. Uten sjåfør er oppdraget en **Ny bestilling**,
   med sjåfør er det **Aktivt**. Samme bil kan kjøres av forskjellige sjåfører på forskjellige oppdrag.
-- **Bilpark** viser bare bilene: type, reg.nr., status (på oppdrag, har jobber i dag, ledig, ute av drift),
-  hvem som er i bilen nå og dagens oppdrag. Alt utledes av oppdragene. Det eneste som settes der, er «ute av drift».
+- **Bilpark** er oversikten over firmaets biler: navn, type, reg.nr., status (på oppdrag, har jobber i dag,
+  ledig) og hvem som er i bilen nå. Her legger kontoret til nye biler og fjerner biler som tas ut av flåten.
+  Fjernede biler beholdes i historikken, slik at gamle jobber og rapporter viser riktig bil.
 - Sjåføren velger «Jeg er» og ser oppdragene sine med hvilken bil som skal brukes.
 
 ## Statuspunkter for sjåføren

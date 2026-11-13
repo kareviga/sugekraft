@@ -34,7 +34,7 @@ const relTs = (s: string) => {
   return `((current_date + ${daysBetween(today, d)}) + time '${t || '12:00'}') at time zone 'Europe/Oslo'`;
 };
 
-const { jobs, nextNo, out, clients } = createSeed();
+const { jobs, nextNo, clients } = createSeed();
 const L: string[] = [];
 L.push('-- GENERERT av scripts/gen-seed.ts – ikke rediger for hånd. Kjør: npm run gen:seed');
 L.push('-- Eksempeldata for demo-firmaet. Kjøres etter migrations/0001_init.sql.');
@@ -56,7 +56,7 @@ const settings = {
 L.push(`insert into public.companies (id, slug, name, settings, next_job_no) values ('${COMPANY}', 'sugefirma', ${q(config.company.name)}, ${json(settings)}, ${nextNo});`);
 
 config.vehicles.forEach((v, i) =>
-  L.push(`insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('${vehicleId(v.id)}', '${COMPANY}', ${q(v.name)}, ${q(v.tag)}, ${q(v.type)}, ${q(v.regNr)}, ${out[v.id] !== undefined ? q(out[v.id]) : 'null'}, ${i});`),
+  L.push(`insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('${vehicleId(v.id)}', '${COMPANY}', ${q(v.name)}, ${q(v.tag)}, ${q(v.type)}, ${q(v.regNr)}, null, ${i});`),
 );
 config.drivers.forEach(d =>
   L.push(`insert into public.drivers (id, company_id, name, phone) values ('${driverId(d.id)}', '${COMPANY}', ${q(d.name)}, ${q(d.phone)});`),

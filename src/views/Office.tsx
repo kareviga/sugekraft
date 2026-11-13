@@ -3,7 +3,7 @@ import { config } from '../config';
 import { JobMap } from '../components/JobMap';
 import { JobForm } from '../components/JobForm';
 import { Checklist, Confirm, Lightbox, Mark, Pill, Thumbs } from '../components/ui';
-import { deleteJob, updateJob, useJobs, useOut } from '../store';
+import { deleteJob, updateJob, useJobs } from '../store';
 import { FleetCompact } from './Fleet';
 import { DriverOptions, VehicleOptions } from '../components/VehicleOptions';
 import { driverBusy } from '../lib/fleet';
@@ -107,7 +107,7 @@ export function Office({
           <div className="two">
             <select className="sel-in" aria-label={tr('Filtrer på bil')} value={carF} onChange={e => setCarF(e.target.value)}>
               <option value="">{tr('Alle biler')}</option>
-              {config.vehicles.map(v => (
+              {config.vehicles.filter(v => v.active !== false).map(v => (
                 <option key={v.id} value={v.id}>
                   {v.name}
                 </option>
@@ -357,9 +357,7 @@ function Detail({
 /** Velg bil og sjåfør for et oppdrag – hver for seg. Sjåfør gjør oppdraget aktivt. */
 function Assign({ j }: { j: Job }) {
   const jobs = useJobs();
-  const out = useOut();
   const busy = driverBusy(j.driver, jobs, j.id);
-  const carOut = j.car && out[j.car] !== undefined;
   return (
     <div className="assign">
       <div className="field">
@@ -373,7 +371,7 @@ function Assign({ j }: { j: Job }) {
           }}
         >
           <option value="">{tr('Ingen bil valgt')}</option>
-          <VehicleOptions exceptJob={j.id} />
+          <VehicleOptions exceptJob={j.id} current={j.car} />
         </select>
       </div>
       <div className="field">
@@ -392,7 +390,6 @@ function Assign({ j }: { j: Job }) {
         </select>
       </div>
       {!j.car && j.driver && <p className="alert small">{tr('Velg bil før sjåføren kjører ut.')}</p>}
-      {carOut && <p className="alert small">{vehicleName(j.car)} er ute av drift: {out[j.car] || tr('ingen årsak oppgitt')}.</p>}
       {busy && j.status === 'aktiv' && !underway(j) && (
         <p className="note">
           {tr('{d} er på oppdrag hos {c} nå.', { d: driver(j.driver)?.name ?? '', c: busy.customer })}

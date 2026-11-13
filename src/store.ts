@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { config } from './config';
+import { config, type Vehicle } from './config';
 import { createSeed } from './data/seed';
 import { toast } from './lib/toast';
 import { dayOffset, daysBetween, nowHHMM, shiftDate } from './lib/utils';
@@ -24,8 +24,8 @@ interface DB {
   jobs: Job[];
   nextNo: number;
   day: string;
-  /** Biler ute av drift: bil-id → merknad */
-  out: Record<string, string>;
+  /** Bilparken (også biler tatt ut, med active=false, for historikken) */
+  vehicles: Vehicle[];
   /** Kunderegister */
   clients: Client[];
   nextClient: number;
@@ -51,11 +51,15 @@ const norm = (j: Job): Job => {
   };
 };
 
-const empty = (): DB => ({ v: 1, jobs: [], nextNo: 1, day: dayOffset(0), out: {}, clients: [], nextClient: 1, profiles: [] });
+/** Bilene fra config.ts er utgangspunktet i demo-modus */
+const DEFAULT_VEHICLES: Vehicle[] = config.vehicles.map(v => ({ ...v, active: true }));
+
+const empty = (): DB => ({ v: 1, jobs: [], nextNo: 1, day: dayOffset(0), vehicles: [], clients: [], nextClient: 1, profiles: [] });
 
 function fresh(): DB {
-  const { jobs, nextNo, out, clients } = createSeed();
-  return { v: 1, jobs: jobs.map(norm), nextNo, day: dayOffset(0), out, clients, nextClient: clients.length + 1, profiles: [] };
+  config.vehicles = DEFAULT_VEHICLES;
+  const { jobs, nextNo, clients } = createSeed();
+  return { v: 1, jobs: jobs.map(norm), nextNo, day: dayOffset(0), vehicles: DEFAULT_VEHICLES, clients, nextClient: clients.length + 1, profiles: [] };
 }
 
 function rebase(db: DB): DB {
@@ -78,7 +82,7 @@ function load(): DB {
       const db = JSON.parse(raw) as DB;
       if (db && db.v === 1 && Array.isArray(db.jobs)) {
         db.jobs = db.jobs.map(j => norm({ ...j, driver: j.driver ?? '', driverName: j.driverName ?? '' }));
-        db.out = db.out ?? {};
+        db.vehicles = Array.isArray(db.vehicles) && db.vehicles.length ? db.vehicles : DEFAULT_VEHICLES;
         db.clients = db.clients ?? [];
         db.nextClient = db.nextClient ?? db.clients.length + 1;
         db.profiles = [];
@@ -105,6 +109,7 @@ function persistNow() {
 }
 function commit(next: DB, immediate = false) {
   db = { ...next, jobs: next.jobs.map(norm) };
+  if (db.vehicles.length || isLive()) config.vehicles = db.vehicles;
   listeners.forEach(l => l());
   if (isLive()) return;
   clearTimeout(saveTimer);
@@ -120,7 +125,8 @@ if (!isLive()) {
     try {
       const next = JSON.parse(e.newValue) as DB;
       if (!next || !Array.isArray(next.jobs)) return;
-      db = { ...next, profiles: [], jobs: next.jobs.map(norm) };
+      db = { ...next, profiles: [], jobs: next.jobs.map(norm), vehicles: next.vehicles ?? db.vehicles };
+      config.vehicles = db.vehicles;
       listeners.forEach(l => l());
     } catch {
       /* ignorer ugyldige data */
@@ -159,7 +165,7 @@ let liveRole: live.Profile['role'] = 'admin';
 export async function loadLive(role: live.Profile['role']) {
   liveRole = role;
   const d = await live.fetchAll(role);
-  commit({ ...empty(), jobs: d.jobs, clients: d.clients, out: d.out, profiles: d.profiles });
+  commit({ ...empty(), jobs: d.jobs, clients: d.clients, vehicles: d.vehicles, profiles: d.profiles });
   live.subscribe({
     job: j => {
       const p = pending.get(j.id);
@@ -169,11 +175,9 @@ export async function loadLive(role: live.Profile['role']) {
     },
     jobDeleted: id => commit({ ...db, jobs: db.jobs.filter(j => j.id !== id) }),
     photosChanged: id => commit({ ...db, jobs: db.jobs.map(j => (j.id === id ? { ...j, ...live.photoRefs(id) } : j)) }),
-    vehicle: (id, note) => {
-      const out = { ...db.out };
-      if (note === null) delete out[id];
-      else out[id] = note;
-      commit({ ...db, out });
+    vehicle: v => {
+      const exists = db.vehicles.some(x => x.id === v.id);
+      commit({ ...db, vehicles: exists ? db.vehicles.map(x => (x.id === v.id ? v : x)) : [...db.vehicles, v] });
     },
   });
 }
@@ -220,8 +224,8 @@ export function useJobs(): Job[] {
 export function useClients(): Client[] {
   return useSyncExternalStore(subscribe, () => db.clients);
 }
-export function useOut(): Record<string, string> {
-  return useSyncExternalStore(subscribe, () => db.out);
+export function useVehicles(): Vehicle[] {
+  return useSyncExternalStore(subscribe, () => db.vehicles);
 }
 export const getClient = (id: string | undefined) => (id ? db.clients.find(c => c.id === id) : undefined);
 export const clientByName = (name: string) => db.clients.find(c => c.name.trim().toLowerCase() === name.trim().toLowerCase());
@@ -269,13 +273,29 @@ export function deleteClient(id: string) {
 //  Biler
 // ---------------------------------------------------------------------------
 
-/** Sett bil ute av drift (med merknad) eller tilbake i drift (null). */
-export function setOut(vehicleId: string, note: string | null) {
-  const out = { ...db.out };
-  if (note === null) delete out[vehicleId];
-  else out[vehicleId] = note;
-  commit({ ...db, out }, true);
-  remote(() => live.setVehicleOut(vehicleId, note));
+/** Legg til eller endre en bil. Kortnavnet på kartnålen lages fra navnet (f.eks. «Bil 7» → «7»). */
+export async function saveVehicle(data: Omit<Vehicle, 'id' | 'tag' | 'active'>, id?: string): Promise<Vehicle> {
+  const digits = data.name.match(/\d+/)?.[0];
+  const tag = (digits ?? data.name.replace(/\s+/g, '').slice(0, 2)).slice(0, 3).toUpperCase();
+  if (id) {
+    const v = { ...db.vehicles.find(x => x.id === id)!, ...data, tag };
+    commit({ ...db, vehicles: db.vehicles.map(x => (x.id === id ? v : x)) }, true);
+    if (isLive()) await live.saveVehicleRow(v, false).catch(remoteError);
+    return v;
+  }
+  const v: Vehicle = { ...data, tag, active: true, id: isLive() ? live.uuid() : `b${Date.now().toString(36)}` };
+  commit({ ...db, vehicles: [...db.vehicles, v] }, true);
+  if (isLive()) await live.saveVehicleRow(v, true, db.vehicles.length).catch(remoteError);
+  return v;
+}
+
+/** Ta en bil ut av bilparken. Den beholdes i historikken (gamle jobber og rapporter). */
+export function removeVehicle(id: string) {
+  const v = db.vehicles.find(x => x.id === id);
+  if (!v) return;
+  const off = { ...v, active: false };
+  commit({ ...db, vehicles: db.vehicles.map(x => (x.id === id ? off : x)) }, true);
+  remote(() => live.saveVehicleRow(off, false));
 }
 
 // ---------------------------------------------------------------------------

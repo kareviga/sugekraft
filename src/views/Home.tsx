@@ -3,7 +3,6 @@ import { config } from '../config';
 import { Icon } from '../components/Icon';
 import { JobForm } from '../components/JobForm';
 import { Pill } from '../components/ui';
-import { useOut } from '../store';
 import { progress, underway } from '../lib/steps';
 import { toast } from '../lib/toast';
 import { cx, dayOffset, driver, vehicle } from '../lib/utils';
@@ -32,14 +31,12 @@ export function Home({
   openJob: (id: string) => void;
   openOffice: (focus: OfficeFocus) => void;
 }) {
-  const out = useOut();
   const [newJob, setNewJob] = useState(false);
   const today = dayOffset(0);
 
   const noDriver = jobs.filter(j => j.status === 'kommende');
   const newOrders = noDriver.length + requests.length;
   const running = jobs.filter(underway);
-  const outCount = Object.keys(out).length;
   const todays = jobs
     .filter(j => j.date === today && j.status !== 'ferdig')
     .sort((a, b) => (a.steps.kjoring?.time || a.time || '99').localeCompare(b.steps.kjoring?.time || b.time || '99'));
@@ -58,7 +55,6 @@ export function Home({
       tone: 'wait',
       onClick: () => openOffice('kommende'),
     },
-    { n: outCount, title: tr('Biler ute av drift'), text: tr('Verksted, kontroll e.l.'), icon: 'wrench', tone: 'warn', onClick: () => go('bilpark') },
   ];
   const needs = attention.filter(a => a.n > 0);
 
