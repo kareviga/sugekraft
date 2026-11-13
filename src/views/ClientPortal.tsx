@@ -96,7 +96,7 @@ export function ClientPortal({ jobs, clientId }: { jobs: Job[]; clientId: string
                       {j.place ? `, ${j.place}` : ''}
                     </small>
                     <small className="muted">
-                      {relDay(j.date)} {j.time ? `${tr('kl.')} ${j.time}` : ''} · {j.id}
+                      {relDay(j.date)} {j.time ? `${tr('kl.')} ${j.time}` : ''} · {j.no}
                       {j.ref ? ` · ref. ${j.ref}` : ''}
                     </small>
                   </div>
@@ -126,7 +126,7 @@ export function ClientPortal({ jobs, clientId }: { jobs: Job[]; clientId: string
           onSaved={j => {
             setForm(null);
             setTab('open');
-            toast(form.job ? tr('Bestillingen er oppdatert.') : tr('Takk! Bestilling {id} er sendt til {c}.', { id: j.id, c: config.company.name }));
+            toast(form.job ? tr('Bestillingen er oppdatert.') : tr('Takk! Bestilling {id} er sendt til {c}.', { id: j.no, c: config.company.name }));
           }}
         />
       )}
@@ -170,7 +170,7 @@ function OrderView({ j, onClose, onEdit, onWithdraw, onReorder }: { j: Job; onCl
   return (
     <Modal
       wide
-      title={`${trd(j.service)} · ${j.id}`}
+      title={`${trd(j.service)} · ${j.no}`}
       onClose={onClose}
       footer={
         <>

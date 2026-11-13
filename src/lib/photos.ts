@@ -2,6 +2,7 @@ import { config } from '../config';
 import type { Job } from '../types';
 import { nice, vehicleName } from './utils';
 import { getLang, tr, trd } from '../i18n';
+import { getPhotoUrl } from './photoCache';
 
 /*
  * Bilder lagres som data-URL-er (JPEG) i localStorage.
@@ -190,6 +191,7 @@ const cache = new Map<string, string>();
 
 /** Gjør om en bildereferanse til noe <img>/jsPDF kan bruke. */
 export function photoSrc(ref: string, j: Job): string {
+  if (ref.startsWith('sb:')) return getPhotoUrl(ref.slice(3)) ?? '';
   if (!ref.startsWith('demo:')) return ref;
   const key = ref === 'demo:ticket' ? `t|${getLang()}|${j.id}|${j.ticketNo}|${j.amount}|${j.disposal}|${j.end}` : ref;
   let v = cache.get(key);
@@ -238,5 +240,18 @@ export function rasterize(src: string, h = 160): Promise<{ data: string; w: numb
     };
     i.onerror = () => res(null);
     i.src = src;
+  });
+}
+
+/** Bilde som data-URL (for PDF). Henter bilder fra Storage ved behov. */
+export async function photoData(ref: string, j: Job): Promise<string> {
+  const src = photoSrc(ref, j);
+  if (!src || src.startsWith('data:')) return src;
+  const blob = await (await fetch(src)).blob();
+  return await new Promise<string>((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = rej;
+    r.readAsDataURL(blob);
   });
 }

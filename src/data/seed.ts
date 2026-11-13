@@ -194,7 +194,8 @@ export function createSeed(): { jobs: Job[]; nextNo: number; out: Record<string,
     const [address, place, lat, lon, how] = A[r.a] as Addr;
     const car = C(r.car);
     return {
-      id: `${config.jobPrefix}-${no++}`,
+      id: `${config.jobPrefix}-${no}`,
+      no: `${config.jobPrefix}-${no++}`,
       status: r.done ? 'ferdig' : C_DRV(D_IDX(r, i)) ? 'aktiv' : 'kommende',
       ...CUST[r.c],
       address,

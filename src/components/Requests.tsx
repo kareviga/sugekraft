@@ -71,7 +71,7 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
   return (
     <Modal
       wide
-      title={tr('Bestilling {id} fra {c}', { id: r.id, c: r.customer })}
+      title={tr('Bestilling {id} fra {c}', { id: r.no, c: r.customer })}
       onClose={onClose}
       footer={
         declining ? (
@@ -104,7 +104,7 @@ function RequestDialog({ r, onClose, onAccepted }: { r: Job; onClose: () => void
               onClick={() => {
                 acceptRequest(r.id, { car, driver: drv });
                 const d = driver(drv);
-                toast(d ? tr('{id} er godtatt og satt på {d}.', { id: r.id, d: d.name }) : tr('{id} er godtatt og ligger som kommende.', { id: r.id }));
+                toast(d ? tr('{id} er godtatt og satt på {d}.', { id: r.no, d: d.name }) : tr('{id} er godtatt og ligger som kommende.', { id: r.no }));
                 onAccepted({ ...r, car, driver: drv });
               }}
             >

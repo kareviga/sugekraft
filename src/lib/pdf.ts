@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import { config } from '../config';
 import type { Job } from '../types';
-import { photoSrc, rasterize } from './photos';
+import { photoData, rasterize } from './photos';
 import { stepsFor, totalHours } from './steps';
 import { dayOffset, download, fmtAmount, hexToRgb, hours, jobDriverName, nice, num, totals, vehicle } from './utils';
 import { tr, trd } from '../i18n';
@@ -18,7 +18,7 @@ const MUTED: [number, number, number] = [100, 112, 116];
 const t = (s: unknown) => String(s ?? '').replace(/[–—]/g, '-').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/⚠/g, '');
 
 export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filename: string }> {
-  const jobs = [...list].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  const jobs = [...list].sort((a, b) => a.date.localeCompare(b.date) || a.no.localeCompare(b.no));
   const d = new jsPDF({ unit: 'mm', format: 'a4' });
   const L = 14, W = 182, R = L + W;
   const brand = hexToRgb(config.colors.primary);
@@ -116,7 +116,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   thead();
   d.setFontSize(8.5);
   jobs.forEach((j, idx) => {
-    const vals = [j.id, nice(j.date), j.ref || '-', `${j.address}, ${j.place}`, trd(j.service), trd(j.massType).replace(/ \((kun spyling\/inspeksjon|jetting\/inspection only)\)/, ''), t(fmtAmount(j)), j.ticketNo, num(hours(j))];
+    const vals = [j.no, nice(j.date), j.ref || '-', `${j.address}, ${j.place}`, trd(j.service), trd(j.massType).replace(/ \((kun spyling\/inspeksjon|jetting\/inspection only)\)/, ''), t(fmtAmount(j)), j.ticketNo, num(hours(j))];
     const wr = vals.map((v, i) => d.splitTextToSize(t(v), cols[i][1] - 2.5) as string[]);
     const n = Math.max(...wr.map(a => a.length));
     const h = n * 3.7 + 2.6;
@@ -177,7 +177,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   // ---------- én side per jobb ----------
   for (const j of jobs) {
     d.addPage();
-    header(`${j.id} · ${trd(j.service)}`, `${cust} · ${nice(j.date)}`);
+    header(`${j.no} · ${trd(j.service)}`, `${cust} · ${nice(j.date)}`);
     const v = vehicle(j.car);
     const f: [string, string][] = [
       [tr('Kunde'), j.customer],
@@ -265,12 +265,12 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
       if (i % 2 === 0 && i > 0) yy += bh + 10;
       if (yy + bh + 6 > 284) {
         d.addPage();
-        header(tr('{id} · bilder (forts.)', { id: j.id }), `${cust} · ${nice(j.date)}`);
+        header(tr('{id} · bilder (forts.)', { id: j.no }), `${cust} · ${nice(j.date)}`);
         yy = 48;
         i = 0;
       }
-      const src = photoSrc(ref, j);
       try {
+        const src = await photoData(ref, j);
         const pr = d.getImageProperties(src);
         const r = Math.min(bw / pr.width, bh / pr.height);
         const iw = pr.width * r, ih = pr.height * r;

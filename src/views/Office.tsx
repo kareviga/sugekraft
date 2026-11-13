@@ -56,7 +56,7 @@ export function Office({
   const ql = q.trim().toLowerCase();
   const list = scoped
     .filter(j => show[j.status])
-    .filter(j => !ql || [j.id, j.customer, j.address, j.place, j.service, j.ref, jobDriverName(j)].join(' ').toLowerCase().includes(ql))
+    .filter(j => !ql || [j.no, j.customer, j.address, j.place, j.service, j.ref, jobDriverName(j)].join(' ').toLowerCase().includes(ql))
     .sort(
       (a, b) =>
         ORDER[a.status] - ORDER[b.status] ||
@@ -207,13 +207,13 @@ export function Office({
             setForm(null);
             setShow(o => ({ ...o, [j.status]: true }));
             pick(j.id, true);
-            toast(j.driver ? tr('{id} er lagret – {d}. Oppdraget er aktivt.', { id: j.id, d: `${driver(j.driver)?.name}${j.car ? ` / ${vehicleName(j.car)}` : ''}` }) : tr('{id} er lagret som kommende (ingen sjåfør ennå).', { id: j.id }));
+            toast(j.driver ? tr('{id} er lagret – {d}. Oppdraget er aktivt.', { id: j.no, d: `${driver(j.driver)?.name}${j.car ? ` / ${vehicleName(j.car)}` : ''}` }) : tr('{id} er lagret som kommende (ingen sjåfør ennå).', { id: j.no }));
           }}
         />
       )}
       {confirmDel && (
         <Confirm
-          title={`Slette ${confirmDel.id}?`}
+          title={tr('Slette {id}?', { id: confirmDel.no })}
           text={tr('Jobben for {c} {d} slettes.', { c: confirmDel.customer, d: nice(confirmDel.date) })}
           ok="Slett jobb"
           danger
@@ -221,7 +221,7 @@ export function Office({
           onOk={() => {
             deleteJob(confirmDel.id);
             setSel(null);
-            toast(tr('{id} er slettet.', { id: confirmDel.id }));
+            toast(tr('{id} er slettet.', { id: confirmDel.no }));
           }}
         />
       )}
@@ -251,7 +251,7 @@ function Detail({
         <div>
           <h2>{j.customer}</h2>
           <small>
-            {j.id} · {trd(j.service)}
+            {j.no} · {trd(j.service)}
           </small>
         </div>
         <Pill status={j.status} />
@@ -358,7 +358,7 @@ function Assign({ j }: { j: Job }) {
           value={j.car}
           onChange={e => {
             updateJob(j.id, { car: e.target.value }, true);
-            toast(e.target.value ? tr('{id}: {v} er valgt.', { id: j.id, v: vehicleLong(e.target.value) }) : tr('{id}: bilen er fjernet.', { id: j.id }));
+            toast(e.target.value ? tr('{id}: {v} er valgt.', { id: j.no, v: vehicleLong(e.target.value) }) : tr('{id}: bilen er fjernet.', { id: j.no }));
           }}
         >
           <option value="">{tr('Ingen bil valgt')}</option>
@@ -373,7 +373,7 @@ function Assign({ j }: { j: Job }) {
           onChange={e => {
             const d = driver(e.target.value);
             updateJob(j.id, { driver: e.target.value }, true);
-            toast(d ? tr('{d} er satt på {id}. Oppdraget er aktivt.', { d: d.name, id: j.id }) : tr('Sjåføren er fjernet. {id} er kommende igjen.', { id: j.id }));
+            toast(d ? tr('{d} er satt på {id}. Oppdraget er aktivt.', { d: d.name, id: j.no }) : tr('Sjåføren er fjernet. {id} er kommende igjen.', { id: j.no }));
           }}
         >
           <option value="">{tr('Ingen sjåfør – Kommende')}</option>

@@ -3,11 +3,20 @@
 Webapp for sugebilfirmaer: kontor, sjåfør og arkiv med PDF-fakturagrunnlag.
 Ren frontend (Vite + React + TypeScript). Data lagres i nettleserens localStorage.
 
-## Backend (Supabase)
+## Backend (Supabase) og moduser
 
-Appen kjører i dag i **demo-modus** med data i nettleseren. Databasen for drift (Supabase, én felles
-løsning for mange firmaer) ligger i [`supabase/`](supabase/README.md): skjema, tilgangsregler,
-demo-data og tester (`npm run test:db`). Å koble appen til databasen er neste trinn.
+Appen har to moduser, og du velger på innloggingssiden:
+
+- **Ekte data (server):** Supabase med innlogging, tilgangsregler i databasen, bilder i Storage og
+  sanntid, slik at endringer vises hos alle med en gang. Krever `.env.local` (se `.env.example`).
+- **Demo-modus (uten nett):** eksempeldata i nettleseren, fin til presentasjoner.
+
+Uten `.env.local` kjører appen alltid i demo-modus. Oppsett av databasen står i
+[`supabase/README.md`](supabase/README.md). Brukernavnene (`kontorbruker` osv.) virker i begge
+modusene. I ekte modus kan man også logge inn med e-post.
+
+Ved publisering (Netlify/Vercel) legges `VITE_SUPABASE_URL` og `VITE_SUPABASE_ANON_KEY` inn som
+miljøvariabler i tjenesten.
 
 ## Kjøre
 

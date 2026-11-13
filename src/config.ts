@@ -37,6 +37,8 @@ export type Role = 'admin' | 'driver' | 'client';
  */
 export interface User {
   username: string;
+  /** E-post i Supabase (live-modus). Brukernavnet over virker også ved innlogging. */
+  email?: string;
   passwordHash: string;
   role: Role;
   name: string;
@@ -138,9 +140,9 @@ export const config: AppConfig = {
 
   // Demo-innlogginger. Passordene står ikke i koden, bare hashen (ikke ekte sikkerhet – alt kjører i nettleseren).
   users: [
-    { username: 'kontorbruker', passwordHash: 'c75114bab7b2183a9997576532490c86477bb32fee745f16ffe22a1ac17a1e3e', role: 'admin', name: 'Kontoret' },
-    { username: 'sjåførbruker', passwordHash: '243339a3f7687a38c572e554e70370f6f07882ecb0a198f8834f2ccaf7fd6eff', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
-    { username: 'kundebruker', passwordHash: '20a46a7bd5a56161264158f42eb66503ef2cf8544d0cdb3cb7e1fdd8da139c8e', role: 'client', name: 'Geir Moen', clientId: 'k1' },
+    { username: 'kontorbruker', email: 'kontorbruker@sugekraft.test', passwordHash: 'c75114bab7b2183a9997576532490c86477bb32fee745f16ffe22a1ac17a1e3e', role: 'admin', name: 'Kontoret' },
+    { username: 'sjåførbruker', email: 'sjaforbruker@sugekraft.test', passwordHash: '243339a3f7687a38c572e554e70370f6f07882ecb0a198f8834f2ccaf7fd6eff', role: 'driver', name: 'Ola Haugen', driverId: 's1' },
+    { username: 'kundebruker', email: 'kundebruker@sugekraft.test', passwordHash: '20a46a7bd5a56161264158f42eb66503ef2cf8544d0cdb3cb7e1fdd8da139c8e', role: 'client', name: 'Geir Moen', clientId: 'k1' },
   ],
 
   services: [

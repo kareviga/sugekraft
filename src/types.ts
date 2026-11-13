@@ -15,6 +15,8 @@ export interface Step {
 
 export interface Job {
   id: string;
+  /** Jobbnummer som vises, f.eks. «J-2036». I demo-modus lik id, i Supabase er id en UUID. */
+  no: string;
   status: Status;
   // bestilling (kontor)
   customer: string;

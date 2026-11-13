@@ -429,6 +429,12 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 .langsw.light button { color: var(--muted); }
 .langsw.light button[aria-pressed='true'] { background: var(--ink); color: #fff; }
 
+.loading { display: grid; place-items: center; height: 100%; color: var(--muted); font-size: 18px; }
+.modesw { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; border-top: 1px solid var(--line); padding-top: 10px; }
+.modesw span { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.modesw span::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ferdig); }
+.modesw span.demo::before { background: var(--highlight); }
+
 /* ---------- dialoger ---------- */
 .ov { position: fixed; inset: 0; background: rgba(15, 25, 30, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px 24px; overflow: auto; z-index: 2000; }
 .dlg { background: #fff; border-radius: 8px; width: 100%; max-width: 580px; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }

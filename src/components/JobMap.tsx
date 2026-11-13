@@ -90,8 +90,8 @@ export function JobMap({
       const z = tags ? (sel ? 32 : 28) : sel ? 28 : 22;
       const tag = tags ? vehicle(j.car)?.tag ?? '' : '';
       const m = L.marker([j.lat, j.lon], {
-        title: `${j.id} ${j.customer} – ${tr(STATUS_LABEL[j.status])}`,
-        alt: `${j.id} ${j.customer}`,
+        title: `${j.no} ${j.customer} – ${tr(STATUS_LABEL[j.status])}`,
+        alt: `${j.no} ${j.customer}`,
         keyboard: true,
         zIndexOffset: sel ? 1000 : j.status === 'aktiv' ? 500 : 0,
         icon: L.divIcon({

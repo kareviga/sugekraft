@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { config } from '../config';
 import { AddressField, JobForm } from '../components/JobForm';
 import { Confirm, Modal, Pill } from '../components/ui';
-import { deleteClient, saveClient, useClients } from '../store';
+import { deleteClient, portalUsers, saveClient, useClients } from '../store';
 import { searchAddress, type AddrHit } from '../lib/geo';
 import { clientStatus } from '../lib/clientStatus';
 import { toast } from '../lib/toast';
@@ -49,7 +48,7 @@ export function Clients({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) 
         </div>
         {list.map(k => {
           const s = stats(k.id);
-          const portal = config.users.some(u => u.clientId === k.id);
+          const portal = portalUsers(k.id).length > 0;
           return (
             <button key={k.id} className={cx('row', k.id === sel && 'sel')} onClick={() => setSel(k.id)}>
               <span className="top">
@@ -95,7 +94,7 @@ export function Clients({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) 
           onClose={() => setOrder(null)}
           onSaved={j => {
             setOrder(null);
-            toast(tr('{id} er opprettet for {c}.', { id: j.id, c: j.customer }));
+            toast(tr('{id} er opprettet for {c}.', { id: j.no, c: j.customer }));
           }}
         />
       )}
@@ -132,7 +131,7 @@ function ClientDetail({
   onDelete: () => void;
   openJob: (id: string) => void;
 }) {
-  const users = config.users.filter(u => u.clientId === c.id);
+  const users = portalUsers(c.id);
   const sorted = [...jobs].sort((a, b) => b.date.localeCompare(a.date));
   return (
     <div className="card kcard">
@@ -172,8 +171,8 @@ function ClientDetail({
         <dd>
           {users.length ? (
             users.map(u => (
-              <span key={u.username} className="okline">
-                ✓ Innlogging: {u.username} ({u.name})
+              <span key={u} className="okline">
+                {tr('✓ Innlogging:')} {u}
               </span>
             ))
           ) : (
@@ -199,7 +198,7 @@ function ClientDetail({
               const s = clientStatus(j);
               return (
                 <tr key={j.id} onClick={() => !j.request && openJob(j.id)} className={j.request ? 'noclick' : ''}>
-                  <td className="nw">{j.id}</td>
+                  <td className="nw">{j.no}</td>
                   <td className="nw">{j.status === 'ferdig' ? nice(j.date) : relDay(j.date)}</td>
                   <td>
                     {trd(j.service)}
@@ -244,7 +243,8 @@ function ClientForm({ c, onClose, onSaved }: { c?: Client; onClose: () => void; 
       }
       setSaving(false);
     }
-    onSaved(saveClient(data, c?.id));
+    setSaving(true);
+    onSaved(await saveClient(data, c?.id));
   };
 
   return (

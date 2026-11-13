@@ -187,7 +187,7 @@ function DriverJob({ j, back }: { j: Job; back: () => void }) {
           <Pill status={j.status} />
         </div>
         <small className="muted">
-          {j.id} · {trd(j.service)} · {relDay(j.date)}
+          {j.no} · {trd(j.service)} · {relDay(j.date)}
           {j.time ? ` ${tr('kl.')} ${j.time}` : ''}
         </small>
         <small className="jcar">{v ? `🚚 ${v.name} – ${trd(v.type)} (${v.regNr})` : tr('⚠ Ingen bil valgt – kontakt kontoret')}</small>

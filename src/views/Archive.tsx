@@ -54,9 +54,9 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
         (!service || j.service === service) &&
         (!from || j.date >= from) &&
         (!to || j.date <= to) &&
-        (!ql || [j.id, j.customer, j.ref, j.ticketNo, j.address, j.place, j.massType, j.decl, j.comment].join(' ').toLowerCase().includes(ql)),
+        (!ql || [j.no, j.customer, j.ref, j.ticketNo, j.address, j.place, j.massType, j.decl, j.comment].join(' ').toLowerCase().includes(ql)),
     )
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    .sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
 
   const sel = done.filter(j => picked.has(j.id)).sort((a, b) => a.date.localeCompare(b.date));
   const selCustomers = [...new Set(sel.map(j => j.customer))];
@@ -192,11 +192,11 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                 {list.map(j => (
                   <tr key={j.id} className={cx(picked.has(j.id) && 'on')} onClick={e => (e.target as HTMLElement).closest('input') || setView(j.id)}>
                     <td>
-                      <input type="checkbox" aria-label={tr('Velg {id}', { id: j.id })} checked={picked.has(j.id)} onChange={e => toggle(j.id, e.target.checked)} />
+                      <input type="checkbox" aria-label={tr('Velg {id}', { id: j.no })} checked={picked.has(j.id)} onChange={e => toggle(j.id, e.target.checked)} />
                     </td>
                     <td className="nw">
                       <button className="link" onClick={() => setView(j.id)}>
-                        {j.id}
+                        {j.no}
                       </button>
                     </td>
                     <td className="nw">{nice(j.date)}</td>
@@ -271,11 +271,11 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
             updateJob(openJob.id, { status: 'aktiv', invoiced: false, invoicedAt: '', closedAt: '' }, true);
             toggle(openJob.id, false);
             setView(null);
-            toast(tr('{id} er gjenåpnet og ligger hos sjåføren igjen.', { id: openJob.id }));
+            toast(tr('{id} er gjenåpnet og ligger hos sjåføren igjen.', { id: openJob.no }));
           }}
           onToggleInvoiced={() => {
             updateJob(openJob.id, { invoiced: !openJob.invoiced, invoicedAt: openJob.invoiced ? '' : dayOffset(0) }, true);
-            toast(openJob.invoiced ? tr('{id} er satt til ikke fakturert.', { id: openJob.id }) : tr('{id} er merket som fakturert.', { id: openJob.id }));
+            toast(openJob.invoiced ? tr('{id} er satt til ikke fakturert.', { id: openJob.no }) : tr('{id} er merket som fakturert.', { id: openJob.no }));
           }}
         />
       )}
@@ -377,7 +377,7 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
   return (
     <Modal
       wide
-      title={`${j.id} · ${trd(j.service)}`}
+      title={`${j.no} · ${trd(j.service)}`}
       onClose={onClose}
       footer={
         <>

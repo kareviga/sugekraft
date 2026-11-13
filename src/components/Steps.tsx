@@ -92,7 +92,7 @@ export function StepDialog({ j, step, edit, onClose, onClosed }: { j: Job; step:
       if (missing({ ...j, ...patch }).length) return;
       updateJob(j.id, { ...patch, status: 'ferdig', closedAt: dayOffset(0), driverName: driver(j.driver)?.name ?? '' }, true);
       onClose();
-      toast(tr('{id} er ferdig og ligger i arkivet.', { id: j.id }));
+      toast(tr('{id} er ferdig og ligger i arkivet.', { id: j.no }));
       onClosed?.();
       return;
     }

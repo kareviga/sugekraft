@@ -4,7 +4,8 @@ import { Login } from './components/Login';
 import { LangSwitch } from './components/LangSwitch';
 import { Confirm, Logo, Toasts } from './components/ui';
 import { resetDemo, useJobs } from './store';
-import { logout, ROLE_LABEL, useSession } from './lib/auth';
+import { logout, ROLE_LABEL, useAuthReady, useSession } from './lib/auth';
+import { isLive } from './lib/mode';
 import { toast } from './lib/toast';
 import { Archive, type ArchivePreset } from './views/Archive';
 import { ClientPortal } from './views/ClientPortal';
@@ -34,7 +35,9 @@ const fromHash = (role: Role): View => {
 
 export function App() {
   const user = useSession();
+  const ready = useAuthReady();
   const lang = useLang();
+  if (!ready) return <div className="loading">{tr('Laster …')}</div>;
   return (
     <>
       {user ? <Shell key={`${user.username}-${lang}`} /> : <Login key={lang} />}
@@ -98,17 +101,18 @@ function Shell() {
           </nav>
         )}
         <div className="demo">
+          {!isLive() && <span className="demotag">Demo</span>}
           <LangSwitch />
           <span className="who">
             <b>{user.name}</b>
             <small>{tr(ROLE_LABEL[user.role])}</small>
           </span>
-          {isAdmin && (
+          {isAdmin && !isLive() && (
             <button className="resetbtn" onClick={() => setConfirmReset(true)} title={tr('Nullstill demoen')}>
               {tr('Nullstill demo')}
             </button>
           )}
-          <button className="resetbtn" onClick={logout}>
+          <button className="resetbtn" onClick={() => void logout()}>
             {tr('Logg ut')}
           </button>
         </div>

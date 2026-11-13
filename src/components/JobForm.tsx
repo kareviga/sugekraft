@@ -159,14 +159,26 @@ export function JobForm({
     }
     const order = { ...v, place, lat: p.lat, lon: p.lon, pin: how };
     if (isClient) {
-      onSaved(saveOrder({ ...order, car: '', driver: '' }, job?.id, { request: 'venter', requestNote: '', orderedBy: 'kunde' }));
-    } else onSaved(saveOrder(order, job?.id));
+      setSaving(true);
+      try {
+        onSaved(await saveOrder({ ...order, car: '', driver: '' }, job?.id, { request: 'venter', requestNote: '', orderedBy: 'kunde' }));
+      } catch {
+        setSaving(false);
+      }
+    } else {
+      setSaving(true);
+      try {
+        onSaved(await saveOrder(order, job?.id));
+      } catch {
+        setSaving(false);
+      }
+    }
   };
 
   return (
     <Modal
       wide
-      title={isClient ? (job ? tr('Endre bestilling {id}', { id: job.id }) : tr('Ny bestilling')) : job ? tr('Rediger {id}', { id: job.id }) : tr('Ny jobb')}
+      title={isClient ? (job ? tr('Endre bestilling {id}', { id: job.no }) : tr('Ny bestilling')) : job ? tr('Rediger {id}', { id: job.no }) : tr('Ny jobb')}
       onClose={onClose}
       footer={
         <>
