@@ -94,12 +94,12 @@ export const config: AppConfig = {
   appName: 'Sugekraft',
 
   company: {
-    name: 'Fjordsug AS',
+    name: 'Sugefirma AS',
     orgNr: '912 345 678',
     address: 'Brobekkveien 80, 0582 Oslo',
     phone: '22 00 00 00',
-    email: 'post@fjordsug.no',
-    web: 'fjordsug.no',
+    email: 'post@sugefirma.no',
+    web: 'sugefirma.no',
   },
 
   logo: 'logo.svg',

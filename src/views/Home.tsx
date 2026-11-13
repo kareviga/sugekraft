@@ -38,7 +38,6 @@ export function Home({
 
   const noDriver = jobs.filter(j => j.status === 'kommende');
   const running = jobs.filter(underway);
-  const toInvoice = jobs.filter(j => j.status === 'ferdig' && !j.invoiced);
   const outCount = Object.keys(out).length;
   const todays = jobs
     .filter(j => j.date === today && j.status !== 'ferdig')
@@ -52,7 +51,6 @@ export function Home({
   const attention: { n: number; title: string; text: string; icon: string; tone: string; onClick: () => void }[] = [
     { n: requests.length, title: tr('Nye bestillinger'), text: tr('Fra kunder – godta eller avvis'), icon: 'inbox', tone: 'wait', onClick: () => openOffice('requests') },
     { n: noDriver.length, title: tr('Mangler sjåfør'), text: tr('Jobber som ikke er sendt ut'), icon: 'user', tone: 'kommende', onClick: () => openOffice('kommende') },
-    { n: toInvoice.length, title: tr('Klar til fakturering'), text: tr('Ferdige jobber som ikke er fakturert'), icon: 'invoice', tone: 'ferdig', onClick: () => go('arkiv') },
     { n: outCount, title: tr('Biler ute av drift'), text: tr('Verksted, kontroll e.l.'), icon: 'wrench', tone: 'warn', onClick: () => go('bilpark') },
   ];
   const needs = attention.filter(a => a.n > 0);
@@ -62,8 +60,7 @@ export function Home({
     { icon: 'map', title: tr('Jobber og kart'), text: tr('Alle oppdrag i liste og kart – tildel bil og sjåfør'), onClick: () => openOffice(null) },
     { icon: 'users', title: tr('Kunder'), text: tr('Kunderegister og kundenes bestillinger'), onClick: () => go('kunder') },
     { icon: 'truck', title: tr('Bilpark'), text: tr('Hvor bilene er og hvem som kjører'), onClick: () => go('bilpark') },
-    { icon: 'invoice', title: tr('Faktura'), text: tr('Ferdige jobber og PDF-grunnlag til faktura'), onClick: () => go('arkiv') },
-    { icon: 'phone', title: tr('Sjåførvisning'), text: tr('Se appen slik sjåføren ser den'), onClick: () => go('sjafor') },
+    { icon: 'invoice', title: tr('Rapporter'), text: tr('PDF-oppsummering av utførte jobber til kunden'), onClick: () => go('arkiv') },
   ];
 
   return (

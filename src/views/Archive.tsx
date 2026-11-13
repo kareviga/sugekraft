@@ -1,22 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
-import { config } from '../config';
-import { Confirm, Lightbox, Modal, Thumbs } from '../components/ui';
-import { updateJob, updateJobs } from '../store';
-import { toast } from '../lib/toast';
-import { cx, dayOffset, fmtAmount, hours, jobDriverName, nice, num, totals, vehicle } from '../lib/utils';
-import { totalHours } from '../lib/steps';
+import { Lightbox, Modal, Thumbs } from '../components/ui';
 import { StepTimeline } from '../components/Steps';
+import { Icon } from '../components/Icon';
+import { updateJob } from '../store';
+import { toast } from '../lib/toast';
+import { cx, fmtAmount, hours, jobDriverName, nice, num, totals, vehicle } from '../lib/utils';
+import { totalHours } from '../lib/steps';
 import type { Job } from '../types';
 import { tr, trd } from '../i18n';
 
+/*
+ * Rapporter: PDF-oppsummering av utførte jobber, som kunden kan legge ved sin egen faktura.
+ * Velg én jobb eller flere jobber for samme kunde og last ned PDF.
+ */
+
 export interface ArchivePreset {
   customer: string;
-  inv: 'open' | 'done' | 'all';
   pick?: string;
   n: number; // endres for å trigge
 }
 
-type Inv = 'open' | 'done' | 'all';
+async function downloadPdf(list: Job[]) {
+  try {
+    const { buildReportPdf } = await import('../lib/pdf');
+    const { doc, filename } = await buildReportPdf(list);
+    doc.save(filename);
+    toast(tr('PDF-en er lastet ned.'));
+  } catch (e) {
+    console.error(e);
+    toast(tr('PDF-en kunne ikke lages. Prøv igjen.'));
+  }
+}
 
 export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset | null }) {
   const done = useMemo(() => jobs.filter(j => j.status === 'ferdig'), [jobs]);
@@ -24,22 +38,17 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
 
   const [q, setQ] = useState('');
   const [cust, setCust] = useState('');
-  const [inv, setInv] = useState<Inv>('open');
-  const [service, setService] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [view, setView] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [confirmInv, setConfirmInv] = useState(false);
 
-  // forhåndsvalg når man kommer fra kontoret
+  // forhåndsvalg når man kommer fra en jobb
   useEffect(() => {
     if (!preset) return;
     setCust(preset.customer);
-    setInv(preset.inv);
     setQ('');
-    setService('');
     setFrom('');
     setTo('');
     if (preset.pick) setView(preset.pick);
@@ -50,11 +59,9 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
     .filter(
       j =>
         (!cust || j.customer === cust) &&
-        (inv === 'all' || (inv === 'open' ? !j.invoiced : j.invoiced)) &&
-        (!service || j.service === service) &&
         (!from || j.date >= from) &&
         (!to || j.date <= to) &&
-        (!ql || [j.no, j.customer, j.ref, j.ticketNo, j.address, j.place, j.massType, j.decl, j.comment].join(' ').toLowerCase().includes(ql)),
+        (!ql || [j.no, j.customer, j.ref, j.ticketNo, j.address, j.place].join(' ').toLowerCase().includes(ql)),
     )
     .sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
 
@@ -68,41 +75,27 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
       else n.delete(id);
       return n;
     });
-  const clearFilters = () => {
-    setQ('');
-    setCust('');
-    setInv('all');
-    setService('');
-    setFrom('');
-    setTo('');
-  };
+  const filtered = !!(q || cust || from || to);
   const openJob = done.find(j => j.id === view);
 
-  const makePdf = async () => {
-    if (!sel.length || selCustomers.length > 1) return;
-    setBusy(true);
-    try {
-      const { buildInvoicePdf } = await import('../lib/pdf');
-      const { doc, filename } = await buildInvoicePdf(sel);
-      doc.save(filename);
-      toast(tr('PDF-en er lastet ned.'));
-    } catch (e) {
-      console.error(e);
-      toast(tr('PDF-en kunne ikke lages. Prøv igjen.'));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // ikke-fakturerte per kunde, for snarvei
-  const openByCustomer = useMemo(() => {
+  const byCustomer = useMemo(() => {
     const m: Record<string, number> = {};
-    done.filter(j => !j.invoiced).forEach(j => (m[j.customer] = (m[j.customer] || 0) + 1));
+    list.forEach(j => (m[j.customer] = (m[j.customer] || 0) + 1));
     return Object.entries(m).sort((a, b) => b[1] - a[1]);
-  }, [done]);
+  }, [list]);
+
+  const makePdf = async (l: Job[]) => {
+    setBusy(true);
+    await downloadPdf(l);
+    setBusy(false);
+  };
 
   return (
     <div className="arkiv">
+      <div className="pagehead">
+        <h2>{tr('Rapporter')}</h2>
+        <p className="muted">{tr('Lag en PDF-oppsummering av utførte jobber – til å legge ved kundens faktura.')}</p>
+      </div>
       <section className="card">
         <div className="afil">
           <div className="field grow">
@@ -115,28 +108,9 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
               <option value="">{tr('Alle kunder')}</option>
               {customers.map(c => (
                 <option key={c} value={c}>
-                  {trd(c)}
+                  {c}
                 </option>
               ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="a-s">{tr('Oppdragstype')}</label>
-            <select id="a-s" value={service} onChange={e => setService(e.target.value)}>
-              <option value="">{tr('Alle typer')}</option>
-              {config.services.map(c => (
-                <option key={c} value={c}>
-                  {trd(c)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="a-i">{tr('Fakturastatus')}</label>
-            <select id="a-i" value={inv} onChange={e => setInv(e.target.value as Inv)}>
-              <option value="open">{tr('Ikke fakturert')}</option>
-              <option value="done">{tr('Fakturert')}</option>
-              <option value="all">{tr('Alle')}</option>
             </select>
           </div>
           <div className="field">
@@ -150,11 +124,21 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
         </div>
         <div className="abar">
           <span>
-            <b>{list.length}</b> {tr('av')} {done.length} {tr('ferdige jobber')}
+            <b>{list.length}</b> {tr('utførte jobber')}
           </span>
-          <button className="link" onClick={clearFilters}>
-            {tr('Nullstill filter')}
-          </button>
+          {filtered && (
+            <button
+              className="link"
+              onClick={() => {
+                setQ('');
+                setCust('');
+                setFrom('');
+                setTo('');
+              }}
+            >
+              {tr('Nullstill filter')}
+            </button>
+          )}
         </div>
         <div className="tw">
           {list.length ? (
@@ -178,14 +162,9 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                   <th>{tr('Jobb')}</th>
                   <th>{tr('Dato')}</th>
                   <th>{tr('Kunde')}</th>
-                  <th>{tr('Ref.')}</th>
                   <th>{tr('Oppdrag')}</th>
-                  <th>{tr('Masse')}</th>
                   <th className="n">{tr('Mengde')}</th>
-                  <th>{tr('Deponi')}</th>
                   <th className="n">{tr('Timer')}</th>
-                  <th className="n">{tr('Bilder')}</th>
-                  <th>{tr('Status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -201,65 +180,45 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
                     </td>
                     <td className="nw">{nice(j.date)}</td>
                     <td>{j.customer}</td>
-                    <td className="nw">{j.ref || '–'}</td>
                     <td>{trd(j.service)}</td>
-                    <td>{trd(j.massType)}</td>
                     <td className="n">{fmtAmount(j)}</td>
-                    <td>{trd(j.disposal) || '–'}</td>
                     <td className="n">{num(hours(j))}</td>
-                    <td className="n">{j.ticketPhotos.length + j.jobPhotos.length}</td>
-                    <td>
-                      <span className={`pill ${j.invoiced ? 'ok' : 'warn'}`}>{j.invoiced ? tr('Fakturert') : tr('Ikke fakturert')}</span>
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <p className="empty">{tr('Ingen ferdige jobber passer med filteret.')}</p>
+            <p className="empty">{tr('Ingen utførte jobber passer med filteret.')}</p>
           )}
         </div>
       </section>
 
-      <aside className="card fak" aria-label={tr('Fakturagrunnlag')}>
-        <h2>{tr('Fakturagrunnlag')}</h2>
+      <aside className="card fak" aria-label={tr('PDF-rapport')}>
+        <h2>{tr('PDF-rapport')}</h2>
         {!sel.length ? (
           <>
-            <p className="note">{tr('Huk av ferdige jobber for én kunde for å lage PDF-vedlegg til fakturaen.')}</p>
-            {openByCustomer.length > 0 && (
-              <div>
-                <div className="lab" style={{ marginBottom: 6 }}>
-                  {tr('Klar for fakturering')}
-                </div>
-                <ul className="quick">
-                  {openByCustomer.map(([c, n]) => (
-                    <li key={c}>
-                      <button
-                        className="link"
-                        onClick={() => {
-                          setCust(c);
-                          setInv('open');
-                          setPicked(new Set(done.filter(j => j.customer === c && !j.invoiced).map(j => j.id)));
-                        }}
-                      >
-                        {c}
-                      </button>
-                      <span>{tr('{n} jobber', { n })}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <p className="note">{tr('Huk av jobbene som skal være med, eller velg en kunde:')}</p>
+            {byCustomer.length > 0 && (
+              <ul className="quick">
+                {byCustomer.map(([c, n]) => (
+                  <li key={c}>
+                    <button
+                      className="link"
+                      onClick={() => {
+                        setCust(c);
+                        setPicked(new Set(list.filter(j => j.customer === c).map(j => j.id)));
+                      }}
+                    >
+                      {c}
+                    </button>
+                    <span>{tr('{n} jobber', { n })}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </>
         ) : (
-          <SelPanel
-            sel={sel}
-            customers={selCustomers}
-            busy={busy}
-            onPdf={makePdf}
-            onInvoiced={() => setConfirmInv(true)}
-            onClear={() => setPicked(new Set())}
-          />
+          <SelPanel sel={sel} customers={selCustomers} busy={busy} onPdf={() => void makePdf(sel)} onClear={() => setPicked(new Set())} />
         )}
       </aside>
 
@@ -267,31 +226,12 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
         <JobView
           j={openJob}
           onClose={() => setView(null)}
+          onPdf={() => void downloadPdf([openJob])}
           onReopen={() => {
-            updateJob(openJob.id, { status: 'aktiv', invoiced: false, invoicedAt: '', closedAt: '' }, true);
+            updateJob(openJob.id, { status: 'aktiv', closedAt: '' }, true);
             toggle(openJob.id, false);
             setView(null);
             toast(tr('{id} er gjenåpnet og ligger hos sjåføren igjen.', { id: openJob.no }));
-          }}
-          onToggleInvoiced={() => {
-            updateJob(openJob.id, { invoiced: !openJob.invoiced, invoicedAt: openJob.invoiced ? '' : dayOffset(0) }, true);
-            toast(openJob.invoiced ? tr('{id} er satt til ikke fakturert.', { id: openJob.no }) : tr('{id} er merket som fakturert.', { id: openJob.no }));
-          }}
-        />
-      )}
-      {confirmInv && (
-        <Confirm
-          title={tr('Merk som fakturert?')}
-          text={tr('{n} jobber for {c} merkes som fakturert og flyttes ut av listen «Ikke fakturert».', { n: sel.length, c: selCustomers[0] })}
-          ok="Merk som fakturert"
-          onClose={() => setConfirmInv(false)}
-          onOk={() => {
-            updateJobs(
-              sel.map(j => j.id),
-              { invoiced: true, invoicedAt: dayOffset(0) },
-            );
-            setPicked(new Set());
-            toast(tr('{n} jobber er merket som fakturert.', { n: sel.length }));
           }}
         />
       )}
@@ -299,21 +239,7 @@ export function Archive({ jobs, preset }: { jobs: Job[]; preset: ArchivePreset |
   );
 }
 
-function SelPanel({
-  sel,
-  customers,
-  busy,
-  onPdf,
-  onInvoiced,
-  onClear,
-}: {
-  sel: Job[];
-  customers: string[];
-  busy: boolean;
-  onPdf: () => void;
-  onInvoiced: () => void;
-  onClear: () => void;
-}) {
+function SelPanel({ sel, customers, busy, onPdf, onClear }: { sel: Job[]; customers: string[]; busy: boolean; onPdf: () => void; onClear: () => void }) {
   const many = customers.length > 1;
   const s = totals(sel);
   return (
@@ -321,7 +247,7 @@ function SelPanel({
       <div>
         <b className="fakcust">{many ? tr('{n} kunder valgt', { n: customers.length }) : customers[0]}</b>
         <small className="muted">
-          {nice(sel[0].date)} – {nice(sel[sel.length - 1].date)}
+          {sel.length === 1 ? nice(sel[0].date) : `${nice(sel[0].date)} – ${nice(sel[sel.length - 1].date)}`}
         </small>
       </div>
       <dl className="sum">
@@ -335,16 +261,10 @@ function SelPanel({
             <dd>{num(v)}</dd>
           </div>
         ))}
-        <dt>{tr('Bilder og kjøresedler')}</dt>
-        <dd>{s.photos}</dd>
       </dl>
-      {many && <p className="alert">{tr('Velg jobber for én kunde om gangen for å lage vedlegg.')}</p>}
-      {sel.some(j => j.invoiced) && !many && <p className="note">{tr('Noen av de valgte jobbene er allerede fakturert.')}</p>}
-      <button className="btn" onClick={onPdf} disabled={many || busy}>
-        {busy ? 'Lager PDF …' : 'Last ned PDF-vedlegg'}
-      </button>
-      <button className="btn alt" onClick={onInvoiced} disabled={many}>
-        {tr('Merk som fakturert')}
+      {many && <p className="alert">{tr('Velg jobber for én kunde om gangen.')}</p>}
+      <button className="btn big" onClick={onPdf} disabled={many || busy}>
+        <Icon name="invoice" size={20} /> {busy ? tr('Lager PDF …') : tr('Last ned PDF')}
       </button>
       <button className="link" onClick={onClear}>
         {tr('Fjern valg')}
@@ -354,26 +274,23 @@ function SelPanel({
   );
 }
 
-function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: () => void; onReopen: () => void; onToggleInvoiced: () => void }) {
+function JobView({ j, onClose, onPdf, onReopen }: { j: Job; onClose: () => void; onPdf: () => void; onReopen: () => void }) {
   const [zoom, setZoom] = useState<string | null>(null);
   const v = vehicle(j.car);
   const rows: [string, string][] = [
     [tr('Kunde'), j.customer],
-    [tr('Kontakt'), [j.contact, j.phone].filter(Boolean).join(', ')],
     [tr('Kundens ref.'), j.ref || '–'],
-    [tr('Adresse'), `${j.address}, ${j.place}`],
+    [tr('Adresse'), `${j.address}${j.place ? `, ${j.place}` : ''}`],
     [tr('Dato'), nice(j.date)],
     [tr('Arbeidstid'), j.start && j.end ? `${j.start} – ${j.end} (${num(hours(j))} t)` : '–'],
     [tr('Total tid'), totalHours(j) ? `${j.steps.kjoring?.time} – ${j.steps.ferdig?.time ?? '…'} (${num(totalHours(j))} ${tr('t, inkl. kjøring')})` : '–'],
-    [tr('Bil / sjåfør'), `${v ? `${v.name} (${v.regNr})` : '–'} / ${jobDriverName(j) || '–'}`],
-    [tr('Kjøreseddel'), j.ticketNo || '–'],
-    [tr('Masse'), trd(j.massType) || '–'],
-    [tr('Mengde'), fmtAmount(j)],
+    [tr('Bil / sjåfør'), `${v ? v.name : '–'} / ${jobDriverName(j) || '–'}`],
+    [tr('Masse'), j.massType ? `${trd(j.massType)} · ${fmtAmount(j)}` : '–'],
     [tr('Deponi / mottak'), trd(j.disposal) || '–'],
+    [tr('Kjøreseddel'), j.ticketNo || '–'],
   ];
   if (j.decl) rows.push([tr('Deklarasjonsnr.'), j.decl]);
   if (j.comment) rows.push([tr('Kommentar'), j.comment]);
-  if (j.invoiced) rows.push([tr('Fakturert'), nice(j.invoicedAt)]);
   return (
     <Modal
       wide
@@ -381,14 +298,14 @@ function JobView({ j, onClose, onReopen, onToggleInvoiced }: { j: Job; onClose: 
       onClose={onClose}
       footer={
         <>
-          <button className="btn alt" onClick={onReopen}>
+          <button className="link reopen" onClick={onReopen}>
             {tr('Gjenåpne for retting')}
           </button>
-          <button className="btn alt" onClick={onToggleInvoiced}>
-            {j.invoiced ? tr('Sett til ikke fakturert') : tr('Merk som fakturert')}
-          </button>
-          <button className="btn" onClick={onClose}>
+          <button className="btn alt" onClick={onClose}>
             {tr('Lukk')}
+          </button>
+          <button className="btn" onClick={onPdf}>
+            {tr('Last ned PDF')}
           </button>
         </>
       }

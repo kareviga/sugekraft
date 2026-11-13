@@ -53,7 +53,7 @@ const settings = {
   jobPrefix: config.jobPrefix,
   translations: config.translations,
 };
-L.push(`insert into public.companies (id, slug, name, settings, next_job_no) values ('${COMPANY}', 'fjordsug', ${q(config.company.name)}, ${json(settings)}, ${nextNo});`);
+L.push(`insert into public.companies (id, slug, name, settings, next_job_no) values ('${COMPANY}', 'sugefirma', ${q(config.company.name)}, ${json(settings)}, ${nextNo});`);
 
 config.vehicles.forEach((v, i) =>
   L.push(`insert into public.vehicles (id, company_id, name, tag, type, reg_nr, out_note, sort) values ('${vehicleId(v.id)}', '${COMPANY}', ${q(v.name)}, ${q(v.tag)}, ${q(v.type)}, ${q(v.regNr)}, ${out[v.id] !== undefined ? q(out[v.id]) : 'null'}, ${i});`),

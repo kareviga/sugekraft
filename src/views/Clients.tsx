@@ -28,7 +28,6 @@ export function Clients({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) 
       all: js,
       req: js.filter(j => j.request === 'venter').length,
       open: js.filter(j => !j.request && j.status !== 'ferdig').length,
-      uninv: js.filter(j => j.status === 'ferdig' && !j.invoiced).length,
     };
   };
   const list = clients
@@ -60,7 +59,6 @@ export function Clients({ jobs, openJob }: { jobs: Job[]; openJob: (id: string) 
               </small>
               <small className="meta">
                 <span>{tr('{n} åpne', { n: s.open })}</span>
-                {s.uninv > 0 && <span>{tr('{n} ikke fakturert', { n: s.uninv })}</span>}
                 {portal && <span className="carchip">{tr('Portal')}</span>}
               </small>
             </button>

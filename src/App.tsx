@@ -25,7 +25,7 @@ const VIEWS: Record<Role, [View, string][]> = {
     ['kunder', 'Kunder'],
     ['bilpark', 'Bilpark'],
     ['sjafor', 'Sjåfør'],
-    ['arkiv', 'Faktura'],
+    ['arkiv', 'Rapporter'],
   ],
   driver: [],
   client: [],
@@ -95,7 +95,7 @@ function Shell() {
         </div>
         {isAdmin && (
           <nav aria-label={tr('Hovedmeny')}>
-            {VIEWS.admin.map(([k, l]) => (
+            {VIEWS.admin.filter(([k]) => k !== 'sjafor' || view === 'sjafor').map(([k, l]) => (
               <button key={k} aria-current={view === k ? 'page' : undefined} onClick={() => go(k)}>
                 {tr(l)}
                 {k === 'kontor' && requests.length > 0 && <span className="navbadge">{requests.length}</span>}
@@ -167,7 +167,7 @@ function Shell() {
               go('sjafor');
             }}
             openInArchive={j => {
-              setPreset({ customer: j.customer, inv: j.invoiced ? 'done' : 'open', pick: j.id, n: Date.now() });
+              setPreset({ customer: j.customer, pick: j.id, n: Date.now() });
               go('arkiv');
             }}
           />

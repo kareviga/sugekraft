@@ -164,9 +164,11 @@ export function Lightbox({ src, onClose }: { src: string; onClose: () => void })
   );
 }
 
-export function Checklist({ job }: { job: Job }) {
+/** Dokumentasjonskrav. compact: én linje med det som mangler (kontorets oversikt). */
+export function Checklist({ job, compact }: { job: Job; compact?: boolean }) {
   const r = requirements(job);
   const ok = r.filter(x => x[1]).length;
+  const miss = r.filter(x => !x[1]).map(x => x[0]);
   return (
     <div className="checkwrap">
       <div className="lab spread">
@@ -178,13 +180,23 @@ export function Checklist({ job }: { job: Job }) {
       <div className="bar">
         <i style={{ width: `${(ok / r.length) * 100}%` }} />
       </div>
-      <ul className="check">
-        {r.map(([label, done]) => (
-          <li key={label} className={done ? '' : 'no'}>
-            {label}
-          </li>
-        ))}
-      </ul>
+      {compact ? (
+        miss.length ? (
+          <small className="muted">
+            {tr('Mangler')}: {miss.join(', ')}
+          </small>
+        ) : (
+          <small className="okline">{tr('Alt er fylt ut.')}</small>
+        )
+      ) : (
+        <ul className="check">
+          {r.map(([label, done]) => (
+            <li key={label} className={done ? '' : 'no'}>
+              {label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

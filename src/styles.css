@@ -333,15 +333,6 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 
 /* ---------- innlogging ---------- */
 .loginpage { min-height: 100%; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--primary) 55%, #fff) 0%, transparent 60%), linear-gradient(150deg, color-mix(in srgb, var(--primary) 85%, #0b0b2b) 0%, var(--primary) 55%, color-mix(in srgb, var(--primary) 60%, #0ea5e9) 100%); }
-.logincard { background: #fff; border-radius: 10px; padding: 26px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); }
-.loginbrand { display: flex; gap: 12px; align-items: center; }
-.loginbrand h1 { font-size: 26px; line-height: 1.05; }
-.loginbrand b { color: var(--primary); }
-.demousers { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
-.demousers > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.demousers button { border: 1px solid var(--line); background: var(--soft); border-radius: 6px; padding: 7px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.demousers button:hover { border-color: var(--primary); }
-.demousers small { color: var(--muted); }
 .who { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; color: var(--headerText); font-size: 13.5px; }
 .who small { color: color-mix(in srgb, var(--headerText) 55%, transparent); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; }
 .navbadge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; background: var(--highlight); color: var(--header); font: 700 12px var(--body); vertical-align: 2px; }
@@ -432,7 +423,7 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
 .langsw.light button[aria-pressed='true'] { background: var(--ink); color: #fff; }
 
 .loading { display: grid; place-items: center; height: 100%; color: var(--muted); font-size: 18px; }
-.modesw { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; border-top: 1px solid var(--line); padding-top: 10px; }
+.modesw { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
 .modesw span { font-weight: 700; display: flex; align-items: center; gap: 6px; }
 .modesw span::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ferdig); }
 .modesw span.demo::before { background: var(--highlight); }
@@ -494,6 +485,50 @@ th input, td input { width: 17px; height: 17px; accent-color: var(--primary); cu
   .tile small { display: none; }
   .tile.primary { grid-column: 1 / -1; }
   .dl-who { display: none; }
+}
+
+.morefilters { font-size: 14px; }
+.morefilters summary { cursor: pointer; color: var(--primary); font-weight: 600; padding: 2px 0; list-style: none; }
+.morefilters summary::-webkit-details-marker { display: none; }
+.morefilters summary::before { content: '▸ '; }
+.morefilters[open] summary::before { content: '▾ '; }
+.morefilters[open] { display: flex; flex-direction: column; gap: 8px; }
+.pagehead { grid-column: 1 / -1; }
+.pagehead h2 { font-size: 30px; }
+.pagehead p { margin: 2px 0 0; }
+.dlgfoot .reopen { margin-right: auto; font-size: 14px; }
+.fak .btn.big { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* ---------- innlogging ---------- */
+.loginbox { width: 100%; max-width: 940px; display: grid; grid-template-columns: 1.05fr 1fr; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 30px 80px rgba(15, 12, 60, 0.35); }
+.loginside { background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 92%, #000) 0%, var(--primary) 100%); color: #fff; padding: 36px; display: flex; flex-direction: column; justify-content: space-between; gap: 30px; min-height: 520px; }
+.ls-brand { display: flex; align-items: center; gap: 12px; font: 600 24px var(--display); }
+.ls-logo { background: #fff; border-radius: 12px; padding: 3px; display: inline-flex; }
+.loginside h1 { font-size: 34px; line-height: 1.12; font-weight: 600; margin-bottom: 18px; }
+.loginside ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 15.5px; }
+.loginside li { display: flex; align-items: center; gap: 10px; }
+.loginside li .icon { background: rgba(255, 255, 255, 0.18); border-radius: 50%; padding: 3px; width: 24px; height: 24px; }
+.loginside small { color: rgba(255, 255, 255, 0.7); }
+.loginform { padding: 36px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+.loginform h2 { font-size: 30px; }
+.loginform p.muted { margin: 2px 0 0; }
+.lf-mobilebrand { display: none; align-items: center; gap: 10px; font: 600 20px var(--display); }
+.demoaccess { border-top: 1px solid var(--line); padding-top: 12px; font-size: 13.5px; }
+.demoaccess summary { cursor: pointer; color: var(--muted); font-weight: 600; list-style: none; }
+.demoaccess summary::-webkit-details-marker { display: none; }
+.demoaccess summary::before { content: '▸ '; }
+.demoaccess[open] summary::before { content: '▾ '; }
+.demoaccess[open] { display: flex; flex-direction: column; gap: 10px; }
+.demoaccess .note { margin-top: 8px; }
+.demousers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.demousers button { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 8px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.demousers button:hover { border-color: var(--primary); }
+.demousers small { color: var(--muted); }
+@media (max-width: 760px) {
+  .loginbox { grid-template-columns: 1fr; border-radius: 16px; }
+  .loginside { display: none; }
+  .loginform { padding: 24px 20px; }
+  .lf-mobilebrand { display: flex; }
 }
 
 /* ---------- dialoger ---------- */

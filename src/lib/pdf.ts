@@ -7,7 +7,7 @@ import { dayOffset, download, fmtAmount, hexToRgb, hours, jobDriverName, nice, n
 import { tr, trd } from '../i18n';
 
 /*
- * Fakturagrunnlag som PDF:
+ * Jobbrapport som PDF (vedlegg til kundens egen faktura):
  *  - Samleside med kundeinfo, tabell over alle jobber og summer
  *  - Én side per jobb med alle felter, kjøreseddel og bilder
  */
@@ -17,7 +17,7 @@ const MUTED: [number, number, number] = [100, 112, 116];
 // Standardfontene i jsPDF støtter Latin-1. Bytt ut tegn som ikke finnes der.
 const t = (s: unknown) => String(s ?? '').replace(/[–—]/g, '-').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/⚠/g, '');
 
-export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filename: string }> {
+export async function buildReportPdf(list: Job[]): Promise<{ doc: jsPDF; filename: string }> {
   const jobs = [...list].sort((a, b) => a.date.localeCompare(b.date) || a.no.localeCompare(b.no));
   const d = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
   const L = 14, W = 182, R = L + W;
@@ -63,7 +63,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   };
 
   // ---------- samleside ----------
-  header(tr('Fakturagrunnlag'), tr('Vedlegg til faktura · Utskrevet {d}', { d: nice(dayOffset(0)) }));
+  header(tr('Jobbrapport'), tr('Oppsummering av utførte jobber · Utskrevet {d}', { d: nice(dayOffset(0)) }));
 
   // kundeboks
   d.setFillColor(243, 246, 245);
@@ -122,7 +122,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
     const h = n * 3.7 + 2.6;
     if (y + h > 262) {
       d.addPage();
-      header(tr('Fakturagrunnlag (forts.)'), cust);
+      header(tr('Jobbrapport (forts.)'), cust);
       y = 52;
       thead();
       d.setFontSize(8.5);
@@ -150,7 +150,7 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
   lines.push([tr('Bilder og kjøresedler (vedlagt)'), String(sum.photos)]);
   if (y + 10 + lines.length * 6 > 275) {
     d.addPage();
-    header(tr('Fakturagrunnlag (forts.)'), cust);
+    header(tr('Jobbrapport (forts.)'), cust);
     y = 52;
   } else y += 6;
   d.setFont('helvetica', 'bold');
@@ -295,9 +295,9 @@ export async function buildInvoicePdf(list: Job[]): Promise<{ doc: jsPDF; filena
     d.setPage(p);
     d.setFontSize(7.5);
     d.setTextColor(...MUTED);
-    d.text(t(`${config.company.name} · ${tr('Fakturagrunnlag {c}', { c: cust })}`), L, 291);
+    d.text(t(`${config.company.name} · ${tr('Jobbrapport {c}', { c: cust })}`), L, 291);
     d.text(tr('Side {p} av {n}', { p, n }), R, 291, { align: 'right' });
   }
 
-  return { doc: d, filename: `Fakturagrunnlag_${download(cust)}_${dayOffset(0)}.pdf` };
+  return { doc: d, filename: `${tr('Jobbrapport')}_${download(cust)}${jobs.length === 1 ? `_${download(jobs[0].no)}` : ''}_${dayOffset(0)}.pdf` };
 }

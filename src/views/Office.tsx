@@ -11,7 +11,7 @@ import { progress, underway } from '../lib/steps';
 import { StepTimeline } from '../components/Steps';
 import { RequestsPanel } from '../components/Requests';
 import { toast } from '../lib/toast';
-import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, fmtCoord, mapsUrl, missing, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
+import { cx, dayOffset, daysBetween, driver, fmtAmount, jobDriverName, mapsUrl, nice, relDay, vehicle, vehicleLong, vehicleName } from '../lib/utils';
 import { STATUS_LABEL, type Job, type Status } from '../types';
 import { tr, trd } from '../i18n';
 
@@ -105,6 +105,9 @@ export function Office({
               </button>
             ))}
           </div>
+          <input className="sel-in" type="search" placeholder={tr('Søk kunde, adresse, jobbnr …')} value={q} onChange={e => setQ(e.target.value)} aria-label={tr('Søk i jobber')} />
+          <details className="morefilters">
+            <summary>{tr('Flere filtre')}{carF || drvF || doneRange !== '7' ? ' •' : ''}</summary>
           <div className="two">
             <select className="sel-in" aria-label={tr('Filtrer på bil')} value={carF} onChange={e => setCarF(e.target.value)}>
               <option value="">{tr('Alle biler')}</option>
@@ -132,11 +135,10 @@ export function Office({
               </option>
             ))}
           </select>
-          <input className="sel-in" type="search" placeholder={tr('Søk kunde, adresse, jobbnr …')} value={q} onChange={e => setQ(e.target.value)} aria-label={tr('Søk i jobber')} />
+          </details>
         </div>
         {list.length ? (
           list.map(j => {
-            const m = underway(j) ? missing(j).length : 0;
             const v = vehicle(j.car);
             return (
               <button key={j.id} className={cx('row', j.status, j.id === sel && 'sel')} onClick={() => pick(j.id, true)}>
@@ -158,8 +160,6 @@ export function Office({
                   {v ? <span className="carchip">{v.name}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten bil')}</span>}
                   {jobDriverName(j) ? <span className="carchip drv">{jobDriverName(j)}</span> : j.status !== 'ferdig' && <span className="pill warn">{tr('Uten sjåfør')}</span>}
                   {underway(j) && <span className="pill prog">{progress(j)}</span>}
-                  {m > 0 && <span className="pill warn">{tr('Mangler {n}', { n: m })}</span>}
-                  {j.status === 'ferdig' && (j.invoiced ? <span className="pill ok">{tr('Fakturert')}</span> : null)}
                 </small>
               </button>
             );
@@ -279,14 +279,10 @@ function Detail({
         <dd>
           {j.address}
           {j.place ? `, ${j.place}` : ''}
-          <br />
-          <small className="muted">
-            {j.pin === 'kart' ? `${tr('Nål plassert manuelt')} (${fmtCoord(j)})` : tr('Fra adresseregisteret')}
-            {j.status !== 'ferdig' ? tr(' · flytt nålen under Rediger') : ''} ·{' '}
-            <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
-              {tr('Google Maps')}
-            </a>
-          </small>
+          {' · '}
+          <a href={mapsUrl(j)} target="_blank" rel="noopener noreferrer">
+            {tr('Vis i kart')}
+          </a>
         </dd>
         <dt>{tr('Dato')}</dt>
         <dd>
@@ -297,8 +293,12 @@ function Detail({
         <dd>
           {j.contact} {j.phone && <a href={`tel:${j.phone.replace(/\s/g, '')}`}>{j.phone}</a>}
         </dd>
-        <dt>{tr('Kundens ref.')}</dt>
-        <dd>{j.ref || '–'}</dd>
+        {j.ref && (
+          <>
+            <dt>{tr('Kundens ref.')}</dt>
+            <dd>{j.ref}</dd>
+          </>
+        )}
         {j.note && (
           <>
             <dt>{tr('Beskjed')}</dt>
@@ -321,7 +321,7 @@ function Detail({
         <>
           <div className="lab">{tr('Statuspunkter')}</div>
           <StepTimeline j={j} />
-          <Checklist job={j} />
+          <Checklist job={j} compact />
         </>
       ) : (
         <p className="note">{tr('Sjåføren har ikke begynt på jobben ennå.')}</p>
@@ -343,7 +343,7 @@ function Detail({
         </div>
       ) : (
         <button className="btn alt" onClick={onArchive}>
-          {tr('Åpne i arkivet')}
+          {tr('Lag PDF-rapport')}
         </button>
       )}
     </>

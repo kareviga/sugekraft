@@ -41,7 +41,7 @@ export function JobMap({
   const pins = useRef<L.LayerGroup | null>(null);
   const onSel = useRef(onSelect);
   onSel.current = onSelect;
-  const [style, setStyle] = useState<Style>(rememberedStyle);
+  const [style] = useState<Style>(rememberedStyle);
   const [offline, setOffline] = useState(false);
 
   // opprett kartet én gang
@@ -135,12 +135,6 @@ export function JobMap({
       <div ref={el} className="lmap" role="region" aria-label={tr('Kart over jobber')} />
       {!compact && (
       <div className="lbar">
-        <button aria-pressed={style === 'topo'} onClick={() => setStyle('topo')}>
-          {tr('Farger')}
-        </button>
-        <button aria-pressed={style === 'topograatone'} onClick={() => setStyle('topograatone')}>
-          {tr('Gråtone')}
-        </button>
         <button onClick={fit}>{tr('Vis alle')}</button>
       </div>
       )}

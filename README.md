@@ -1,6 +1,6 @@
 # Sugekraft – demo
 
-Webapp for sugebilfirmaer: kontor, sjåfør og arkiv med PDF-fakturagrunnlag.
+Webapp for sugebilfirmaer: kontor, sjåfør, kundeportal og PDF-rapporter av utførte jobber.
 Ren frontend (Vite + React + TypeScript). Data lagres i nettleserens localStorage.
 
 ## Backend (Supabase) og moduser
@@ -57,7 +57,7 @@ Demo-innlogginger (settes i `config.ts` under `users`):
 
 | Brukernavn | Rolle | Ser |
 |---|---|---|
-| `kontorbruker` | Kontor | Alt: Kontor, Kunder, Bilpark, Sjåfør, Arkiv og faktura |
+| `kontorbruker` | Kontor | Alt: Hjem, Jobber, Kunder, Bilpark, Rapporter |
 | `sjåførbruker` | Sjåfør | Egne oppdrag (koblet til sjåfør via `driverId`) |
 | `kundebruker` | Kunde | Kundeportalen for sin kunde (koblet via `clientId`) |
 
@@ -89,6 +89,17 @@ Språkvelgeren **NO | EN** står i toppmenyen og på innloggingssiden, og valget
 - **Godkjenning**: nye bestillinger vises øverst i Kontor (med tall på fanen). Kontoret kan godta (og sette på
   bil og sjåfør med en gang), redigere eller avvise med begrunnelse, som kunden ser i portalen.
 - Kontoret kan fortsatt legge inn oppdrag selv, også for kunder som ikke er i registeret (f.eks. telefonbestilling).
+
+## Rapporter
+
+Kundene har sine egne fakturasystemer. **Rapporter** lager en PDF-oppsummering av utførte jobber
+(samleside og én side per jobb med statuspunkter, kjøreseddel og bilder) som legges ved fakturaen.
+Velg én jobb, eller flere jobber for samme kunde.
+
+## Bilder
+
+Bilder komprimeres på telefonen før lagring: jobbilder til maks 1280 px og ca. 220 kB, kjøresedler til
+maks 1600 px og ca. 350 kB (lesbar tekst). PDF-er komprimeres også.
 
 ## Statuser og plassering
 
@@ -123,7 +134,7 @@ Sjåføren huker av punktene i rekkefølge, med klokkeslett (forhåndsutfylt med
 7. Ferdig – avslutter jobben. Krever at kjøreseddel, bilder, masse osv. er fylt ut.
 
 Siste punkt kan angres, og alle punkter kan endres. Kontor, Bilpark, arkivet og PDF-en viser fremdriften.
-PDF-en viser både arbeidstid og total tid inkludert kjøring.
+PDF-rapporten viser både arbeidstid og total tid inkludert kjøring.
 
 ## Struktur
 
@@ -131,7 +142,7 @@ PDF-en viser både arbeidstid og total tid inkludert kjøring.
 src/config.ts          konfigurasjon per firma
 src/data/seed.ts       eksempeldata
 src/store.ts           lagring (localStorage) og nullstilling
-src/lib/pdf.ts         PDF-fakturagrunnlag (jsPDF, lastes først ved bruk)
+src/lib/pdf.ts         PDF-jobbrapport (jsPDF, lastes først ved bruk)
 src/lib/photos.ts      bildekomprimering og genererte eksempelbilder
 src/lib/geo.ts         adressesøk og nærmeste adresse (Geonorge)
 src/lib/steps.ts       statuspunkter (rekkefølge, fremdrift, tider)
@@ -140,7 +151,7 @@ src/lib/auth.ts        demo-innlogging og roller
 src/i18n/              språk: tr()/trd() og engelsk ordbok (en.ts)
 src/views/Clients.tsx  kunderegister (admin)
 src/views/ClientPortal.tsx  kundeportal
-src/views/             Kontor, Sjåfør, Arkiv
+src/views/             Hjem, Jobber (Office), Kunder, Bilpark, Sjåfør, Rapporter (Archive), Kundeportal
 src/components/        kart (Leaflet + Kartverket), jobbskjema, dialoger
 ```
 
