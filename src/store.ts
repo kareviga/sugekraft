@@ -114,6 +114,18 @@ function commit(next: DB, immediate = false) {
 if (!isLive()) {
   persistNow();
   window.addEventListener('beforeunload', persistNow);
+  // Demo i flere faner (f.eks. kunde i én, kontor i en annen): hent endringer fra de andre fanene
+  window.addEventListener('storage', e => {
+    if (e.key !== config.storageKey || !e.newValue) return;
+    try {
+      const next = JSON.parse(e.newValue) as DB;
+      if (!next || !Array.isArray(next.jobs)) return;
+      db = { ...next, profiles: [], jobs: next.jobs.map(norm) };
+      listeners.forEach(l => l());
+    } catch {
+      /* ignorer ugyldige data */
+    }
+  });
 }
 
 const subscribe = (l: () => void) => {
