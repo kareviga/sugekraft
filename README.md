@@ -3,6 +3,12 @@
 Webapp for sugebilfirmaer: kontor, sjåfør og arkiv med PDF-fakturagrunnlag.
 Ren frontend (Vite + React + TypeScript). Data lagres i nettleserens localStorage.
 
+## Backend (Supabase)
+
+Appen kjører i dag i **demo-modus** med data i nettleseren. Databasen for drift (Supabase, én felles
+løsning for mange firmaer) ligger i [`supabase/`](supabase/README.md): skjema, tilgangsregler,
+demo-data og tester (`npm run test:db`). Å koble appen til databasen er neste trinn.
+
 ## Kjøre
 
 ```bash
